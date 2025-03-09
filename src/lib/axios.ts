@@ -1,14 +1,20 @@
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { getAccessToken, setAccessToken } from './auth';
+import { ApiResponse } from '@/schemas/api';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// Create a proper base URL with environment variables
+const apiVersion = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const baseURL = `${apiBaseUrl}/${apiVersion}`;
 
+// Create the API client instance
 const api = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 seconds timeout
 });
 
 // Request interceptor to add auth token to requests
@@ -29,34 +35,37 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // If error is 401 and we haven't already tried to refresh
+    // Handle 401 Unauthorized errors
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      try {
-        // Attempt to refresh the token
-        const refreshToken = Cookies.get('refreshToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
+      // Only attempt refresh if we have a refresh token
+      const refreshToken = Cookies.get('refreshToken');
+      if (refreshToken) {
+        try {
+          // Attempt to refresh the token
+          const refreshResponse = await axios.post(`${baseURL}/auth/refresh`, {
+            refreshToken,
+          });
+          
+          if (refreshResponse.data?.data?.token) {
+            // Update tokens
+            const newToken = refreshResponse.data.data.token;
+            setAccessToken(newToken);
+            
+            // Update the original request with new token
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return axios(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
         }
-        
-        const response = await axios.post(`${baseURL}/v1/auth/refresh`, {
-          refreshToken,
-        });
-        
-        if (response.data.accessToken) {
-          setAccessToken(response.data.accessToken);
-          // Update the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
-          return axios(originalRequest);
-        }
-      } catch (refreshError) {
-        // If refresh fails, redirect to login
-        if (typeof window !== 'undefined') {
-          Cookies.remove('refreshToken');
-          window.location.href = '/login';
-        }
-        return Promise.reject(refreshError);
+      }
+      
+      // If refresh failed or no refresh token, redirect to login
+      if (typeof window !== 'undefined') {
+        Cookies.remove('refreshToken');
+        window.location.href = '/login';
       }
     }
     
@@ -64,4 +73,30 @@ api.interceptors.response.use(
   }
 );
 
-export default api;
+// Type-safe wrapper functions for API calls
+export const apiClient = {
+  get: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
+    return api.get<ApiResponse<T>>(url, config);
+  },
+  
+  post: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
+    return api.post<ApiResponse<T>>(url, data, config);
+  },
+  
+  put: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
+    return api.put<ApiResponse<T>>(url, data, config);
+  },
+  
+  patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
+    return api.patch<ApiResponse<T>>(url, data, config);
+  },
+  
+  delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
+    return api.delete<ApiResponse<T>>(url, config);
+  },
+  
+  // Access the underlying axios instance if needed
+  instance: api
+};
+
+export default apiClient;
