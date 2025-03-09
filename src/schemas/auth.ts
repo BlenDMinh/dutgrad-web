@@ -1,24 +1,28 @@
 import { z } from "zod";
 
-// Login request validation schema
+// Schema for login form validation
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Authentication response schema
+export type LoginCredentials = z.infer<typeof loginSchema>;
+
+// Schema for state parameter validation
+export const stateParamSchema = z.string().min(1);
+
+// Schema for auth response validation
 export const authResponseSchema = z.object({
   token: z.string(),
-  user: z.any(),
-  expires: z.string(),
-  is_new_user: z.boolean(),
+  refresh: z.string().optional(),
+  user: z
+    .object({
+      id: z.string().or(z.number()),
+      email: z.string().email(),
+      name: z.string().optional(),
+    })
+    .optional(),
+  is_new_user: z.boolean().optional(),
 });
 
-// State parameter schema
-export const stateParamSchema = z
-  .string()
-  .min(1, "State parameter is required");
-
-// Export types derived from schemas
-export type LoginCredentials = z.infer<typeof loginSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setAccessToken } from "@/lib/auth";
 import { exchangeStateAction } from "./actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +13,18 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { APP_ROUTES } from "@/lib/constants";
+import { useAuth } from "@/providers/auth-provider";
+import { authService } from "@/services/api-services";
 
 export default function SuccessCallbackPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Add a state to track if we're redirecting
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     const state = searchParams.get("state");
@@ -32,11 +37,10 @@ export default function SuccessCallbackPage() {
 
     const performStateExchange = async () => {
       try {
-        setIsLoading(true);
         const result = await exchangeStateAction(state);
 
-        if (!result.success || !result.data) {
-          setError(result.error || "Authentication failed");
+        if (!result || !result.data) {
+          setError(result?.error || "Authentication failed");
           setIsLoading(false);
           return;
         }
@@ -44,25 +48,53 @@ export default function SuccessCallbackPage() {
         // With Zod validation, we can be confident that these properties exist
         const { token, is_new_user } = result.data;
 
-        // Store the token
-        setAccessToken(token);
+        // Set redirecting state first
+        setIsRedirecting(true);
 
-        // Redirect based on user status
-        if (is_new_user) {
-          router.push("/auth/complete-setup");
-        } else {
-          router.push("/dashboard");
-        }
+        // Use the auth context to login
+        login(token);
+
+        // Short delay to ensure token is set before redirect
+        setTimeout(() => {
+          // Redirect based on user status
+          if (is_new_user) {
+            router.push("/auth/complete-setup");
+          } else {
+            router.push(APP_ROUTES.DASHBOARD);
+          }
+        }, 100);
       } catch (err) {
-        setError("Authentication failed. Please try again.");
         console.error("Authentication error:", err);
+        setError("Authentication failed. Please try again.");
         setIsLoading(false);
       }
     };
 
     performStateExchange();
-  }, [router, searchParams]);
+  }, [searchParams]);
 
+  // If redirecting, continue showing loading state
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-center text-primary">
+              Authentication Successful
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center space-y-6 py-8">
+            <div className="text-xl font-medium text-center">
+              Redirecting to dashboard...
+            </div>
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Only show error if we're not redirecting
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -88,6 +120,7 @@ export default function SuccessCallbackPage() {
     );
   }
 
+  // Loading state
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">

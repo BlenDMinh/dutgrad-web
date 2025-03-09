@@ -1,10 +1,10 @@
 export const API_ROUTES = {
   AUTH: {
-    LOGIN: "/v1/auth/login",
-    LOGOUT: "/v1/auth/logout",
-    GOOGLE: "/v1/auth/google",
-    CALLBACK: "/v1/auth/callback",
-    EXCHANGE_STATE: "/v1/auth/exchange-state",
+    LOGIN: "/auth/login",
+    LOGOUT: "/auth/logout",
+    GOOGLE: "/auth/oauth/google",
+    CALLBACK: "/auth/callback",
+    EXCHANGE_STATE: "/auth/exchange-state",
   },
 };
 
