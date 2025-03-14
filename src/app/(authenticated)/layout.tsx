@@ -15,7 +15,6 @@ export default function AuthenticatedLayout({
   const router = useRouter();
   
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isLoading && !isLoggedIn) {
       router.push(APP_ROUTES.LOGIN);
     }
@@ -29,7 +28,6 @@ export default function AuthenticatedLayout({
     );
   }
   
-  // Don't render content until we're sure the user is authenticated
   if (!isLoggedIn) {
     return null;
   }
