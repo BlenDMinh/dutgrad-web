@@ -41,10 +41,8 @@ export default function LoginPage() {
       }
       
       if (result.data) {
-        // Update auth context with the access token
         login(result.data.accessToken)
         
-        // Navigate to home/dashboard
         router.push(APP_ROUTES.DASHBOARD)
       }
     } catch (err) {
@@ -111,13 +109,11 @@ export default function LoginPage() {
               {isLoading ? "Signing in..." : "Sign in with Email"}
             </Button>
           </form>
-          
-          {/* OAuth Buttons */}
           <OAuthButtons />
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            {"Don't have an account?"}
             <Link
               href="/register"
               className="text-primary underline-offset-4 hover:underline"

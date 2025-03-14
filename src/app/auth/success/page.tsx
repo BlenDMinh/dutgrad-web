@@ -15,7 +15,6 @@ import { Loader2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { APP_ROUTES } from "@/lib/constants";
 import { useAuth } from "@/providers/auth-provider";
-import { authService } from "@/services/api-services";
 
 export default function SuccessCallbackPage() {
   const router = useRouter();
@@ -23,7 +22,6 @@ export default function SuccessCallbackPage() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // Add a state to track if we're redirecting
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
@@ -45,18 +43,13 @@ export default function SuccessCallbackPage() {
           return;
         }
 
-        // With Zod validation, we can be confident that these properties exist
         const { token, is_new_user } = result.data;
 
-        // Set redirecting state first
         setIsRedirecting(true);
 
-        // Use the auth context to login
         login(token);
 
-        // Short delay to ensure token is set before redirect
         setTimeout(() => {
-          // Redirect based on user status
           if (is_new_user) {
             router.push("/auth/complete-setup");
           } else {
@@ -73,7 +66,6 @@ export default function SuccessCallbackPage() {
     performStateExchange();
   }, [searchParams]);
 
-  // If redirecting, continue showing loading state
   if (isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -94,7 +86,6 @@ export default function SuccessCallbackPage() {
     );
   }
 
-  // Only show error if we're not redirecting
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -120,7 +111,6 @@ export default function SuccessCallbackPage() {
     );
   }
 
-  // Loading state
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
