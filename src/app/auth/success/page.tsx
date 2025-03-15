@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { exchangeStateAction } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,14 @@ import { APP_ROUTES } from "@/lib/constants";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function SuccessCallbackPage() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <SuccessPage />
+    </Suspense>
+  )
+}
+
+function SuccessPage() {
   const router = useRouter();
   const { login } = useAuth();
   const searchParams = useSearchParams();
