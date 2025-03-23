@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiClient } from '@/lib/axios';
 import { API_ROUTES } from '@/lib/constants';
 import { AuthResponse } from '@/schemas/auth';
