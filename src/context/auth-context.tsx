@@ -3,17 +3,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { isAuthenticated, clearAuthTokens, setAuthTokens } from '@/lib/auth';
-import { logoutUser, registerUser } from '@/actions/auth-actions';
 import { APP_ROUTES } from '@/lib/constants';
-
+import { logoutUser } from './action';
 
 interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
-  login: (accessToken: string) => void;
-  register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<void>;
+  loginSuccess: (accessToken: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,29 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authenticated;
   };
 
-  const login = (accessToken: string) => {
+  const loginSuccess = (accessToken: string) => {
     setAuthTokens({ accessToken });
     setIsLoggedIn(true);
-  };
-
-  const register = async (data: { first_name: string; last_name: string; email: string; password: string }) => {
-    try {
-      const formData = new FormData();
-      formData.append('first_name', data.first_name);
-      formData.append('last_name', data.last_name);
-      formData.append('email', data.email);
-      formData.append('password', data.password);
-  
-      const response = await registerUser(formData); 
-  
-      if (response.error) {
-        console.error("Registration failed:", response.error);
-        return;
-      }
-      router.push(APP_ROUTES.LOGIN);
-    } catch (error) {
-      console.error("Error during registration:", error);
-    }
   };
   
   const logout = async () => {
@@ -82,8 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     logout,
     checkAuth,
-    login,
-    register
+    loginSuccess,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { loginUser } from "@/actions/auth-actions"
 import { APP_ROUTES } from "@/lib/constants"
-import { useAuth } from "@/providers/auth-provider"
+import { useAuth } from "@/context/auth-context"
 import OAuthButtons from "@/components/auth/oauth-buttons"
+import { loginUser } from "./action"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { loginSuccess } = useAuth()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
 
@@ -41,7 +41,7 @@ export default function LoginPage() {
       }
       
       if (result.data) {
-        login(result.data.accessToken)
+        loginSuccess(result.data.accessToken)
         
         router.push(APP_ROUTES.DASHBOARD)
       }

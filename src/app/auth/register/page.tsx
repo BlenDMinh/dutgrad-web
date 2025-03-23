@@ -16,19 +16,17 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { registerUser } from '@/actions/auth-actions';
 import { APP_ROUTES } from '@/lib/constants';
 import { registerSchema } from '@/schemas/auth';
 import { useState } from 'react';
-import { useAuth } from '@/providers/auth-provider';
 import { toast } from 'sonner';
 import { Toaster } from "sonner";
+import { registerUser } from './action';
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register: authRegister } = useAuth();
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -179,7 +177,7 @@ export default function RegisterPage() {
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link
-              href="/login"
+              href={APP_ROUTES.LOGIN}
               className="text-primary underline-offset-4 hover:underline"
             >
               Sign in

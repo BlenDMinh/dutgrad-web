@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/providers/auth-provider";
+import { useAuth } from "@/context/auth-context";
 import { 
   LayoutDashboard, 
   User, 
