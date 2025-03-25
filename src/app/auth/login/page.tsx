@@ -115,7 +115,7 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">
             {"Don't have an account?"}
             <Link
-              href="/register"
+              href={APP_ROUTES.REGISTER}
               className="text-primary underline-offset-4 hover:underline"
             >
               {" Sign up"}

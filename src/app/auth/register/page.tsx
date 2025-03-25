@@ -44,8 +44,7 @@ export default function RegisterPage() {
 
     try {
       const formData = new FormData();
-      formData.append('first_name', data.first_name);
-      formData.append('last_name', data.last_name);
+      formData.append('username', data.username);
       formData.append('email', data.email);
       formData.append('password', data.password);
 
@@ -91,31 +90,16 @@ export default function RegisterPage() {
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="first_name">First Name</Label>
+              <Label htmlFor="username">User Name</Label>
               <Input
-                id="first_name"
-                {...register('first_name')}
+                id="username"
+                {...register('username')}
                 placeholder="John"
                 disabled={isLoading}
               />
-              {errors.first_name && (
+              {errors.username && (
                 <p className="text-sm text-red-500">
-                  {errors.first_name.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="last_name">Last Name</Label>
-              <Input
-                id="last_name"
-                {...register('last_name')}
-                placeholder="Doe"
-                disabled={isLoading}
-              />
-              {errors.last_name && (
-                <p className="text-sm text-red-500">
-                  {errors.last_name.message}
+                  {errors.username.message}
                 </p>
               )}
             </div>
