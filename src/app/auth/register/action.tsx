@@ -13,14 +13,12 @@ export async function registerUser(
   formData: FormData
 ): Promise<ActionResponse<{ accessToken: string; refreshToken?: string }>> {
   try {
-    const firstName = formData.get('first_name') as string;
-    const lastName = formData.get('last_name') as string;
+    const username = formData.get('username') as string;
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
     const validatedFields = registerSchema.safeParse({
-      first_name: firstName,
-      last_name: lastName,
+      username: username,
       email,
       password,
       confirmPassword: password,
