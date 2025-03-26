@@ -14,7 +14,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { APP_ROUTES } from "@/lib/constants";
-import { useAuth } from "@/providers/auth-provider";
+import { useAuth } from "@/context/auth-context";
 
 export default function SuccessCallbackPage() {
   return (
@@ -26,7 +26,7 @@ export default function SuccessCallbackPage() {
 
 function SuccessPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { loginSuccess } = useAuth();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,7 +55,7 @@ function SuccessPage() {
 
         setIsRedirecting(true);
 
-        login(token);
+        loginSuccess(token);
 
         setTimeout(() => {
           if (is_new_user) {
@@ -110,7 +110,7 @@ function SuccessPage() {
             </Alert>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Button onClick={() => router.push("/login")} variant="default">
+            <Button onClick={() => router.push(APP_ROUTES.LOGIN)} variant="default">
               Return to Login
             </Button>
           </CardFooter>

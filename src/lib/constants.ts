@@ -11,8 +11,8 @@ export const API_ROUTES = {
 
 export const APP_ROUTES = {
   HOME: "/",
-  LOGIN: "/login",
-  REGISTER: "/register",
+  LOGIN: "/auth/login",
+  REGISTER: "/auth/register",
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
   AUTH_CALLBACK: "/auth/callback",

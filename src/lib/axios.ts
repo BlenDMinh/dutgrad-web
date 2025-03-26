@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { getAccessToken, setAccessToken } from './auth';

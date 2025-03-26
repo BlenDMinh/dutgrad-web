@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { authService } from '@/services/api-services';
+import { authService } from '@/services/api/auth.service';
 
 export default function OAuthButtons() {
   const [isLoading, setIsLoading] = useState<boolean>(false);

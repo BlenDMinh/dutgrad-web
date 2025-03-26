@@ -53,8 +53,8 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/login',
-    '/register', 
+    '/auth/login',
+    '/auth/register', 
     '/forgot-password',
     '/auth/callback',
     '/auth/success',

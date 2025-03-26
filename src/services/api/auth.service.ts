@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiClient } from '@/lib/axios';
 import { API_ROUTES } from '@/lib/constants';
 import { AuthResponse } from '@/schemas/auth';
-import { ApiResponse, isSuccessResponse } from '@/schemas/api';
 import { registerSchema } from '@/schemas/auth';
 import { z } from 'zod';
+import { handleResponse } from './helper';
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -15,13 +14,6 @@ interface LoginRequest {
 interface ExchangeStateRequest {
   state: string;
 }
-
-const handleResponse = <T>(response: ApiResponse<T>): T => {
-  if (isSuccessResponse(response)) {
-    return response.data;
-  }
-  throw new Error(response.error || response.message || 'Unknown error');
-};
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<AuthResponse> => {
@@ -54,14 +46,3 @@ export const authService = {
   },
 };
 
-export const userService = {
-  getProfile: async () => {
-    const response = await apiClient.get('/users/me');
-    return handleResponse(response.data);
-  },
-  
-  updateProfile: async (data: any) => {
-    const response = await apiClient.put('/users/me', data);
-    return handleResponse(response.data);
-  },
-};

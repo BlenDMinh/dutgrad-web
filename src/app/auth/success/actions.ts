@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { authService } from "@/services/api-services";
 import { stateParamSchema, AuthResponse } from "@/schemas/auth";
+import { authService } from "@/services/api/auth.service";
 
 type ExchangeStateResponse = {
   success: boolean;
