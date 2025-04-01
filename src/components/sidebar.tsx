@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,17 +13,22 @@ import {
   Settings, 
   LogOut,
   Calendar,
-  FileText,
   MessageSquare,
-  Bell
+  Bell,
+  SpaceIcon,
+  ChevronDown,
+  ChevronRight,
+  Users, 
+  Folder,
 } from "lucide-react";
 import ThemeToggle from "./theme-toggle";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
-    href: string;
+    href?: string;
     title: string;
     icon: React.ReactNode;
+    subItems?: { title: string; href: string; icon: React.ReactNode }[];
   }[];
 }
 
@@ -41,14 +47,17 @@ export function Sidebar() {
       icon: <User className="mr-2 h-4 w-4" />,
     },
     {
+      title: "Spaces",
+      icon: <SpaceIcon className="mr-2 h-4 w-4" />,
+      subItems: [
+        { title: "Public Spaces", href: "/spaces/public", icon: <Users className="mr-2 h-4 w-4" /> },
+        { title: "My Spaces", href: "/spaces/mine", icon: <Folder className="mr-2 h-4 w-4" /> },
+      ],
+    },
+    {
       title: "Calendar",
       href: "/calendar",
       icon: <Calendar className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Resources",
-      href: "/resources",
-      icon: <FileText className="mr-2 h-4 w-4" />,
     },
     {
       title: "Messages",
@@ -96,21 +105,62 @@ export function Sidebar() {
 
 export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
   const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  const toggleMenu = (title: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
 
   return (
     <nav className={cn("flex flex-col gap-1", className)} {...props}>
       {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-            pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+        <div key={item.title}>
+          {item.href ? (
+            <Link
+              href={item.href}
+              className={cn(
+                "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+              )}
+            >
+              {item.icon}
+              {item.title}
+            </Link>
+          ) : (
+            <div>
+              <button
+                onClick={() => toggleMenu(item.title)}
+                className="flex w-full items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground"
+              >
+                {item.icon}
+                {item.title}
+                <span className="ml-auto">
+                  {openMenus[item.title] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </span>
+              </button>
+              {openMenus[item.title] && item.subItems && (
+                <div className="ml-6 mt-1 flex flex-col gap-1">
+                  {item.subItems.map((subItem) => (
+                    <Link
+                      key={subItem.href}
+                      href={subItem.href}
+                      className={cn(
+                        "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-muted",
+                        pathname === subItem.href ? "bg-muted text-primary" : "transparent"
+                      )}
+                    >
+                      {subItem.icon}
+                      {subItem.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-        >
-          {item.icon}
-          {item.title}
-        </Link>
+        </div>
       ))}
     </nav>
   );

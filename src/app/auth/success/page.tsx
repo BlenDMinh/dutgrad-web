@@ -51,11 +51,11 @@ function SuccessPage() {
           return;
         }
 
-        const { token, is_new_user } = result.data;
+        const { token, is_new_user, user } = result.data;
 
         setIsRedirecting(true);
 
-        loginSuccess(token);
+        loginSuccess(token, user!);
 
         setTimeout(() => {
           if (is_new_user) {

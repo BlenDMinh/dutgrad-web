@@ -11,7 +11,15 @@ interface ActionResponse<T> {
 
 export async function loginUser(
   formData: FormData
-): Promise<ActionResponse<{ accessToken: string; refreshToken?: string }>> {
+): Promise<ActionResponse<{ 
+  accessToken: string; 
+  refreshToken?: string;
+  user: {
+    id: string | number
+    email: string
+    username: string
+  }
+}>> {
   try {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -45,6 +53,7 @@ export async function loginUser(
       data: {
         accessToken: authData.token,
         refreshToken: authData.refresh,
+        user: authData.user!
       },
     };
   } catch (error: any) {
