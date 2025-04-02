@@ -40,13 +40,13 @@ export default function PublicSpacesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
       <h1 className="text-5xl font-extrabold text-center text-gray-900 mb-10">
         <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
           Public Spaces
         </span>
       </h1>
-      <p className="text-center text-gray-600 text-lg mb-6">
+      <p className="text-center text-primary text-lg mb-6">
         Explore a collection of amazing public spaces 🌍
       </p>
 
@@ -61,12 +61,12 @@ export default function PublicSpacesPage() {
           {publicSpaces.map((space: PublicSpace) => (
             <div
               key={space.id}
-              className="bg-white p-6 rounded-2xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 duration-300"
+              className="bg-primary/1 p-6 rounded-2xl shadow-xl hover:shadow-2xl border transition-all transform hover:scale-105 duration-300"
             >
-              <h2 className="text-2xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+              <h2 className="text-2xl font-semibold text-foreground hover:text-blue-600 transition-colors">
                 {space.name}
               </h2>
-              <p className="mt-3 text-gray-600 text-sm">{space.description}</p>
+              <p className="mt-3 text-primary text-sm">{space.description}</p>
               <div className="mt-6 flex justify-between items-center">
                 <span
                   className={`px-4 py-2 text-sm rounded-full ${
