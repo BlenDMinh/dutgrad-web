@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z, ZodType } from "zod";
 
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,16 +19,18 @@ export type LoginCredentials = z.infer<typeof loginSchema>;
 
 export const stateParamSchema = z.string().min(1);
 
+export const userSchema = z.object({
+  id: z.string().or(z.number()),
+  email: z.string().email(),
+  username: z.string(),
+})
+
+export type User = z.infer<typeof userSchema>;
+
 export const authResponseSchema = z.object({
   token: z.string(),
   refresh: z.string().optional(),
-  user: z
-    .object({
-      id: z.string().or(z.number()),
-      email: z.string().email(),
-      name: z.string().optional(),
-    })
-    .optional(),
+  user: userSchema.optional(),
   is_new_user: z.boolean().optional(),
 });
 

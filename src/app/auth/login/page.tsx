@@ -41,7 +41,7 @@ export default function LoginPage() {
       }
       
       if (result.data) {
-        loginSuccess(result.data.accessToken)
+        loginSuccess(result.data.accessToken, result.data.user)
         
         router.push(APP_ROUTES.DASHBOARD)
       }

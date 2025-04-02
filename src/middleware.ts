@@ -12,6 +12,7 @@ const publicRoutes = [
 const protectedRoutes = [
   APP_ROUTES.DASHBOARD, 
   APP_ROUTES.PROFILE, 
+  APP_ROUTES.SPACES.PUBLIC,
   '/settings'
 ];
 
@@ -60,6 +61,7 @@ export const config = {
     '/auth/success',
     '/dashboard/:path*',
     '/profile/:path*',
+    '/spaces/:path*',
     '/settings/:path*'
   ]
 };
