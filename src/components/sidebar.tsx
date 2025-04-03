@@ -51,7 +51,7 @@ export function Sidebar() {
       icon: <SpaceIcon className="mr-2 h-4 w-4" />,
       subItems: [
         { title: "Public Spaces", href: "/spaces/public", icon: <Users className="mr-2 h-4 w-4" /> },
-        { title: "My Spaces", href: "/spaces/mine", icon: <Folder className="mr-2 h-4 w-4" /> },
+        { title: "My Spaces", href: "/spaces/me", icon: <Folder className="mr-2 h-4 w-4" /> },
       ],
     },
     {
