@@ -7,4 +7,8 @@ export const spaceService = {
       const response = await apiClient.get(API_ROUTES.SPACE.PUBLIC);
       return handleResponse(response.data);
     },
+    getYourSpaces: async () => {
+      const response = await apiClient.get(API_ROUTES.SPACE.MINE);
+      return handleResponse(response.data);
+    },
 };

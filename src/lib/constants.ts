@@ -10,7 +10,7 @@ export const API_ROUTES = {
   SPACE: {
     ALL: "/spaces",
     PUBLIC: "/spaces/public",
-    MINE: "/spaces/mine"
+    MINE: "/spaces/me"
   }
 };
 
@@ -22,6 +22,7 @@ export const APP_ROUTES = {
   PROFILE: "/profile",
   AUTH_CALLBACK: "/auth/callback",
   SPACES: {
-    PUBLIC: "/spaces/public"
+    PUBLIC: "/spaces/public",
+    MINE: "/spaces/me"
   },
 };
