@@ -13,6 +13,7 @@ const protectedRoutes = [
   APP_ROUTES.DASHBOARD, 
   APP_ROUTES.PROFILE, 
   APP_ROUTES.SPACES.PUBLIC,
+  APP_ROUTES.SPACES.MINE,
   '/settings'
 ];
 
