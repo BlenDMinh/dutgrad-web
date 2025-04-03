@@ -9,6 +9,7 @@ export const API_ROUTES = {
   },
   SPACE: {
     ALL: "/spaces",
+    DETAIL:"/space",
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me"
   }
