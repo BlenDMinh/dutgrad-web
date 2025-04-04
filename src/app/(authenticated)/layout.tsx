@@ -33,9 +33,9 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex">
       <Sidebar />
-      <main className="flex-1">
+      <main className="ml-64 flex-1 min-h-screen overflow-auto">
         {children}
       </main>
     </div>
