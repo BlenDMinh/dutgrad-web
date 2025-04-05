@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { spaceService } from '@/services/api/space.service';
 import {
-  FaPlus,
   FaEdit,
   FaTrash,
   FaEye,
@@ -13,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Bot } from 'lucide-react';
+import ImportModal from './components/ImportModal';
 
 interface Document {
   id: number;
@@ -105,10 +105,7 @@ export default function SpaceDetailPage() {
               <SearchBar onSearch={(query) => console.log(query)} />
             </div>
             <div className="flex gap-4">
-              <Button variant="outline" className="flex items-center gap-2">
-                <FaPlus size={20} />
-                Import
-              </Button>
+              <ImportModal spaceId={spaceId}/>
               <Button className="flex items-center gap-2">
                 <FaRobot size={22} />
                 Open Chat
