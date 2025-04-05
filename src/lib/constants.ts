@@ -7,6 +7,13 @@ export const API_ROUTES = {
     CALLBACK: "/auth/callback",
     EXCHANGE_STATE: "/auth/exchange-state",
   },
+  SPACE: {
+    ALL: "/spaces",
+    CREATE: "/spaces/create",
+    DETAIL:"/space",
+    PUBLIC: "/spaces/public",
+    MINE: "/spaces/me"
+  }
 };
 
 export const APP_ROUTES = {
@@ -16,4 +23,8 @@ export const APP_ROUTES = {
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
   AUTH_CALLBACK: "/auth/callback",
+  SPACES: {
+    PUBLIC: "/spaces/public",
+    MINE: "/spaces/me"
+  },
 };

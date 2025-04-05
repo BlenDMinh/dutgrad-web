@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,20 +10,23 @@ import { useAuth } from "@/context/auth-context";
 import { 
   LayoutDashboard, 
   User, 
-  Settings, 
   LogOut,
-  Calendar,
-  FileText,
-  MessageSquare,
-  Bell
+  SpaceIcon,
+  ChevronDown,
+  ChevronRight,
+  Users, 
+  Folder,
+  Plus,
 } from "lucide-react";
 import ThemeToggle from "./theme-toggle";
+import { API_ROUTES, APP_ROUTES } from "@/lib/constants";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
-    href: string;
+    href?: string;
     title: string;
     icon: React.ReactNode;
+    subItems?: { title: string; href: string; icon: React.ReactNode }[];
   }[];
 }
 
@@ -32,43 +36,27 @@ export function Sidebar() {
   const sidebarNavItems = [
     {
       title: "Dashboard",
-      href: "/dashboard",
+      href: APP_ROUTES.DASHBOARD,
       icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
     },
     {
       title: "Profile",
-      href: "/profile",
+      href: APP_ROUTES.PROFILE,
       icon: <User className="mr-2 h-4 w-4" />,
     },
     {
-      title: "Calendar",
-      href: "/calendar",
-      icon: <Calendar className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Resources",
-      href: "/resources",
-      icon: <FileText className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Messages",
-      href: "/messages",
-      icon: <MessageSquare className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Notifications",
-      href: "/notifications",
-      icon: <Bell className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Settings",
-      href: "/settings",
-      icon: <Settings className="mr-2 h-4 w-4" />,
+      title: "Spaces",
+      icon: <SpaceIcon className="mr-2 h-4 w-4" />,
+      subItems: [
+        { title: "Create Spaces", href: API_ROUTES.SPACE.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
+        { title: "Public Spaces", href: API_ROUTES.SPACE.PUBLIC, icon: <Users className="mr-2 h-4 w-4" /> },
+        { title: "My Spaces", href: API_ROUTES.SPACE.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
+      ],
     },
   ];
 
   return (
-    <aside className="w-64 h-screen flex flex-col border-r bg-background">
+    <aside className="w-64 fixed top-0 left-0 h-screen flex flex-col border-r bg-background z-50">
       <div className="flex h-14 items-center justify-between border-b px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <span className="text-xl font-bold">DUT Grad</span>
@@ -96,21 +84,62 @@ export function Sidebar() {
 
 export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
   const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  const toggleMenu = (title: string) => {
+    setOpenMenus((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
+  };
 
   return (
     <nav className={cn("flex flex-col gap-1", className)} {...props}>
       {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-            pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+        <div key={item.title}>
+          {item.href ? (
+            <Link
+              href={item.href}
+              className={cn(
+                "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+              )}
+            >
+              {item.icon}
+              {item.title}
+            </Link>
+          ) : (
+            <div>
+              <button
+                onClick={() => toggleMenu(item.title)}
+                className="flex w-full items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground"
+              >
+                {item.icon}
+                {item.title}
+                <span className="ml-auto">
+                  {openMenus[item.title] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </span>
+              </button>
+              {openMenus[item.title] && item.subItems && (
+                <div className="ml-6 mt-1 flex flex-col gap-1">
+                  {item.subItems.map((subItem) => (
+                    <Link
+                      key={subItem.href}
+                      href={subItem.href}
+                      className={cn(
+                        "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-muted",
+                        pathname === subItem.href ? "bg-muted text-primary" : "transparent"
+                      )}
+                    >
+                      {subItem.icon}
+                      {subItem.title}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
-        >
-          {item.icon}
-          {item.title}
-        </Link>
+        </div>
       ))}
     </nav>
   );

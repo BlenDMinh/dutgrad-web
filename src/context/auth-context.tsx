@@ -2,16 +2,19 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { isAuthenticated, clearAuthTokens, setAuthTokens } from '@/lib/auth';
+import { isAuthenticated, clearAuthTokens, setAuthTokens, setAuthUser, clearAuthUser } from '@/lib/auth';
 import { APP_ROUTES } from '@/lib/constants';
 import { logoutUser } from './action';
+import { User } from '@/schemas/auth';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
-  loginSuccess: (accessToken: string) => void;
+  loginSuccess: (accessToken: string, user: User) => void;
+  getAuthUser: () => User | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,10 +41,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return authenticated;
   };
 
-  const loginSuccess = (accessToken: string) => {
+  const loginSuccess = (accessToken: string, user: User) => {
     setAuthTokens({ accessToken });
+    setAuthUser(user);
     setIsLoggedIn(true);
   };
+
+  const getAuthUser = () => {
+    let userStr = null;
+    if (typeof window !== 'undefined') {
+      userStr = Cookies.get('auth-user')
+    } else {
+      userStr = localStorage.getItem('authUser')
+    }
+
+    if(!userStr) {
+      return null;
+    }
+
+    return JSON.parse(userStr) as User
+  }
   
   const logout = async () => {
     try {
@@ -50,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error during logout:', error);
     } finally {
       clearAuthTokens();
+      clearAuthUser();
       setIsLoggedIn(false);
       router.push(APP_ROUTES.LOGIN);
     }
@@ -61,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     checkAuth,
     loginSuccess,
+    getAuthUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
