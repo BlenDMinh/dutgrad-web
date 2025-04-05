@@ -27,4 +27,7 @@ export const APP_ROUTES = {
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me"
   },
+  DOCUMENT: {
+    UPLOAD_PROGRESS: (id: string) => `/documents/upload-progress/${id}`,
+  }
 };

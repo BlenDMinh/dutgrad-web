@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { getAccessToken, setAccessToken } from './auth';
 import { ApiResponse } from '@/schemas/api';
+import { APP_ROUTES } from './constants';
 
 const apiVersion = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 const apiBaseUrl = (
@@ -58,7 +59,7 @@ api.interceptors.response.use(
       
       if (typeof window !== 'undefined') {
         Cookies.remove('refreshToken');
-        window.location.href = '/login';
+        window.location.href = APP_ROUTES.LOGIN;
       }
     }
     
