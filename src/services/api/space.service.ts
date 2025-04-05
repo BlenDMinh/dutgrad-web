@@ -11,4 +11,12 @@ export const spaceService = {
       const response = await apiClient.get(API_ROUTES.SPACE.MINE);
       return handleResponse(response.data);
     },
+    getSpaceById: async (spaceId: string) => {
+      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}`);
+      return handleResponse(response.data);
+    },
+    getDocumentBySpace: async (spaceId: string) => {
+      const response = await apiClient.get(`${API_ROUTES.SPACE.DETAIL}/${spaceId}/documents`);
+      return handleResponse(response.data);
+    },
 };

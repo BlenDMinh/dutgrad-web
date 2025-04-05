@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { spaceService } from "@/services/api/space.service";
+import { useRouter } from "next/navigation";
 
 interface YourSpace {
   id: number;
@@ -14,12 +15,12 @@ export default function YourSpacesPage() {
   const [yourSpaces, setYourSpaces] = useState<YourSpace[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchYourSpaces = async () => {
       try {
         const response = await spaceService.getYourSpaces();
-        console.log(response.spaces);
         setYourSpaces(response.spaces || []);
       } catch (err) {
         setError("Failed to fetch your spaces");
@@ -61,6 +62,7 @@ export default function YourSpacesPage() {
           {yourSpaces.map((space: YourSpace) => (
             <div
               key={space.id}
+              onClick={() => router.push(`/spaces/${space.id}`)}
               className="bg-primary/1 p-6 rounded-2xl shadow-xl hover:shadow-2xl border transition-all transform hover:scale-105 duration-300"
             >
               <h2 className="text-2xl font-semibold text-foreground hover:text-blue-600 transition-colors">

@@ -10,18 +10,16 @@ import { useAuth } from "@/context/auth-context";
 import { 
   LayoutDashboard, 
   User, 
-  Settings, 
   LogOut,
-  Calendar,
-  MessageSquare,
-  Bell,
   SpaceIcon,
   ChevronDown,
   ChevronRight,
   Users, 
   Folder,
+  Plus,
 } from "lucide-react";
 import ThemeToggle from "./theme-toggle";
+import { API_ROUTES, APP_ROUTES } from "@/lib/constants";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -38,46 +36,27 @@ export function Sidebar() {
   const sidebarNavItems = [
     {
       title: "Dashboard",
-      href: "/dashboard",
+      href: APP_ROUTES.DASHBOARD,
       icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
     },
     {
       title: "Profile",
-      href: "/profile",
+      href: APP_ROUTES.PROFILE,
       icon: <User className="mr-2 h-4 w-4" />,
     },
     {
       title: "Spaces",
       icon: <SpaceIcon className="mr-2 h-4 w-4" />,
       subItems: [
-        { title: "Public Spaces", href: "/spaces/public", icon: <Users className="mr-2 h-4 w-4" /> },
-        { title: "My Spaces", href: "/spaces/me", icon: <Folder className="mr-2 h-4 w-4" /> },
+        { title: "Create Spaces", href: API_ROUTES.SPACE.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
+        { title: "Public Spaces", href: API_ROUTES.SPACE.PUBLIC, icon: <Users className="mr-2 h-4 w-4" /> },
+        { title: "My Spaces", href: API_ROUTES.SPACE.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
       ],
-    },
-    {
-      title: "Calendar",
-      href: "/calendar",
-      icon: <Calendar className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Messages",
-      href: "/messages",
-      icon: <MessageSquare className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Notifications",
-      href: "/notifications",
-      icon: <Bell className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Settings",
-      href: "/settings",
-      icon: <Settings className="mr-2 h-4 w-4" />,
     },
   ];
 
   return (
-    <aside className="w-64 h-screen flex flex-col border-r bg-background">
+    <aside className="w-64 fixed top-0 left-0 h-screen flex flex-col border-r bg-background z-50">
       <div className="flex h-14 items-center justify-between border-b px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <span className="text-xl font-bold">DUT Grad</span>
