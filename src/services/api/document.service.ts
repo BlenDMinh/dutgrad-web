@@ -8,11 +8,15 @@ export const documentService = {
         formData.append("space_id", spaceId.toString()); 
         formData.append("file", file);
 
-        return apiClient.instance.post("/documents/upload", formData, {
+        return apiClient.instance.post(API_ROUTES.DOCUMENT.UPLOAD, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
                 "Accept": "application/json"
             }
         });
+    },
+
+    getDocumentById(documentId: number) {
+        return apiClient.instance.get(API_ROUTES.DOCUMENT.DETAIL(documentId.toString()))
     }
 };

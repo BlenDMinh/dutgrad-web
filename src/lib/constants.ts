@@ -13,7 +13,11 @@ export const API_ROUTES = {
     DETAIL:"/space",
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me"
-  }
+  },
+  DOCUMENT: {
+    UPLOAD: "/documents/upload",
+    DETAIL: (id: string) => `/documents/${id}`,
+  },
 };
 
 export const APP_ROUTES = {
