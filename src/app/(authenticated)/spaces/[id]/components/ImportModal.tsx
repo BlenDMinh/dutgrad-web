@@ -60,11 +60,14 @@ export default function ImportDialog(props: ImportDialogProps) {
                 });
                 
                 form.reset();
+
+                const document = response.data.data.document;
+                const docId = document.id
                 
                 setTimeout(() => {
                     setIsOpen(false);
                     setFeedback({ type: null, message: '' });
-                    router.push(APP_ROUTES.DOCUMENT.UPLOAD_PROGRESS('test'));
+                    router.push(APP_ROUTES.DOCUMENT.UPLOAD_PROGRESS(docId));
                 }, 1000);
             } else {
                 throw new Error(response.data.message || "Failed to upload document");
