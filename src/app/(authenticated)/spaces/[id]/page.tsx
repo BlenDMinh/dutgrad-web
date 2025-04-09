@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { spaceService } from '@/services/api/space.service';
 import {
   FaEdit,
@@ -41,6 +41,8 @@ export default function SpaceDetailPage() {
 
   const pathname = usePathname();
   const spaceId = pathname?.split('/')[2];
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!spaceId) return;
@@ -99,7 +101,10 @@ export default function SpaceDetailPage() {
           {space?.name}
         </h1>
         <p className="text-center text-lg text-primary">{space?.description}</p>
-        <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6">
+        <Button onClick={() => router.push(`/spaces/${spaceId}/members`)}>
+          Members
+        </Button>
+        <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6 mt-2">
           <div className="flex items-center justify-between w-full mb-4">
             <div className="flex">
               <SearchBar onSearch={(query) => console.log(query)} />

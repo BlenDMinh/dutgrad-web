@@ -23,4 +23,12 @@ export const spaceService = {
       const response = await apiClient.get(`${API_ROUTES.SPACE.DETAIL}/${spaceId}/documents`);
       return handleResponse(response.data);
     },
+    getSpaceMembers: async (spaceId: string) => {
+      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}/members`);
+      return handleResponse(response.data);
+    },    
+    getSpaceInvitations: async (spaceId: string) => {
+      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}/invitations`);
+      return handleResponse(response.data);
+    },
 };
