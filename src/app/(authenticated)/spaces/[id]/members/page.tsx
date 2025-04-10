@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { toast, Toaster } from 'sonner';
 import { APP_ROUTES } from '@/lib/constants';
 import { useRouter } from 'next/navigation';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@radix-ui/react-select';
 
 interface Member {
   user: {
@@ -55,15 +56,15 @@ export default function SpaceMembersPage() {
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number>(3);
   const [open, setOpen] = useState(false);
-  const [refresh, setRefresh] = useState<boolean>(false)
+  const [refresh, setRefresh] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       const resRoles = await spaceService.getSpaceRoles();
-      setRoles(resRoles.roles); 
-    }
-    fetchData()
-  }, [])
+      setRoles(resRoles.roles);
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,8 +79,8 @@ export default function SpaceMembersPage() {
   }, [id, refresh]);
 
   const refreshList = () => {
-    setRefresh(!refresh)
-  }
+    setRefresh(!refresh);
+  };
 
   const handleInvite = async () => {
     if (!inviteEmail) {
@@ -87,11 +88,15 @@ export default function SpaceMembersPage() {
       return;
     }
     try {
-      const res = await spaceService.inviteUser(id as string, inviteEmail, selectedRole);
+      const res = await spaceService.inviteUser(
+        id as string,
+        inviteEmail,
+        selectedRole
+      );
       toast.success('Invite successfully.');
-      refreshList()
+      refreshList();
       setInviteEmail('');
-      setOpen(false); 
+      setOpen(false);
     } catch (error) {
       toast.error('Invite failed. Email not exist.');
     }
@@ -134,17 +139,18 @@ export default function SpaceMembersPage() {
               value={inviteEmail}
               onChange={(e) => setInviteEmail(e.target.value)}
             />
-            <select
-              className="border rounded p-2"
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(Number(e.target.value))}
-            >
-              {roles.slice(1).map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
+            <Select onValueChange={(value) => setSelectedRole(Number(value))}>
+              <SelectTrigger className="border rounded p-2">
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.slice(1).map((role) => (
+                  <SelectItem key={role.id} value={String(role.id)}>
+                    {role.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button onClick={handleInvite}>Invite</Button>
           </div>
         </DialogContent>
