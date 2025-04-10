@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Bot } from 'lucide-react';
 import ImportModal from './components/ImportModal';
+import { APP_ROUTES } from '@/lib/constants';
 
 interface Document {
   id: number;
@@ -101,7 +102,7 @@ export default function SpaceDetailPage() {
           {space?.name}
         </h1>
         <p className="text-center text-lg text-primary">{space?.description}</p>
-        <Button onClick={() => router.push(`/spaces/${spaceId}/members`)}>
+        <Button onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))}>
           Members
         </Button>
         <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6 mt-2">

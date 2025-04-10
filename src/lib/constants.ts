@@ -29,7 +29,8 @@ export const APP_ROUTES = {
   AUTH_CALLBACK: "/auth/callback",
   SPACES: {
     PUBLIC: "/spaces/public",
-    MINE: "/spaces/me"
+    MINE: "/spaces/me",
+    MEMBER: (spaceId: string) => `/spaces/${spaceId}/members`
   },
   DOCUMENT: {
     UPLOAD_PROGRESS: (id: string) => `/documents/upload-progress/${id}`,

@@ -31,4 +31,12 @@ export const spaceService = {
       const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}/invitations`);
       return handleResponse(response.data);
     },
+    inviteUser: async (spaceId: string, invited_user_email: string, space_role_id: number) => {
+      const response = await apiClient.post(`${API_ROUTES.SPACE.ALL}/${spaceId}/invitations`, { invited_user_email, space_role_id });
+      return handleResponse(response.data);
+    },
+    getSpaceRoles : async () => {
+      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/roles`);
+      return handleResponse(response.data);
+    }
 };
