@@ -14,7 +14,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { APP_ROUTES } from "@/lib/constants";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth.context";
 
 export default function SuccessCallbackPage() {
   return (

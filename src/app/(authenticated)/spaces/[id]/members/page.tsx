@@ -31,6 +31,9 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
+import { useSpace } from '@/context/space.context';
+import { SPACE_ROLE } from '@/lib/constants';
+import { InviteModal } from './components/InviteModal';
 
 interface Member {
   user: {
@@ -54,23 +57,11 @@ interface Invitation {
 }
 
 export default function SpaceMembersPage() {
-  const router = useRouter();
-  const { id } = useParams();
+  const { space, role } = useSpace();
+  const id = space?.id?.toString() || '';
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
-  const [selectedRole, setSelectedRole] = useState<number>(3);
-  const [open, setOpen] = useState(false);
   const [refresh, setRefresh] = useState<boolean>(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const resRoles = await spaceService.getSpaceRoles();
-      setRoles(resRoles.roles);
-    };
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,26 +77,6 @@ export default function SpaceMembersPage() {
 
   const refreshList = () => {
     setRefresh(!refresh);
-  };
-
-  const handleInvite = async () => {
-    if (!inviteEmail) {
-      toast.error('Please enter an email');
-      return;
-    }
-    try {
-      const res = await spaceService.inviteUser(
-        id as string,
-        inviteEmail,
-        selectedRole
-      );
-      toast.success('Invite successfully.');
-      refreshList();
-      setInviteEmail('');
-      setOpen(false);
-    } catch (error) {
-      toast.error('Invite failed. Email not exist.');
-    }
   };
 
   const combinedData = [
@@ -131,38 +102,9 @@ export default function SpaceMembersPage() {
           Members
         </span>
       </h1>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button>Invite User</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Invite User to Space</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-2 mb-4">
-            <Input
-              placeholder="Enter email"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-            />
-            <Select onValueChange={(value) => setSelectedRole(Number(value))}>
-              <SelectTrigger className="border rounded p-2">
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {roles.slice(1).map((role) => (
-                    <SelectItem key={role.id} value={String(role.id)}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleInvite}>Invite</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      { role?.id === SPACE_ROLE.OWNER && (<InviteModal onSuccess={() => {
+        refreshList();
+      }} />) }
       <div className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto">
         <Table>
           <TableHeader>

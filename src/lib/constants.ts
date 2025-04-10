@@ -10,9 +10,14 @@ export const API_ROUTES = {
   SPACE: {
     ALL: "/spaces",
     CREATE: "/spaces/create",
-    DETAIL:"/space",
     PUBLIC: "/spaces/public",
-    MINE: "/spaces/me"
+    MINE: "/spaces/me",
+    ROLES: "/spaces/roles",
+    DETAIL: (spaceId: string) => `/spaces/${spaceId}`,
+    INVITATIONS: (spaceId: string) => `/spaces/${spaceId}/invitations`,
+    DOCUMENTS: (spaceId: string) => `/space/${spaceId}/documents`,
+    USER_ROLE: (spaceId: string) => `/spaces/${spaceId}/user-role`,
+    MEMBERS: (spaceId: string) => `/spaces/${spaceId}/members`,
   },
   DOCUMENT: {
     UPLOAD: "/documents/upload",
@@ -36,3 +41,9 @@ export const APP_ROUTES = {
     UPLOAD_PROGRESS: (id: string) => `/documents/upload-progress/${id}`,
   }
 };
+
+export const SPACE_ROLE = {
+  OWNER: 1,
+  EDITOR: 2,
+  VIEWER: 3,
+}

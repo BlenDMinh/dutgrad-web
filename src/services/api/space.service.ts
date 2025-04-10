@@ -16,27 +16,33 @@ export const spaceService = {
       return handleResponse(response.data);
     },
     getSpaceById: async (spaceId: string) => {
-      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}`);
+      const response = await apiClient.get(API_ROUTES.SPACE.DETAIL(spaceId));
       return handleResponse(response.data);
     },
-    getDocumentBySpace: async (spaceId: string) => {
-      const response = await apiClient.get(`${API_ROUTES.SPACE.DETAIL}/${spaceId}/documents`);
+    getDocumentBySpace: async (spaceId: string, page: number = 1, pageSize: number = 20) => {
+      const response = await apiClient.get(API_ROUTES.SPACE.DOCUMENTS(spaceId), {
+        params: { page, pageSize }
+      });
       return handleResponse(response.data);
     },
     getSpaceMembers: async (spaceId: string) => {
-      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}/members`);
+      const response = await apiClient.get(API_ROUTES.SPACE.MEMBERS(spaceId));
       return handleResponse(response.data);
     },    
     getSpaceInvitations: async (spaceId: string) => {
-      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/${spaceId}/invitations`);
+      const response = await apiClient.get(API_ROUTES.SPACE.INVITATIONS(spaceId));
       return handleResponse(response.data);
     },
     inviteUser: async (spaceId: string, invited_user_email: string, space_role_id: number) => {
-      const response = await apiClient.post(`${API_ROUTES.SPACE.ALL}/${spaceId}/invitations`, { invited_user_email, space_role_id });
+      const response = await apiClient.post(API_ROUTES.SPACE.INVITATIONS(spaceId), { invited_user_email, space_role_id });
       return handleResponse(response.data);
     },
     getSpaceRoles : async () => {
-      const response = await apiClient.get(`${API_ROUTES.SPACE.ALL}/roles`);
+      const response = await apiClient.get(API_ROUTES.SPACE.ROLES);
+      return handleResponse(response.data);
+    },
+    getUserRole : async (spaceId: string) => {
+      const response = await apiClient.get(API_ROUTES.SPACE.USER_ROLE(spaceId));
       return handleResponse(response.data);
     }
 };

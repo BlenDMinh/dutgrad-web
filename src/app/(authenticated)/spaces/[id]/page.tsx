@@ -14,8 +14,9 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { Bot } from 'lucide-react';
 import ImportModal from './components/ImportModal';
 import { APP_ROUTES } from '@/lib/constants';
+import { useSpace } from '@/context/space.context';
 
-interface Document {
+interface SpaceDocument {
   id: number;
   name: string;
   s3_url: string;
@@ -23,48 +24,34 @@ interface Document {
   created_at: string;
 }
 
-interface Space {
-  id: number;
-  name: string;
-  description: string;
-  privacy_status: boolean;
-  created_at: string;
-}
-
 export default function SpaceDetailPage() {
-  const [space, setSpace] = useState<Space | null>(null);
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const { space } = useSpace();
+
+  const spaceId = space?.id?.toString() || '';
+
+  const [documents, setDocuments] = useState<SpaceDocument[]>([]);
+  const [documentPage, setDocumentPage] = useState<number>(1);
+  const [documentTotal, setDocumentTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 5;
-
-  const pathname = usePathname();
-  const spaceId = pathname?.split('/')[2];
+  useEffect(() => {
+      if (!spaceId) return;
+      setLoading(true);
+      setError(null);
+  
+      spaceService.getDocumentBySpace(spaceId, documentPage).then((res) => {
+        setDocuments(res.documents);
+        setDocumentTotal(res.total);
+      }).catch((err) => {
+        setError("Failed to fetch documents");
+        console.error(err);
+      }).finally(() => {
+        setLoading(false);
+      });
+    }, [documentPage, spaceId]);
 
   const router = useRouter();
-
-  useEffect(() => {
-    if (!spaceId) return;
-
-    const fetchSpaceDetail = async () => {
-      try {
-        const spaceResponse = await spaceService.getSpaceById(spaceId);
-        setSpace(spaceResponse);
-        const documentsResponse = await spaceService.getDocumentBySpace(
-          spaceId
-        );
-        setDocuments(documentsResponse.documents);
-      } catch (err) {
-        setError('Failed to fetch space details');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSpaceDetail();
-  }, [spaceId]);
 
   if (loading) {
     return (
@@ -74,11 +61,7 @@ export default function SpaceDetailPage() {
     );
   }
 
-  const totalPages = Math.ceil(documents.length / itemsPerPage);
-  const paginatedDocuments = documents.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = documentTotal / documents.length;
 
   if(!space) {
     return (
@@ -99,10 +82,10 @@ export default function SpaceDetailPage() {
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto relative">
         <h1 className="text-4xl font-extrabold text-center text-primary">
-          {space?.name}
+          {space.name}
         </h1>
-        <p className="text-center text-lg text-primary">{space?.description}</p>
-        <Button onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))}>
+        <p className="text-center text-lg text-primary">{space.description}</p>
+        <Button onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))} className="mt-4">
           Members
         </Button>
         <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6 mt-2">
@@ -126,7 +109,7 @@ export default function SpaceDetailPage() {
               </p>
             ) : (
               <ul className="space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto">
-                {paginatedDocuments.map((document) => (
+                {documents.map((document) => (
                   <li
                     key={document.id}
                     className="border hover:bg-accent hover:text-accent-foreground rounded-lg p-5 flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-300"
@@ -180,21 +163,21 @@ export default function SpaceDetailPage() {
           <div className="flex justify-center mt-6 space-x-3">
             <Button
               variant="outline"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
+              onClick={() => setDocumentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={documentPage === 1}
               className="px-4 py-2 border border-gray-300 rounded-lg text-primary transition-all disabled:opacity-50"
             >
               Prev
             </Button>
             <span className="text-primary font-semibold">
-              {currentPage} / {totalPages}
+              {documentPage} / {totalPages}
             </span>
             <Button
               variant="outline"
               onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                setDocumentPage((prev) => Math.min(prev + 1, totalPages))
               }
-              disabled={currentPage === totalPages}
+              disabled={documentPage === totalPages}
               className="px-4 py-2 border border-gray-300 rounded-lg text-primary transition-all disabled:opacity-50"
             >
               Next
