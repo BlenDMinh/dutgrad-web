@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { spaceService } from '@/services/api/space.service';
 import { FaTrash } from 'react-icons/fa';
 import {
@@ -13,24 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { toast, Toaster } from 'sonner';
-import { useRouter } from 'next/navigation';
-import {
-  Select,
-  SelectGroup,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import {  Toaster } from 'sonner';
 import { useSpace } from '@/context/space.context';
 import { SPACE_ROLE } from '@/lib/constants';
 import { InviteModal } from './components/InviteModal';
@@ -105,7 +87,7 @@ export default function SpaceMembersPage() {
       { role?.id === SPACE_ROLE.OWNER && (<InviteModal onSuccess={() => {
         refreshList();
       }} />) }
-      <div className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto">
+      <div className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto mt-2">
         <Table>
           <TableHeader>
             <TableRow>

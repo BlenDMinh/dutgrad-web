@@ -57,19 +57,16 @@ export default function DocumentUploadProgressPage() {
   const [error, setError] = useState<string | null>(null);
   const [progressPercent, setProgressPercent] = useState(0);
 
-  // Calculate progress percentage based on processing status
   const calculateProgress = (status: number) => {
     const totalStages = PROCESSING_STAGES.length;
     const normalizedStatus = Math.min(Math.max(status, 0), totalStages - 1);
     return Math.round(((normalizedStatus + 1) / totalStages) * 100);
   };
 
-  // Fetch document data
   const fetchDocument = async () => {
     try {
       if (!documentId) return;
       
-      // If we've already completed, no need to fetch again
       if (document?.processing_status === 4) return;
       
       const response = await documentService.getDocumentById(parseInt(documentId));
@@ -92,15 +89,13 @@ export default function DocumentUploadProgressPage() {
   useEffect(() => {
     fetchDocument();
     
-    // Set up polling to check progress
     const intervalId = setInterval(() => {
       fetchDocument();
-    }, 5000); // Poll every 5 seconds
+    }, 5000); 
     
     return () => clearInterval(intervalId);
   }, [documentId]);
 
-  // Get current stage information
   const getCurrentStage = () => {
     if (!document) return PROCESSING_STAGES[0];
     const status = Math.min(Math.max(document.processing_status, 0), PROCESSING_STAGES.length - 1);
@@ -154,7 +149,6 @@ export default function DocumentUploadProgressPage() {
         </CardHeader>
         
         <CardContent className="space-y-8">
-          {/* Progress bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Progress</span>
@@ -163,7 +157,6 @@ export default function DocumentUploadProgressPage() {
             <Progress value={progressPercent} className="h-2" />
           </div>
           
-          {/* Current stage */}
           <div className="bg-muted/50 rounded-lg p-6">
             <div className="flex items-start gap-4">
               <div className="mt-1">{currentStage.icon}</div>
@@ -176,7 +169,6 @@ export default function DocumentUploadProgressPage() {
             </div>
           </div>
           
-          {/* Estimated time (optional) */}
           {!isComplete && (
             <p className="text-sm text-center text-muted-foreground">
               This process may take a few minutes depending on the document size.

@@ -40,7 +40,7 @@ export default function SpaceCard({ space, enableJoin, onJoin }: SpaceCardProps)
       <CardTitle className="text-xl font-semibold hover:text-primary transition-colors">{space.name}</CardTitle>
       <CardDescription className="line-clamp-2">{space.description}</CardDescription>
     </CardHeader>
-    <CardContent className="flex-grow">{/* Add any additional content here if needed */}</CardContent>
+    <CardContent className="flex-grow"></CardContent>
     <CardFooter className="flex justify-between items-center pt-2 mt-auto">
       <Badge variant={space.privacy_status ? "destructive" : "secondary"} className="px-3 py-1">
         {space.privacy_status ? "Private" : "Public"}

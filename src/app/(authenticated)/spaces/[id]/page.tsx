@@ -1,14 +1,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { spaceService } from '@/services/api/space.service';
-import {
-  FaEdit,
-  FaTrash,
-  FaEye,
-  FaFilePdf,
-  FaRobot,
-} from 'react-icons/fa';
+import { FaEdit, FaTrash, FaEye, FaFilePdf, FaRobot } from 'react-icons/fa';
 import { Button } from '@/components/ui/button';
 import { SearchBar } from '@/components/ui/search-bar';
 import { Bot } from 'lucide-react';
@@ -36,20 +30,24 @@ export default function SpaceDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      if (!spaceId) return;
-      setLoading(true);
-      setError(null);
-  
-      spaceService.getDocumentBySpace(spaceId, documentPage).then((res) => {
+    if (!spaceId) return;
+    setLoading(true);
+    setError(null);
+
+    spaceService
+      .getDocumentBySpace(spaceId, documentPage)
+      .then((res) => {
         setDocuments(res.documents);
         setDocumentTotal(res.total);
-      }).catch((err) => {
-        setError("Failed to fetch documents");
+      })
+      .catch((err) => {
+        setError('Failed to fetch documents');
         console.error(err);
-      }).finally(() => {
+      })
+      .finally(() => {
         setLoading(false);
       });
-    }, [documentPage, spaceId]);
+  }, [documentPage, spaceId]);
 
   const router = useRouter();
 
@@ -63,7 +61,7 @@ export default function SpaceDetailPage() {
 
   const totalPages = documentTotal / documents.length;
 
-  if(!space) {
+  if (!space) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-center px-4">
         <Bot className="h-16 w-16 text-muted-foreground mb-4 animate-bounce" />
@@ -85,16 +83,19 @@ export default function SpaceDetailPage() {
           {space.name}
         </h1>
         <p className="text-center text-lg text-primary">{space.description}</p>
-        <Button onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))} className="mt-4">
+        <Button
+          onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))}
+          className="mt-4"
+        >
           Members
         </Button>
-        <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6 mt-2">
+        <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6 mt-4">
           <div className="flex items-center justify-between w-full mb-4">
             <div className="flex">
               <SearchBar onSearch={(query) => console.log(query)} />
             </div>
             <div className="flex gap-4">
-              <ImportModal spaceId={spaceId}/>
+              <ImportModal spaceId={spaceId} />
               <Button className="flex items-center gap-2">
                 <FaRobot size={22} />
                 Open Chat
@@ -137,15 +138,9 @@ export default function SpaceDetailPage() {
                     </div>
 
                     <div className="flex space-x-3">
-                      <a
-                        href={document.s3_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button variant="outline">
-                          <FaEye size={18} />
-                        </Button>
-                      </a>
+                      <Button variant="outline">
+                        <FaEye size={18} />
+                      </Button>
                       <Button variant="outline">
                         <FaEdit size={18} />
                       </Button>

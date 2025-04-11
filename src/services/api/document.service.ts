@@ -1,5 +1,4 @@
 import apiClient from "@/lib/axios";
-import { handleResponse } from "./helper";
 import { API_ROUTES } from "../../lib/constants";
 
 export const documentService = {
