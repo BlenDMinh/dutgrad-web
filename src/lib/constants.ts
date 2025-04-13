@@ -1,7 +1,7 @@
 export const API_ROUTES = {
   AUTH: {
     LOGIN: "/auth/login",
-    REGISTER: "/auth/register", 
+    REGISTER: "/auth/register",
     LOGOUT: "/auth/logout",
     GOOGLE: "/auth/oauth/google",
     CALLBACK: "/auth/callback",
@@ -23,6 +23,10 @@ export const API_ROUTES = {
     UPLOAD: "/documents/upload",
     DETAIL: (id: string) => `/documents/${id}`,
   },
+  CHAT: {
+    BEGIN_SESSION: "/user-query-sessions/begin-chat-session",
+    ASK: "/user-query/ask",
+  },
 };
 
 export const APP_ROUTES = {
@@ -35,15 +39,19 @@ export const APP_ROUTES = {
   SPACES: {
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me",
-    MEMBER: (spaceId: string) => `/spaces/${spaceId}/members`
+    MEMBER: (spaceId: string) => `/spaces/${spaceId}/members`,
   },
   DOCUMENT: {
     UPLOAD_PROGRESS: (id: string) => `/documents/upload-progress/${id}`,
-  }
+  },
+  CHAT: {
+    SPACE: (spaceId: string, sessionId: string) =>
+      `/spaces/${spaceId}/chat?sessionId=${sessionId}`,
+  },
 };
 
 export const SPACE_ROLE = {
   OWNER: 1,
   EDITOR: 2,
   VIEWER: 3,
-}
+};

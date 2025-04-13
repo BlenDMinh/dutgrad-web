@@ -1,14 +1,16 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { spaceService } from '@/services/api/space.service';
-import { FaEdit, FaTrash, FaEye, FaFilePdf, FaRobot } from 'react-icons/fa';
-import { Button } from '@/components/ui/button';
-import { SearchBar } from '@/components/ui/search-bar';
-import { Bot } from 'lucide-react';
-import ImportModal from './components/ImportModal';
-import { APP_ROUTES } from '@/lib/constants';
-import { useSpace } from '@/context/space.context';
+"use client";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { spaceService } from "@/services/api/space.service";
+import { chatService } from "@/services/api/chat.service";
+import { FaEdit, FaTrash, FaEye, FaFilePdf, FaRobot } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { SearchBar } from "@/components/ui/search-bar";
+import { Bot } from "lucide-react";
+import ImportModal from "./components/ImportModal";
+import { APP_ROUTES } from "@/lib/constants";
+import { useSpace } from "@/context/space.context";
+import { toast } from "sonner";
 
 interface SpaceDocument {
   id: number;
@@ -21,13 +23,14 @@ interface SpaceDocument {
 export default function SpaceDetailPage() {
   const { space } = useSpace();
 
-  const spaceId = space?.id?.toString() || '';
+  const spaceId = space?.id?.toString() || "";
 
   const [documents, setDocuments] = useState<SpaceDocument[]>([]);
   const [documentPage, setDocumentPage] = useState<number>(1);
   const [documentTotal, setDocumentTotal] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isStartingChat, setIsStartingChat] = useState(false);
 
   useEffect(() => {
     if (!spaceId) return;
@@ -41,7 +44,7 @@ export default function SpaceDetailPage() {
         setDocumentTotal(res.total);
       })
       .catch((err) => {
-        setError('Failed to fetch documents');
+        setError("Failed to fetch documents");
         console.error(err);
       })
       .finally(() => {
@@ -50,6 +53,22 @@ export default function SpaceDetailPage() {
   }, [documentPage, spaceId]);
 
   const router = useRouter();
+
+  const handleOpenChat = async () => {
+    if (!spaceId) return;
+
+    setIsStartingChat(true);
+    try {
+      const chatSession = await chatService.beginChatSession(parseInt(spaceId));
+      // Redirect to chat page with the session id
+      router.push(APP_ROUTES.CHAT.SPACE(spaceId, chatSession.id.toString()));
+    } catch (error) {
+      console.error("Failed to start chat session:", error);
+      toast.error("Failed to start chat session. Please try again.");
+    } finally {
+      setIsStartingChat(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -96,9 +115,13 @@ export default function SpaceDetailPage() {
             </div>
             <div className="flex gap-4">
               <ImportModal spaceId={spaceId} />
-              <Button className="flex items-center gap-2">
+              <Button
+                className="flex items-center gap-2"
+                onClick={handleOpenChat}
+                disabled={isStartingChat}
+              >
                 <FaRobot size={22} />
-                Open Chat
+                {isStartingChat ? "Starting Chat..." : "Open Chat"}
               </Button>
             </div>
           </div>
@@ -122,17 +145,17 @@ export default function SpaceDetailPage() {
                           {document.name}
                         </h3>
                         <p className="text-xs text-primary">
-                          Uploaded:{' '}
+                          Uploaded:{" "}
                           {new Date(document.created_at).toLocaleDateString()}
                         </p>
                         <span
                           className={`inline-block px-3 py-1 mt-2 text-xs font-medium rounded-full ${
                             document.privacy_status
-                              ? 'bg-red-100 text-red-600'
-                              : 'bg-green-100 text-green-600'
+                              ? "bg-red-100 text-red-600"
+                              : "bg-green-100 text-green-600"
                           }`}
                         >
-                          {document.privacy_status ? 'Private' : 'Public'}
+                          {document.privacy_status ? "Private" : "Public"}
                         </span>
                       </div>
                     </div>
