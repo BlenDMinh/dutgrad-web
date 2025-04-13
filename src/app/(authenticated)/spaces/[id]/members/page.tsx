@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 import { spaceService } from '@/services/api/space.service';
 import { FaTrash } from 'react-icons/fa';
 import {
@@ -13,6 +12,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import {  Toaster } from 'sonner';
+import { useSpace } from '@/context/space.context';
+import { SPACE_ROLE } from '@/lib/constants';
+import { InviteModal } from './components/InviteModal';
 
 interface Member {
   user: {
@@ -36,20 +39,27 @@ interface Invitation {
 }
 
 export default function SpaceMembersPage() {
-  const { id: spaceId } = useParams();
+  const { space, role } = useSpace();
+  const id = space?.id?.toString() || '';
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [refresh, setRefresh] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const resMembers = await spaceService.getSpaceMembers(spaceId as string);
-      const resInvitations = await spaceService.getSpaceInvitations(spaceId as string);
+      const resMembers = await spaceService.getSpaceMembers(id as string);
+      const resInvitations = await spaceService.getSpaceInvitations(
+        id?.toString() ?? ''
+      );
       setMembers(resMembers.members);
       setInvitations(resInvitations.invitations);
     };
-
     fetchData();
-  }, [spaceId]);
+  }, [id, refresh]);
+
+  const refreshList = () => {
+    setRefresh(!refresh);
+  };
 
   const combinedData = [
     ...members.map((m) => ({
@@ -68,13 +78,16 @@ export default function SpaceMembersPage() {
 
   return (
     <div className="py-12 px-6">
+      <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
       <h1 className="text-3xl font-extrabold text-center text-gray-900 mb-10">
         <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
           Members
         </span>
       </h1>
-
-      <div className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto">
+      { role?.id === SPACE_ROLE.OWNER && (<InviteModal onSuccess={() => {
+        refreshList();
+      }} />) }
+      <div className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto mt-2">
         <Table>
           <TableHeader>
             <TableRow>
@@ -115,7 +128,9 @@ export default function SpaceMembersPage() {
                     variant="destructive"
                     size="icon"
                     onClick={() => {
-                      if (confirm('Are you sure you want to delete this user?')) {
+                      if (
+                        confirm('Are you sure you want to delete this user?')
+                      ) {
                       }
                     }}
                   >

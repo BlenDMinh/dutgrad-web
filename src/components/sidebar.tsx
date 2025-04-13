@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth.context";
 import { 
   LayoutDashboard, 
   User, 
@@ -17,6 +17,7 @@ import {
   Users, 
   Folder,
   Plus,
+  BookAIcon,
 } from "lucide-react";
 import ThemeToggle from "./theme-toggle";
 import { API_ROUTES, APP_ROUTES } from "@/lib/constants";
@@ -48,9 +49,10 @@ export function Sidebar() {
       title: "Spaces",
       icon: <SpaceIcon className="mr-2 h-4 w-4" />,
       subItems: [
-        { title: "Create Spaces", href: API_ROUTES.SPACE.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
-        { title: "Public Spaces", href: API_ROUTES.SPACE.PUBLIC, icon: <Users className="mr-2 h-4 w-4" /> },
-        { title: "My Spaces", href: API_ROUTES.SPACE.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
+        { title: "Create Spaces", href: APP_ROUTES.SPACES.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
+        { title: "Public Spaces", href: APP_ROUTES.SPACES.PUBLIC, icon: <BookAIcon className="mr-2 h-4 w-4" /> },
+        { title: "My Spaces", href: APP_ROUTES.SPACES.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
+        { title: "Invitation", href: APP_ROUTES.MY_INVITATIONS, icon: <Users className="mr-2 h-4 w-4"/> }
       ],
     },
   ];

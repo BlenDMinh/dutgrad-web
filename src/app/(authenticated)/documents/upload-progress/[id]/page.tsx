@@ -3,17 +3,31 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { documentService } from "@/services/api/document.service";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, CheckCircle2, FileText, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  FileText,
+  AlertCircle,
+  Upload,
+  Brain,
+} from "lucide-react";
 import { APP_ROUTES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 interface Document {
   id: number;
   title: string;
-  processing_status: number;
+  processing_status: number; 
   created_at: string;
   updated_at: string;
   space_id: number;
@@ -22,29 +36,24 @@ interface Document {
 const PROCESSING_STAGES = [
   {
     title: "Upload Complete",
-    description: "Your document has been successfully uploaded and is waiting to be processed.",
-    icon: <FileText className="h-6 w-6 text-blue-500" />
+    description:
+      "Your document has been successfully uploaded and is waiting to be processed.",
+    icon: <Upload className="h-6 w-6 text-blue-500" />,
+    status: 0,
   },
   {
-    title: "Processing Document",
-    description: "We're extracting text and analyzing the structure of your document.",
-    icon: <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+    title: "Document Parsed",
+    description: "We've extracted the text and structure from your document.",
+    icon: <FileText className="h-6 w-6 text-yellow-500" />,
+    status: 1,
   },
   {
-    title: "Analyzing Content",
-    description: "Analyzing the content and preparing for knowledge extraction.",
-    icon: <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+    title: "Ready to Use",
+    description:
+      "Your document has been fully processed and is ready for searching and knowledge extraction.",
+    icon: <CheckCircle2 className="h-6 w-6 text-green-500" />,
+    status: 2,
   },
-  {
-    title: "Generating Insights",
-    description: "Creating searchable index and processing final steps.",
-    icon: <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
-  },
-  {
-    title: "Ready",
-    description: "Your document has been fully processed and is ready to use!",
-    icon: <CheckCircle2 className="h-6 w-6 text-green-500" />
-  }
 ];
 
 export default function DocumentUploadProgressPage() {
@@ -57,23 +66,20 @@ export default function DocumentUploadProgressPage() {
   const [error, setError] = useState<string | null>(null);
   const [progressPercent, setProgressPercent] = useState(0);
 
-  // Calculate progress percentage based on processing status
   const calculateProgress = (status: number) => {
-    const totalStages = PROCESSING_STAGES.length;
-    const normalizedStatus = Math.min(Math.max(status, 0), totalStages - 1);
-    return Math.round(((normalizedStatus + 1) / totalStages) * 100);
+    return Math.min(Math.round(((status + 1) / PROCESSING_STAGES.length) * 100), 100);
   };
 
-  // Fetch document data
   const fetchDocument = async () => {
     try {
       if (!documentId) return;
-      
-      // If we've already completed, no need to fetch again
-      if (document?.processing_status === 4) return;
-      
-      const response = await documentService.getDocumentById(parseInt(documentId));
-      
+
+      if (document?.processing_status === 2) return;
+
+      const response = await documentService.getDocumentById(
+        parseInt(documentId)
+      );
+
       if (response?.data?.data) {
         const documentData = response.data.data;
         setDocument(documentData);
@@ -91,24 +97,15 @@ export default function DocumentUploadProgressPage() {
 
   useEffect(() => {
     fetchDocument();
-    
-    // Set up polling to check progress
+
     const intervalId = setInterval(() => {
       fetchDocument();
-    }, 5000); // Poll every 5 seconds
-    
+    }, 5000);
+
     return () => clearInterval(intervalId);
   }, [documentId]);
 
-  // Get current stage information
-  const getCurrentStage = () => {
-    if (!document) return PROCESSING_STAGES[0];
-    const status = Math.min(Math.max(document.processing_status, 0), PROCESSING_STAGES.length - 1);
-    return PROCESSING_STAGES[status];
-  };
-
-  const currentStage = getCurrentStage();
-  const isComplete = document?.processing_status === 4;
+  const isComplete = document?.processing_status === 2;
 
   if (loading && !document) {
     return (
@@ -152,9 +149,8 @@ export default function DocumentUploadProgressPage() {
             </p>
           )}
         </CardHeader>
-        
+
         <CardContent className="space-y-8">
-          {/* Progress bar */}
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Progress</span>
@@ -162,48 +158,93 @@ export default function DocumentUploadProgressPage() {
             </div>
             <Progress value={progressPercent} className="h-2" />
           </div>
-          
-          {/* Current stage */}
-          <div className="bg-muted/50 rounded-lg p-6">
-            <div className="flex items-start gap-4">
-              <div className="mt-1">{currentStage.icon}</div>
-              <div className="space-y-1">
-                <h3 className="text-lg font-medium">{currentStage.title}</h3>
-                <p className="text-muted-foreground">
-                  {currentStage.description}
-                </p>
-              </div>
-            </div>
+
+          <div className="space-y-6">
+            {PROCESSING_STAGES.map((stage, index) => {
+              const docStatus = document?.processing_status || 0;
+              const isActive = docStatus === stage.status;
+              const isCompleted = docStatus > stage.status;
+              const isPending = docStatus < stage.status;
+
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "flex items-start gap-4 p-4 rounded-lg transition-colors",
+                    isActive && "bg-primary/10 border border-primary/20",
+                    isCompleted && "bg-muted/30",
+                    isPending && "opacity-60"
+                  )}
+                >
+                  <div className="mt-1">
+                    {isCompleted ? (
+                      <CheckCircle2 className="h-6 w-6 text-green-500" />
+                    ) : isActive ? (
+                      stage.status === 1 ? (
+                        <Brain className="h-6 w-6 text-primary animate-pulse" />
+                      ) : (
+                        <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                      )
+                    ) : (
+                      stage.icon
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <h3
+                      className={cn(
+                        "text-lg font-medium",
+                        isActive && "text-primary font-semibold"
+                      )}
+                    >
+                      {stage.title}
+                      {isActive && " (In Progress)"}
+                      {isCompleted && " (Completed)"}
+                    </h3>
+                    <p className="text-muted-foreground">{stage.description}</p>
+                    {isActive && stage.status === 0 && (
+                      <p className="text-xs text-primary mt-2">
+                        Extracting text and structure from your document...
+                      </p>
+                    )}
+                    {isActive && stage.status === 1 && (
+                      <p className="text-xs text-primary mt-2">
+                        Creating knowledge graph and enhancing searchability...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          
-          {/* Estimated time (optional) */}
+
           {!isComplete && (
             <p className="text-sm text-center text-muted-foreground">
-              This process may take a few minutes depending on the document size.
+              This process may take a few minutes depending on the document size
+              and complexity.
             </p>
           )}
         </CardContent>
-        
+
         <CardFooter className="flex justify-center gap-4">
           {isComplete ? (
             <>
-              <Button 
+              <Button
                 onClick={() => router.push(`/documents/${document.id}`)}
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />
                 View Document
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => router.push(`/spaces/${document.space_id}`)}
               >
                 Return to Space
               </Button>
             </>
           ) : (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => router.push(`/spaces/${document?.space_id}`)}
             >
               Continue in Background

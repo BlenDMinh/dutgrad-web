@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/theme-toggle";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth.context";
 import {
   DropdownMenu,
   DropdownMenuContent,
