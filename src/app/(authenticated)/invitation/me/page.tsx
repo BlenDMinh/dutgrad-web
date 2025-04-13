@@ -37,14 +37,14 @@ export default function MyInvitationsPage() {
       toast.success('Successfully joined the space!');
       fetchInvitations();
     } catch (err: any) {
-      console.log(err)
       toast.error(err?.response?.data?.message || 'Failed to join space');
     }
   };
 
-  const handleReject = async (invitationId: number) => {
+  const handleReject = async (invitationId: string) => {
     try {
-      // await spaceService.rejectInvitation(invitationId)
+      await spaceService.rejectInvitation(invitationId);
+      toast.success('Invitation rejected successfully!');
       await fetchInvitations();
     } catch (err: any) {
       toast.error('Failed to reject invitation');
@@ -131,29 +131,42 @@ export default function MyInvitationsPage() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Invited by{" "}
+                      Invited by{' '}
                       <span className="font-medium">
                         {invitation.inviter?.username || 'Unknown'}
                       </span>
                     </p>
                   </div>
-                  <div className="flex">
-                    <Button
+                  {invitation.status === 'pending' ? (
+                    <div className="flex">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleReject(invitation.id)}
+                        className="mr-2 gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        size="sm"
+                      >
+                        <XCircle className="w-4 h-4" /> Decline
+                      </Button>
+                      <Button
+                        onClick={() => handleJoin(invitation.id)}
+                        className="gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                        size="sm"
+                      >
+                        <CheckCircle className="w-4 h-4" /> Accept
+                      </Button>
+                    </div>
+                  ) : (
+                    <Badge
                       variant="outline"
-                      onClick={() => handleReject(invitation.id)}
-                      className="mr-2 gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                      size="sm"
+                      className={`text-sm ${
+                        invitation.status === 'accepted'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
                     >
-                      <XCircle className="w-4 h-4" /> Decline
-                    </Button>
-                    <Button
-                      onClick={() => handleJoin(invitation.id)}
-                      className="gap-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                      size="sm"
-                    >
-                      <CheckCircle className="w-4 h-4" /> Accept
-                    </Button>
-                  </div>
+                      {invitation.status === 'accepted' ? 'Joined' : 'Declined'}
+                    </Badge>
+                  )}
                 </CardDescription>
               </CardHeader>
             </Card>

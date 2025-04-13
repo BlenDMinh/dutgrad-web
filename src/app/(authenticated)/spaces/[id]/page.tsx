@@ -60,7 +60,6 @@ export default function SpaceDetailPage() {
     setIsStartingChat(true);
     try {
       const chatSession = await chatService.beginChatSession(parseInt(spaceId));
-      // Redirect to chat page with the session id
       router.push(APP_ROUTES.CHAT.SPACE(spaceId, chatSession.id.toString()));
     } catch (error) {
       console.error("Failed to start chat session:", error);

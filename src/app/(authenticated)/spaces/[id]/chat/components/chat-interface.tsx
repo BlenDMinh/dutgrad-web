@@ -30,12 +30,10 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Validate session ID
   useEffect(() => {
     if (!sessionId) {
       toast.error(
@@ -48,7 +46,6 @@ export default function ChatInterface() {
     e.preventDefault();
     if (!input.trim() || !sessionId) return;
 
-    // Add user message to the UI
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input,
@@ -58,14 +55,11 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    // Show loading state
     setIsLoading(true);
 
     try {
-      // Call the API to get bot response
       const response = await chatService.askQuestion(Number(sessionId), input);
 
-      // Add bot response to the UI
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: response.answer,
@@ -83,7 +77,6 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      {/* Chat Header */}
       <div className="flex items-center justify-center p-4 bg-background">
         <div className="flex flex-col items-center">
           <Bot className="h-6 w-6 text-primary mb-1" />
@@ -94,7 +87,6 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      {/* Chat Messages */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-[calc(100vh-12rem)]">
           <div className="p-4 space-y-4">
@@ -118,7 +110,6 @@ export default function ChatInterface() {
         </ScrollArea>
       </div>
 
-      {/* Input Area */}
       <div className="p-4 bg-background">
         <form onSubmit={handleSendMessage} className="flex space-x-2 w-full">
           <Input

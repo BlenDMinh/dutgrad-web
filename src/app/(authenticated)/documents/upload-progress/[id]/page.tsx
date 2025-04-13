@@ -27,13 +27,12 @@ import { cn } from "@/lib/utils";
 interface Document {
   id: number;
   title: string;
-  processing_status: number; // Now 0, 1, or 2
+  processing_status: number; 
   created_at: string;
   updated_at: string;
   space_id: number;
 }
 
-// Updated processing stages to match the new status values
 const PROCESSING_STAGES = [
   {
     title: "Upload Complete",
@@ -68,7 +67,6 @@ export default function DocumentUploadProgressPage() {
   const [progressPercent, setProgressPercent] = useState(0);
 
   const calculateProgress = (status: number) => {
-    // Calculate percentage based on the 3 possible states (0, 1, 2)
     return Math.min(Math.round(((status + 1) / 3) * 100), 100);
   };
 
@@ -76,7 +74,6 @@ export default function DocumentUploadProgressPage() {
     try {
       if (!documentId) return;
 
-      // Only stop polling when document is fully processed (status 2)
       if (document?.processing_status === 2) return;
 
       const response = await documentService.getDocumentById(
@@ -162,7 +159,6 @@ export default function DocumentUploadProgressPage() {
             <Progress value={progressPercent} className="h-2" />
           </div>
 
-          {/* Enhanced status dialog - Timeline view of processing stages */}
           <div className="space-y-6">
             {PROCESSING_STAGES.map((stage, index) => {
               const docStatus = document?.processing_status || 0;

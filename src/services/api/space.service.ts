@@ -77,10 +77,12 @@ export const spaceService = {
     const response = await apiClient.get(`${API_ROUTES.SPACE.MY_INVITATIONS()}`);
     return handleResponse(response.data);
   },
-
   acceptInvitation: async (invitationId: string) => {
     const response = await apiClient.put(`${API_ROUTES.SPACE.ACCEPT_INVITATION(invitationId)}`);
     return handleResponse(response.data);
+  },
+  rejectInvitation: async (invitationId: string) => {
+    const response = await apiClient.put(`${API_ROUTES.SPACE.REJECT_INVITATION(invitationId)}`);
+    return handleResponse(response.data);
   }
-  
 };
