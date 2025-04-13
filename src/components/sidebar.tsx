@@ -48,9 +48,10 @@ export function Sidebar() {
       title: "Spaces",
       icon: <SpaceIcon className="mr-2 h-4 w-4" />,
       subItems: [
-        { title: "Create Spaces", href: API_ROUTES.SPACE.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
-        { title: "Public Spaces", href: API_ROUTES.SPACE.PUBLIC, icon: <Users className="mr-2 h-4 w-4" /> },
-        { title: "My Spaces", href: API_ROUTES.SPACE.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
+        { title: "Create Spaces", href: APP_ROUTES.SPACES.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
+        { title: "Public Spaces", href: APP_ROUTES.SPACES.PUBLIC, icon: <Users className="mr-2 h-4 w-4" /> },
+        { title: "My Spaces", href: APP_ROUTES.SPACES.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
+        { title: "Invation", href: APP_ROUTES.MY_INVITATIONS, icon: <Users className="mr-2 h-4 w-4"/> }
       ],
     },
   ];
