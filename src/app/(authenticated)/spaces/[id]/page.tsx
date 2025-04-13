@@ -77,7 +77,7 @@ export default function SpaceDetailPage() {
     );
   }
 
-  const totalPages = documentTotal / documents.length;
+  const totalPages = documents.length > 0 ? Math.ceil(documentTotal / documents.length) : 0;
 
   if (!space) {
     return (
