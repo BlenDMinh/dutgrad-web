@@ -67,7 +67,7 @@ export default function DocumentUploadProgressPage() {
   const [progressPercent, setProgressPercent] = useState(0);
 
   const calculateProgress = (status: number) => {
-    return Math.min(Math.round(((status + 1) / 3) * 100), 100);
+    return Math.min(Math.round(((status + 1) / PROCESSING_STAGES.length) * 100), 100);
   };
 
   const fetchDocument = async () => {
