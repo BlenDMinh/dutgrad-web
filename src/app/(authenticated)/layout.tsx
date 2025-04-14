@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { APP_ROUTES } from "@/lib/constants";
 import { Sidebar } from "@/components/sidebar";
+import { Toaster } from "sonner";
 
 export default function AuthenticatedLayout({
   children,
@@ -34,6 +35,7 @@ export default function AuthenticatedLayout({
 
   return (
     <div className="flex">
+      <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
       <Sidebar />
       <main className="ml-64 flex-1 min-h-screen overflow-auto">
         {children}

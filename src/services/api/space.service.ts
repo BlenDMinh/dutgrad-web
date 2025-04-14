@@ -84,5 +84,9 @@ export const spaceService = {
   rejectInvitation: async (invitationId: string) => {
     const response = await apiClient.put(`${API_ROUTES.SPACE.REJECT_INVITATION(invitationId)}`);
     return handleResponse(response.data);
+  },
+  joinSpace: async (spaceId: string) => {
+    const response = await apiClient.post(API_ROUTES.SPACE.JOIN_PUBLIC(spaceId));
+    return handleResponse(response.data); 
   }
 };
