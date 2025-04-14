@@ -275,18 +275,16 @@ export default function SpaceDetailPage() {
                     });
 
                     return (
-                      <Card
-                        key={document.id}
-                        className="overflow-hidden transition-all duration-300 hover:shadow-md group"
-                      >
+                      <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group border border-border/50">
                         <CardContent className="p-0">
                           <div className="flex items-stretch">
-                            <div className="flex items-center justify-center p-6 bg-muted/30 w-20">
-                              <Avatar className="h-12 w-12 rounded-md bg-background">
-                                <AvatarFallback className="rounded-md">
-                                  {getFileIcon(document.mime_type)}
-                                </AvatarFallback>
-                              </Avatar>
+                            <div className="flex items-center justify-center p-4 bg-background w-24 border-r border-border/50">
+                              <div className="relative">
+                                {getFileIcon(document.mime_type)}
+                                <div className="absolute -top-2 -right-2 text-xs font-medium bg-background px-1 rounded">
+                                  {formatFileSize(document.size)}
+                                </div>
+                              </div>
                             </div>
 
                             <div className="flex-1 p-4">
@@ -298,12 +296,10 @@ export default function SpaceDetailPage() {
                                   <div className="flex items-center mt-1 text-sm text-muted-foreground">
                                     <Calendar className="h-3.5 w-3.5 mr-1" />
                                     <span>{timeAgo}</span>
-                                    <span className="mx-2">•</span>
-                                    <span>{formatFileSize(document.size)}</span>
                                   </div>
                                 </div>
 
-                                <div className="flex space-x-2">
+                                <div className="flex space-x-1">
                                   <TooltipProvider>
                                     <Tooltip>
                                       <TooltipTrigger asChild>
@@ -311,6 +307,7 @@ export default function SpaceDetailPage() {
                                           size="icon"
                                           variant="ghost"
                                           className="h-8 w-8"
+                                          onClick={() => {}}
                                         >
                                           <Eye size={16} />
                                         </Button>
@@ -328,6 +325,7 @@ export default function SpaceDetailPage() {
                                           size="icon"
                                           variant="ghost"
                                           className="h-8 w-8"
+                                          onClick={() => {}}
                                         >
                                           <Edit size={16} />
                                         </Button>
@@ -345,6 +343,7 @@ export default function SpaceDetailPage() {
                                           size="icon"
                                           variant="ghost"
                                           className="h-8 w-8 text-destructive hover:text-destructive"
+                                          onClick={() => {}}
                                         >
                                           <Trash2 size={16} />
                                         </Button>
@@ -357,13 +356,14 @@ export default function SpaceDetailPage() {
                                 </div>
                               </div>
 
-                              <div className="flex items-center mt-4 space-x-3">
+                              <div className="flex items-center mt-3 space-x-2">
                                 <Badge
                                   variant={
                                     document.privacy_status
                                       ? "outline"
                                       : "secondary"
                                   }
+                                  className="px-2 py-0.5 text-xs"
                                 >
                                   {document.privacy_status
                                     ? "Private"
@@ -375,7 +375,7 @@ export default function SpaceDetailPage() {
                                     <TooltipTrigger asChild>
                                       <Badge
                                         variant={statusInfo.variant}
-                                        className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                                        className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity px-2 py-0.5 text-xs"
                                         onClick={() =>
                                           handleProcessingStatusClick(
                                             document.id
