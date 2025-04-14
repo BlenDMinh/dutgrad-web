@@ -12,12 +12,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import {  Toaster } from 'sonner';
 import { useSpace } from '@/context/space.context';
 import { SPACE_ROLE } from '@/lib/constants';
 import { InviteModal } from './components/InviteModal';
 
-interface Member {
+export interface Member {
   user: {
     username: string;
   };
@@ -27,7 +26,7 @@ interface Member {
   created_at: string;
 }
 
-interface Invitation {
+export interface Invitation {
   invited_user: {
     username: string;
   };
@@ -47,10 +46,8 @@ export default function SpaceMembersPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const resMembers = await spaceService.getSpaceMembers(id as string);
-      const resInvitations = await spaceService.getSpaceInvitations(
-        id?.toString() ?? ''
-      );
+      const resMembers = await spaceService.getSpaceMembers(id);
+      const resInvitations = await spaceService.getSpaceInvitations(id);
       setMembers(resMembers.members);
       setInvitations(resInvitations.invitations);
     };
@@ -68,7 +65,7 @@ export default function SpaceMembersPage() {
       joinDate: m.created_at,
       status: '',
     })),
-    ...invitations.map((i) => ({
+    ...invitations.filter((i) => i.status !== 'accepted' && i.status !== 'rejected').map((i) => ({
       username: i.invited_user.username,
       role: i.space_role.name,
       joinDate: i.created_at,
@@ -78,15 +75,20 @@ export default function SpaceMembersPage() {
 
   return (
     <div className="py-12 px-6">
-      <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
       <h1 className="text-3xl font-extrabold text-center text-gray-900 mb-10">
         <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-transparent bg-clip-text">
           Members
         </span>
       </h1>
-      { role?.id === SPACE_ROLE.OWNER && (<InviteModal onSuccess={() => {
-        refreshList();
-      }} />) }
+      {role?.id === SPACE_ROLE.OWNER && (
+        <InviteModal
+          members={members}
+          invitations={invitations}
+          onSuccess={() => {
+            refreshList();
+          }}
+        />
+      )}
       <div className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto mt-2">
         <Table>
           <TableHeader>

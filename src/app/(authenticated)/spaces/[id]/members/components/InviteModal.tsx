@@ -19,9 +19,12 @@ import { useSpace } from '@/context/space.context';
 import { spaceService } from '@/services/api/space.service';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { Invitation, Member } from '../page';
 
 interface InviteModalProps {
   onSuccess: () => void | undefined;
+  members: Member[];
+  invitations: Invitation[];
 }
 
 export function InviteModal(props: InviteModalProps) {
@@ -49,14 +52,17 @@ export function InviteModal(props: InviteModalProps) {
       toast.error('Please enter an email');
       return;
     }
+
     try {
       await spaceService.inviteUser(id, inviteEmail, selectedRole);
       toast.success('Invite successfully.');
       onSuccess?.();
       setInviteEmail('');
       setOpen(false);
-    } catch (error) {
-      toast.error('Invite failed. Email not exist.');
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.message || 'Invite failed. Email not exist.';
+      toast.error(errorMessage);
     }
   };
 
@@ -67,7 +73,6 @@ export function InviteModal(props: InviteModalProps) {
     try {
       const res = await spaceService.getOrCreateInviteLink(id, roleId);
       setInvitationLink(res.invitation_link);
-      console.log()
     } catch (error) {
       toast.error('Failed to get invitation link.');
     }

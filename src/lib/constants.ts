@@ -21,6 +21,7 @@ export const API_ROUTES = {
     USER_ROLE: (spaceId: string) => `/spaces/${spaceId}/user-role`,
     INVITATION_LINK: (spaceId: string) => `/spaces/${spaceId}/invitation-link`,
     JOIN_SPACE_LINK: (token : string)=> `/spaces/join?token=${token}`,
+    JOIN_PUBLIC: (spaceId: string) => `/spaces/${spaceId}/join-public`,
     MEMBERS: (spaceId: string) => `/spaces/${spaceId}/members`,
     ACCEPT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/accept`,
     REJECT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/reject`,
