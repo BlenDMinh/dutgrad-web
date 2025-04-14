@@ -168,7 +168,7 @@ export default function SpaceDetailPage() {
   };
 
   const handleProcessingStatusClick = (documentId: number) => {
-    router.push(`/processing-status/${documentId}`);
+    router.push(APP_ROUTES.DOCUMENT.UPLOAD_PROGRESS(documentId.toString()));
   };
 
   const formatFileSize = (bytes: number) => {
