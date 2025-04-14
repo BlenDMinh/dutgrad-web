@@ -1,16 +1,46 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { spaceService } from "@/services/api/space.service";
 import { chatService } from "@/services/api/chat.service";
-import { FaEdit, FaTrash, FaEye, FaFilePdf, FaRobot } from "react-icons/fa";
+import {
+  FaFilePdf,
+  FaFileExcel,
+  FaFileCsv,
+  FaFileAlt,
+  FaFileWord,
+  FaFile,
+  FaCheckCircle,
+} from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/search-bar";
-import { Bot } from "lucide-react";
+import {
+  Bot,
+  Clock,
+  AlertCircle,
+  FileIcon,
+  BotIcon as RobotIcon,
+  Calendar,
+  Edit,
+  Eye,
+  Trash2,
+} from "lucide-react";
 import ImportModal from "./components/ImportModal";
 import { APP_ROUTES } from "@/lib/constants";
 import { useSpace } from "@/context/space.context";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 
 interface SpaceDocument {
   id: number;
@@ -18,13 +48,14 @@ interface SpaceDocument {
   s3_url: string;
   privacy_status: boolean;
   created_at: string;
+  mime_type: string;
+  size: number;
+  processing_status: number;
 }
 
 export default function SpaceDetailPage() {
   const { space } = useSpace();
-
   const spaceId = space?.id?.toString() || "";
-
   const [documents, setDocuments] = useState<SpaceDocument[]>([]);
   const [documentPage, setDocumentPage] = useState<number>(1);
   const [documentTotal, setDocumentTotal] = useState<number>(0);
@@ -37,19 +68,24 @@ export default function SpaceDetailPage() {
     setLoading(true);
     setError(null);
 
-    spaceService
-      .getDocumentBySpace(spaceId, documentPage)
-      .then((res) => {
+    // Simulate API call
+    const fetchData = async () => {
+      try {
+        const res = await spaceService.getDocumentBySpace(
+          spaceId,
+          documentPage
+        );
         setDocuments(res.documents);
         setDocumentTotal(res.total);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError("Failed to fetch documents");
         console.error(err);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, [documentPage, spaceId]);
 
   const router = useRouter();
@@ -59,25 +95,108 @@ export default function SpaceDetailPage() {
 
     setIsStartingChat(true);
     try {
-      const chatSession = await chatService.beginChatSession(parseInt(spaceId));
+      const chatSession = await chatService.beginChatSession(
+        Number.parseInt(spaceId)
+      );
       router.push(APP_ROUTES.CHAT.SPACE(spaceId, chatSession.id.toString()));
     } catch (error) {
       console.error("Failed to start chat session:", error);
-      toast.error("Failed to start chat session. Please try again.");
+      // Mock toast
+      console.log("Toast: Failed to start chat session. Please try again.");
     } finally {
       setIsStartingChat(false);
     }
   };
 
+  const getFileIcon = (mimeType: string) => {
+    const iconClass = "h-10 w-10";
+
+    if (mimeType.includes("pdf")) {
+      return <FaFilePdf className="text-red-500 h-full w-full" />;
+    } else if (
+      mimeType.includes("excel") ||
+      mimeType.includes("spreadsheet") ||
+      mimeType.includes("xlsx")
+    ) {
+      return <FaFileExcel className="text-green-600 h-full w-full" />;
+    } else if (mimeType.includes("csv")) {
+      return <FaFileCsv className="text-green-400 h-full w-full" />;
+    } else if (mimeType.includes("text/plain") || mimeType.includes("txt")) {
+      return <FaFileAlt className="text-gray-500 h-full w-full" />;
+    } else if (mimeType.includes("word") || mimeType.includes("docx")) {
+      return <FaFileWord className="text-blue-600 h-full w-full" />;
+    } else {
+      return <FaFile className="text-gray-400 h-full w-full" />;
+    }
+  };
+
+  const getProcessingStatusInfo = (status: number) => {
+    switch (status) {
+      case 0:
+        return {
+          icon: <Clock className="mr-1" size={14} />,
+          text: "Queued",
+          variant: "outline" as const,
+          progressValue: 5,
+          progressColor: "bg-yellow-500",
+        };
+      case 1:
+        return {
+          icon: <AlertCircle className="mr-1" size={14} />,
+          text: "Processing",
+          variant: "secondary" as const,
+          progressValue: 50,
+          progressColor: "bg-blue-500",
+        };
+      case 2:
+        return {
+          icon: <FaCheckCircle className="mr-1" size={14} />,
+          text: "Ready",
+          variant: "default" as const,
+          progressValue: 100,
+          progressColor: "bg-green-500",
+        };
+      default:
+        return {
+          icon: <AlertCircle className="mr-1" size={14} />,
+          text: "Unknown",
+          variant: "outline" as const,
+          progressValue: 0,
+          progressColor: "bg-gray-500",
+        };
+    }
+  };
+
+  const handleProcessingStatusClick = (documentId: number) => {
+    router.push(`/processing-status/${documentId}`);
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return (
+      Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-2xl font-semibold text-gray-800">Loading...</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin">
+            <FileIcon className="h-12 w-12 text-primary" />
+          </div>
+          <p className="text-xl font-medium text-primary">
+            Loading documents...
+          </p>
+        </div>
       </div>
     );
   }
 
-  const totalPages = documents.length > 0 ? Math.ceil(documentTotal / documents.length) : 0;
+  const totalPages = Math.ceil(documentTotal / documents.length) || 1;
 
   if (!space) {
     return (
@@ -97,97 +216,213 @@ export default function SpaceDetailPage() {
   return (
     <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto relative">
-        <h1 className="text-4xl font-extrabold text-center text-primary">
-          {space.name}
-        </h1>
-        <p className="text-center text-lg text-primary">{space.description}</p>
-        <Button
-          onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))}
-          className="mt-4"
-        >
-          Members
-        </Button>
-        <div className="bg-background rounded-xl shadow-lg p-6 md:p-10 space-y-6 mt-4">
-          <div className="flex items-center justify-between w-full mb-4">
-            <div className="flex">
-              <SearchBar onSearch={(query) => console.log(query)} />
-            </div>
-            <div className="flex gap-4">
-              <ImportModal spaceId={spaceId} />
-              <Button
-                className="flex items-center gap-2"
-                onClick={handleOpenChat}
-                disabled={isStartingChat}
-              >
-                <FaRobot size={22} />
-                {isStartingChat ? "Starting Chat..." : "Open Chat"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            {documents.length === 0 ? (
-              <p className="text-center text-gray-500 italic">
-                No documents uploaded yet.
-              </p>
-            ) : (
-              <ul className="space-y-4 max-h-[calc(100vh-100px)] overflow-y-auto">
-                {documents.map((document) => (
-                  <li
-                    key={document.id}
-                    className="border hover:bg-accent hover:text-accent-foreground rounded-lg p-5 flex justify-between items-center shadow-sm hover:shadow-md transition-all duration-300"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <FaFilePdf className="text-red-500 text-2xl" />
-                      <div>
-                        <h3 className="text-lg font-semibold text-primary">
-                          {document.name}
-                        </h3>
-                        <p className="text-xs text-primary">
-                          Uploaded:{" "}
-                          {new Date(document.created_at).toLocaleDateString()}
-                        </p>
-                        <span
-                          className={`inline-block px-3 py-1 mt-2 text-xs font-medium rounded-full ${
-                            document.privacy_status
-                              ? "bg-red-100 text-red-600"
-                              : "bg-green-100 text-green-600"
-                          }`}
-                        >
-                          {document.privacy_status ? "Private" : "Public"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-3">
-                      <Button variant="outline">
-                        <FaEye size={18} />
-                      </Button>
-                      <Button variant="outline">
-                        <FaEdit size={18} />
-                      </Button>
-                      <Button variant="destructive">
-                        <FaTrash size={18} />
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold text-primary mb-2">
+            {space.name}
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {space.description}
+          </p>
+          <div className="flex justify-center mt-6 gap-4">
+            <Button
+              onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))}
+              variant="outline"
+            >
+              Manage Members
+            </Button>
+            <Button
+              className="flex items-center gap-2"
+              onClick={handleOpenChat}
+              disabled={isStartingChat}
+            >
+              <RobotIcon size={18} />
+              {isStartingChat ? "Starting Chat..." : "Open Chat"}
+            </Button>
           </div>
         </div>
+
+        <Card className="border-0 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between w-full mb-6">
+              <div className="flex">
+                <SearchBar onSearch={(query) => console.log(query)} />
+              </div>
+              <ImportModal spaceId={spaceId} />
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="mt-6">
+              {documents.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <p className="text-xl font-medium text-muted-foreground">
+                    No documents uploaded yet
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-6">
+                    Upload your first document to get started
+                  </p>
+                </div>
+              ) : (
+                <ul className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+                  {documents.map((document) => {
+                    const statusInfo = getProcessingStatusInfo(
+                      document.processing_status
+                    );
+                    const fileDate = new Date(document.created_at);
+                    const timeAgo = formatDistanceToNow(fileDate, {
+                      addSuffix: true,
+                    });
+
+                    return (
+                      <Card
+                        key={document.id}
+                        className="overflow-hidden transition-all duration-300 hover:shadow-md group"
+                      >
+                        <CardContent className="p-0">
+                          <div className="flex items-stretch">
+                            <div className="flex items-center justify-center p-6 bg-muted/30 w-20">
+                              <Avatar className="h-12 w-12 rounded-md bg-background">
+                                <AvatarFallback className="rounded-md">
+                                  {getFileIcon(document.mime_type)}
+                                </AvatarFallback>
+                              </Avatar>
+                            </div>
+
+                            <div className="flex-1 p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
+                                    {document.name}
+                                  </h3>
+                                  <div className="flex items-center mt-1 text-sm text-muted-foreground">
+                                    <Calendar className="h-3.5 w-3.5 mr-1" />
+                                    <span>{timeAgo}</span>
+                                    <span className="mx-2">•</span>
+                                    <span>{formatFileSize(document.size)}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex space-x-2">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8"
+                                        >
+                                          <Eye size={16} />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>View document</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8"
+                                        >
+                                          <Edit size={16} />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Edit document</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          className="h-8 w-8 text-destructive hover:text-destructive"
+                                        >
+                                          <Trash2 size={16} />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Delete document</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center mt-4 space-x-3">
+                                <Badge
+                                  variant={
+                                    document.privacy_status
+                                      ? "outline"
+                                      : "secondary"
+                                  }
+                                >
+                                  {document.privacy_status
+                                    ? "Private"
+                                    : "Public"}
+                                </Badge>
+
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Badge
+                                        variant={statusInfo.variant}
+                                        className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() =>
+                                          handleProcessingStatusClick(
+                                            document.id
+                                          )
+                                        }
+                                      >
+                                        {statusInfo.icon}
+                                        {statusInfo.text}
+                                      </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Click to view processing details</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+
+                              <div className="mt-3">
+                                <Progress
+                                  value={statusInfo.progressValue}
+                                  className="h-1.5 w-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {totalPages > 1 && (
           <div className="flex justify-center mt-6 space-x-3">
             <Button
               variant="outline"
               onClick={() => setDocumentPage((prev) => Math.max(prev - 1, 1))}
               disabled={documentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-primary transition-all disabled:opacity-50"
+              size="sm"
             >
-              Prev
+              Previous
             </Button>
-            <span className="text-primary font-semibold">
-              {documentPage} / {totalPages}
+            <span className="flex items-center text-sm font-medium">
+              Page {documentPage} of {totalPages}
             </span>
             <Button
               variant="outline"
@@ -195,7 +430,7 @@ export default function SpaceDetailPage() {
                 setDocumentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={documentPage === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-primary transition-all disabled:opacity-50"
+              size="sm"
             >
               Next
             </Button>
