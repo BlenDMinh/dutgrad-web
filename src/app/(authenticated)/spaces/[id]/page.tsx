@@ -275,7 +275,10 @@ export default function SpaceDetailPage() {
                     });
 
                     return (
-                      <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group border border-border/50">
+                      <Card
+                        key={document.id}
+                        className="overflow-hidden transition-all duration-300 hover:shadow-md group border border-border/50"
+                      >
                         <CardContent className="p-0">
                           <div className="flex items-stretch">
                             <div className="flex items-center justify-center p-4 bg-background w-24 border-r border-border/50">
