@@ -60,7 +60,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
   isMobile =
     isMobile || typeof window !== "undefined" ? window.innerWidth < 768 : false;
 
-  // Mock data for recent AI chats
   const recentChats = [
     {
       id: 1,
@@ -155,7 +154,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
         </div>
       </div>
 
-      {/* Recent AI Chats */}
       <div className="p-4 border-b">
         <h3 className="text-sm font-medium mb-3 flex items-center">
           <Clock className="mr-2 h-4 w-4" />
@@ -201,7 +199,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
     </div>
   );
 
-  // For mobile, render the sidebar in a Sheet component
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onClose}>
@@ -212,7 +209,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
     );
   }
 
-  // For desktop, render the sidebar normally
   return (
     <aside className="hidden md:block w-64 border-r h-screen overflow-hidden">
       <SidebarContent />
@@ -223,11 +219,9 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
 export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
   const pathname = usePathname();
 
-  // Initialize openMenus state based on active paths
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
-    const initialState: Record<string, boolean> = {};
+  const initialState: Record<string, boolean> = {};
 
-    // Check which menu should be open based on the current path
     items.forEach((item) => {
       if (item.subItems) {
         const shouldBeOpen = item.subItems.some((subItem) =>

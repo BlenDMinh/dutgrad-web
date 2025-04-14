@@ -38,6 +38,7 @@ export default function AuthenticatedLayout({
   return (
     <div className="flex flex-col h-screen bg-background">
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
+      <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
 
       {/* Mobile Navigation */}
       <MobileNav onOpenSidebar={() => setIsSidebarOpen(true)} />

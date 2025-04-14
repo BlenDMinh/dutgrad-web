@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { spaceService } from "@/services/api/space.service";
-import { useRouter } from "next/navigation";
 import SpaceCard from "../components/SpaceCard";
+import { toast } from "sonner";
 
 interface PublicSpace {
   id: number;
@@ -15,14 +15,19 @@ interface PublicSpace {
 export default function PublicSpacesPage() {
   const [publicSpaces, setPublicSpaces] = useState<PublicSpace[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [joinedSpaceIds, setJoinedSpaceIds] = useState<number[]>([]);
+
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchPublicSpaces = async () => {
       try {
-        const response = await spaceService.getSpacePublic();
-        setPublicSpaces(response.public_spaces || []);
+        const [publicRes, joinedRes] = await Promise.all([
+          spaceService.getSpacePublic(),
+          spaceService.getYourSpaces(), 
+        ]);
+        setPublicSpaces(publicRes.public_spaces || []);
+        setJoinedSpaceIds(joinedRes.spaces.map((space: any) => space.id)); 
       } catch (err) {
         setError("Failed to fetch public spaces");
       } finally {
@@ -32,6 +37,22 @@ export default function PublicSpacesPage() {
 
     fetchPublicSpaces();
   }, []);
+
+  const handleJoinSpace = async (spaceId: number) => {
+    try {
+      await spaceService.joinSpace(spaceId.toString());
+      toast.success("Successfully joined the space!");
+      setJoinedSpaceIds((prevJoinedSpaceIds) => [...prevJoinedSpaceIds, spaceId]);
+    } catch (error: any) {
+      if (error.response?.status === 409) {
+        toast.info("You are already a member of this space.");
+      } else if (error.response?.status === 403) {
+        toast.error("This space is private and cannot be joined.");
+      } else {
+        toast.error("Failed to join the space.");
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -65,7 +86,8 @@ export default function PublicSpacesPage() {
               key={space.id}
               space={space}
               enableJoin={true}
-              onJoin={() => {}}
+              onJoin={handleJoinSpace}
+              isMember={joinedSpaceIds.includes(space.id)}
             />
           ))}
         </div>

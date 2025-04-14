@@ -39,7 +39,6 @@ export function MobileNav({ onOpenSidebar }: MobileNavProps) {
 
   return (
     <>
-      {/* Mobile Header */}
       <header className="md:hidden flex items-center justify-between p-4 border-b sticky top-0 z-40 bg-background">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={onOpenSidebar}>
@@ -50,7 +49,6 @@ export function MobileNav({ onOpenSidebar }: MobileNavProps) {
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t flex justify-around items-center h-16">
         {navItems.map((item) => (
           <Link
