@@ -109,24 +109,22 @@ export default function SpaceDetailPage() {
   };
 
   const getFileIcon = (mimeType: string) => {
-    const iconClass = "h-10 w-10";
-
     if (mimeType.includes("pdf")) {
-      return <FaFilePdf className="text-red-500 h-full w-full" />;
+      return <FaFilePdf className="text-red-500 h-16 w-16" />;
     } else if (
       mimeType.includes("excel") ||
       mimeType.includes("spreadsheet") ||
       mimeType.includes("xlsx")
     ) {
-      return <FaFileExcel className="text-green-600 h-full w-full" />;
+      return <FaFileExcel className="text-green-600 h-16 w-16" />;
     } else if (mimeType.includes("csv")) {
-      return <FaFileCsv className="text-green-400 h-full w-full" />;
+      return <FaFileCsv className="text-green-400 h-16 w-16" />;
     } else if (mimeType.includes("text/plain") || mimeType.includes("txt")) {
-      return <FaFileAlt className="text-gray-500 h-full w-full" />;
+      return <FaFileAlt className="text-gray-500 h-16 w-16" />;
     } else if (mimeType.includes("word") || mimeType.includes("docx")) {
-      return <FaFileWord className="text-blue-600 h-full w-full" />;
+      return <FaFileWord className="text-blue-600 h-16 w-16" />;
     } else {
-      return <FaFile className="text-gray-400 h-full w-full" />;
+      return <FaFile className="text-gray-400 h-16 w-16" />;
     }
   };
 
@@ -284,7 +282,7 @@ export default function SpaceDetailPage() {
                             <div className="flex items-center justify-center p-4 bg-background w-24 border-r border-border/50">
                               <div className="relative">
                                 {getFileIcon(document.mime_type)}
-                                <div className="absolute -top-2 -right-2 text-xs font-medium bg-background px-1 rounded">
+                                <div className="absolute -top-2 -right-2 text-xs font-medium bg-background px-1 rounded border border-border/50 text-muted-foreground">
                                   {formatFileSize(document.size)}
                                 </div>
                               </div>
