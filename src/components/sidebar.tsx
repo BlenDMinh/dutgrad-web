@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -7,33 +9,72 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/context/auth.context";
-import { 
-  LayoutDashboard, 
-  User, 
+import {
+  LayoutDashboard,
+  User,
   LogOut,
-  SpaceIcon,
+  MessageSquare,
   ChevronDown,
   ChevronRight,
-  Users, 
-  Folder,
+  Users,
+  Sparkles,
   Plus,
-  BookAIcon,
+  Bot,
+  X,
+  Search,
+  Clock,
+  BrainCircuit,
 } from "lucide-react";
 import ThemeToggle from "./theme-toggle";
-import { API_ROUTES, APP_ROUTES } from "@/lib/constants";
+import { APP_ROUTES } from "@/lib/constants";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
     href?: string;
     title: string;
     icon: React.ReactNode;
-    subItems?: { title: string; href: string; icon: React.ReactNode }[];
+    badge?: string;
+    subItems?: {
+      title: string;
+      href: string;
+      icon: React.ReactNode;
+      badge?: string;
+    }[];
   }[];
 }
 
-export function Sidebar() {
-  const { logout } = useAuth();
-  
+interface SidebarProps {
+  isMobile?: boolean;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
+  const { logout, getAuthUser } = useAuth();
+  const user = getAuthUser();
+  const pathname = usePathname();
+  isMobile =
+    isMobile || typeof window !== "undefined" ? window.innerWidth < 768 : false;
+
+  // Mock data for recent AI chats
+  const recentChats = [
+    {
+      id: 1,
+      name: "Web Dev Assistant",
+      lastMessage: "How can I help with your code?",
+    },
+    { id: 2, name: "Math Tutor", lastMessage: "Let's solve that equation" },
+    {
+      id: 3,
+      name: "Career Advisor",
+      lastMessage: "Here are some job opportunities",
+    },
+  ];
+
   const sidebarNavItems = [
     {
       title: "Dashboard",
@@ -41,38 +82,115 @@ export function Sidebar() {
       icon: <LayoutDashboard className="mr-2 h-4 w-4" />,
     },
     {
+      title: "AI Spaces",
+      icon: <BrainCircuit className="mr-2 h-4 w-4" />,
+      badge: "New",
+      subItems: [
+        {
+          title: "Create AI Space",
+          href: APP_ROUTES.SPACES.CREATE,
+          icon: <Plus className="mr-2 h-4 w-4" />,
+        },
+        {
+          title: "Discover Spaces",
+          href: APP_ROUTES.SPACES.PUBLIC,
+          icon: <Sparkles className="mr-2 h-4 w-4" />,
+        },
+        {
+          title: "My AI Spaces",
+          href: APP_ROUTES.SPACES.MINE,
+          icon: <MessageSquare className="mr-2 h-4 w-4" />,
+        },
+        {
+          title: "Invitations",
+          href: APP_ROUTES.MY_INVITATIONS,
+          icon: <Users className="mr-2 h-4 w-4" />,
+          badge: "3",
+        },
+      ],
+    },
+    {
       title: "Profile",
       href: APP_ROUTES.PROFILE,
       icon: <User className="mr-2 h-4 w-4" />,
     },
-    {
-      title: "Spaces",
-      icon: <SpaceIcon className="mr-2 h-4 w-4" />,
-      subItems: [
-        { title: "Create Spaces", href: APP_ROUTES.SPACES.CREATE, icon: <Plus className="mr-2 h-4 w-4"/>},
-        { title: "Public Spaces", href: APP_ROUTES.SPACES.PUBLIC, icon: <BookAIcon className="mr-2 h-4 w-4" /> },
-        { title: "My Spaces", href: APP_ROUTES.SPACES.MINE, icon: <Folder className="mr-2 h-4 w-4" /> },
-        { title: "Invitation", href: APP_ROUTES.MY_INVITATIONS, icon: <Users className="mr-2 h-4 w-4"/> }
-      ],
-    },
   ];
 
-  return (
-    <aside className="w-64 fixed top-0 left-0 h-screen flex flex-col border-r bg-background z-50">
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-background">
       <div className="flex h-14 items-center justify-between border-b px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span className="text-xl font-bold">DUT Grad</span>
+          <BrainCircuit className="h-6 w-6 text-primary" />
+          <span className="text-xl font-bold">DUT Grad AI</span>
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          {isMobile && (
+            <Button variant="outline" size="icon" onClick={onClose}>
+              <X className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </div>
+
+      <div className="p-4">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search AI spaces..." className="pl-9" />
+        </div>
+      </div>
+
+      <div className="p-4 border-b">
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarImage src="/placeholder.svg" alt="User" />
+            <AvatarFallback>{user?.username?.charAt(0) || "U"}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-medium">{user?.username || "User"}</span>
+            <span className="text-xs text-muted-foreground">
+              {user?.email || "user@example.com"}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent AI Chats */}
+      <div className="p-4 border-b">
+        <h3 className="text-sm font-medium mb-3 flex items-center">
+          <Clock className="mr-2 h-4 w-4" />
+          Recent AI Chats
+        </h3>
+        <div className="space-y-2">
+          {recentChats.map((chat) => (
+            <Link
+              key={chat.id}
+              href={`/chat/${chat.id}`}
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Bot className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{chat.name}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {chat.lastMessage}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-1 p-2">
           <SidebarNav items={sidebarNavItems} />
         </div>
       </ScrollArea>
+
       <div className="border-t p-4">
-        <Button 
-          variant="destructive" 
+        <Button
+          variant="destructive"
           className="w-full flex items-center justify-center"
           onClick={() => logout()}
         >
@@ -80,13 +198,49 @@ export function Sidebar() {
           Log out
         </Button>
       </div>
+    </div>
+  );
+
+  // For mobile, render the sidebar in a Sheet component
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onClose}>
+        <SheetContent side="left" className="p-0 w-[280px] sm:w-[320px]">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // For desktop, render the sidebar normally
+  return (
+    <aside className="hidden md:block w-64 border-r h-screen overflow-hidden">
+      <SidebarContent />
     </aside>
   );
 }
 
 export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
   const pathname = usePathname();
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  // Initialize openMenus state based on active paths
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
+    const initialState: Record<string, boolean> = {};
+
+    // Check which menu should be open based on the current path
+    items.forEach((item) => {
+      if (item.subItems) {
+        const shouldBeOpen = item.subItems.some((subItem) =>
+          pathname.startsWith(subItem.href)
+        );
+        if (shouldBeOpen) {
+          initialState[item.title] = true;
+        }
+      }
+    });
+
+    return initialState;
+  });
 
   const toggleMenu = (title: string) => {
     setOpenMenus((prev) => ({
@@ -104,11 +258,18 @@ export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
               href={item.href}
               className={cn(
                 "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === item.href ? "bg-accent text-accent-foreground" : "transparent"
+                pathname === item.href
+                  ? "bg-accent text-accent-foreground"
+                  : "transparent"
               )}
             >
               {item.icon}
               {item.title}
+              {item.badge && (
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {item.badge}
+                </Badge>
+              )}
             </Link>
           ) : (
             <div>
@@ -118,8 +279,17 @@ export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
               >
                 {item.icon}
                 {item.title}
-                <span className="ml-auto">
-                  {openMenus[item.title] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {item.badge && (
+                  <Badge variant="secondary" className="ml-auto mr-2 text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
+                <span className={cn("ml-auto", item.badge && "ml-2")}>
+                  {openMenus[item.title] ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
                 </span>
               </button>
               {openMenus[item.title] && item.subItems && (
@@ -130,11 +300,18 @@ export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
                       href={subItem.href}
                       className={cn(
                         "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-muted",
-                        pathname === subItem.href ? "bg-muted text-primary" : "transparent"
+                        pathname === subItem.href
+                          ? "bg-muted text-primary"
+                          : "transparent"
                       )}
                     >
                       {subItem.icon}
                       {subItem.title}
+                      {subItem.badge && (
+                        <Badge variant="secondary" className="ml-auto text-xs">
+                          {subItem.badge}
+                        </Badge>
+                      )}
                     </Link>
                   ))}
                 </div>
