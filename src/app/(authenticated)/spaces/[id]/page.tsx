@@ -28,7 +28,6 @@ import {
 import ImportModal from "./components/ImportModal";
 import { APP_ROUTES } from "@/lib/constants";
 import { useSpace } from "@/context/space.context";
-import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -36,7 +35,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -68,7 +66,6 @@ export default function SpaceDetailPage() {
     setLoading(true);
     setError(null);
 
-    // Simulate API call
     const fetchData = async () => {
       try {
         const res = await spaceService.getDocumentBySpace(
@@ -101,7 +98,6 @@ export default function SpaceDetailPage() {
       router.push(APP_ROUTES.CHAT.SPACE(spaceId, chatSession.id.toString()));
     } catch (error) {
       console.error("Failed to start chat session:", error);
-      // Mock toast
       console.log("Toast: Failed to start chat session. Please try again.");
     } finally {
       setIsStartingChat(false);

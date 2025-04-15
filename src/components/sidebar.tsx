@@ -233,7 +233,7 @@ export function SidebarNav({ items, className, ...props }: SidebarNavProps) {
   const pathname = usePathname();
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
-    const initialState: Record<string, boolean> = {};
+  const initialState: Record<string, boolean> = {};
 
     items.forEach((item) => {
       if (item.subItems) {
