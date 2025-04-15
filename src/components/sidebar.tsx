@@ -55,10 +55,11 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
   const { logout, getAuthUser } = useAuth();
+  const [isRecentChatsOpen, setIsRecentChatsOpen] = useState(false);
   const user = getAuthUser();
-  const pathname = usePathname();
+
   isMobile =
-    isMobile || typeof window !== "undefined" ? window.innerWidth < 768 : false;
+    isMobile || typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
   const recentChats = [
     {
@@ -155,32 +156,44 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
       </div>
 
       <div className="p-4 border-b">
-        <h3 className="text-sm font-medium mb-3 flex items-center">
+        <button
+          className="text-sm font-medium flex items-center w-full hover:text-primary transition"
+          onClick={() => setIsRecentChatsOpen(!isRecentChatsOpen)}
+        >
           <Clock className="mr-2 h-4 w-4" />
           Recent AI Chats
-        </h3>
-        <div className="space-y-2">
-          {recentChats.map((chat) => (
-            <Link
-              key={chat.id}
-              href={`/chat/${chat.id}`}
-              className="flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors"
-            >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bot className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{chat.name}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {chat.lastMessage}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+          <span className="ml-auto">
+            {isRecentChatsOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </span>
+        </button>
+        {isRecentChatsOpen && (
+          <div className="space-y-2">
+            {recentChats.map((chat) => (
+              <Link
+                key={chat.id}
+                href={`/chat/${chat.id}`}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors"
+              >
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{chat.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {chat.lastMessage}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-1 p-2">
           <SidebarNav items={sidebarNavItems} />
         </div>
