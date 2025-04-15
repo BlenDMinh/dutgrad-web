@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 interface Document {
   id: number;
   title: string;
-  processing_status: number; 
+  processing_status: number;
   created_at: string;
   updated_at: string;
   space_id: number;
@@ -67,7 +67,10 @@ export default function DocumentUploadProgressPage() {
   const [progressPercent, setProgressPercent] = useState(0);
 
   const calculateProgress = (status: number) => {
-    return Math.min(Math.round(((status + 1) / PROCESSING_STAGES.length) * 100), 100);
+    return Math.min(
+      Math.round(((status + 1) / PROCESSING_STAGES.length) * 100),
+      100
+    );
   };
 
   const fetchDocument = async () => {
@@ -165,6 +168,8 @@ export default function DocumentUploadProgressPage() {
               const isActive = docStatus === stage.status;
               const isCompleted = docStatus > stage.status;
               const isPending = docStatus < stage.status;
+              const isFinalStageCompleted =
+                stage.status === 2 && docStatus === 2;
 
               return (
                 <div
@@ -177,7 +182,7 @@ export default function DocumentUploadProgressPage() {
                   )}
                 >
                   <div className="mt-1">
-                    {isCompleted ? (
+                    {isCompleted || isFinalStageCompleted ? (
                       <CheckCircle2 className="h-6 w-6 text-green-500" />
                     ) : isActive ? (
                       stage.status === 1 ? (
@@ -198,7 +203,9 @@ export default function DocumentUploadProgressPage() {
                     >
                       {stage.title}
                       {isActive && " (In Progress)"}
-                      {isCompleted && " (Completed)"}
+                      {isCompleted || isFinalStageCompleted
+                        ? " (Completed)"
+                        : ""}
                     </h3>
                     <p className="text-muted-foreground">{stage.description}</p>
                     {isActive && stage.status === 0 && (
