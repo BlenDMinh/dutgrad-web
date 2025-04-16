@@ -33,6 +33,7 @@ export const API_ROUTES = {
   DOCUMENT: {
     UPLOAD: "/documents/upload",
     DETAIL: (id: string) => `/documents/${id}`,
+    DELETE: (documentId: string) => `/documents/${documentId}`,
   },
   CHAT: {
     BEGIN_SESSION: "/user-query-sessions/begin-chat-session",

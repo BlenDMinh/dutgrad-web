@@ -1,5 +1,6 @@
 import apiClient from "@/lib/axios";
 import { API_ROUTES } from "../../lib/constants";
+import { handleResponse } from "./helper";
 
 export const documentService = {
     uploadDocumet(spaceId: number, file: File) {
@@ -14,8 +15,11 @@ export const documentService = {
             }
         });
     },
-
     getDocumentById(documentId: number) {
         return apiClient.instance.get(API_ROUTES.DOCUMENT.DETAIL(documentId.toString()))
+    },
+    deleteDocument: async(documentId: string)=> {
+        const response = await apiClient.instance.delete(API_ROUTES.DOCUMENT.DELETE(documentId));
+        return handleResponse(response.data);
     }
 };
