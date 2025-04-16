@@ -11,6 +11,8 @@ import Cookies from 'js-cookie';
 interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
+  user: User | null;
+  setUser: (user: User | null) => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
   loginSuccess: (accessToken: string, user: User) => void;
@@ -24,10 +26,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
+
 
   useEffect(() => {
     const checkInitialAuth = async () => {
       const authenticated = await checkAuth();
+      if (authenticated) {
+        setUser(getAuthUser());
+      }
       setIsLoggedIn(authenticated);
       setIsLoading(false);
     };
@@ -44,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginSuccess = (accessToken: string, user: User) => {
     setAuthTokens({ accessToken });
     setAuthUser(user);
+    setUser(user);
     setIsLoggedIn(true);
   };
 
@@ -70,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       clearAuthTokens();
       clearAuthUser();
+      setUser(null);
       setIsLoggedIn(false);
       router.push(APP_ROUTES.LOGIN);
     }
@@ -78,6 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     isLoggedIn,
     isLoading,
+    user,
+    setUser,
     logout,
     checkAuth,
     loginSuccess,
@@ -94,3 +105,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

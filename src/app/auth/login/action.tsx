@@ -18,6 +18,7 @@ export async function loginUser(
     id: string | number
     email: string
     username: string
+    created_at: Date
   }
 }>> {
   try {

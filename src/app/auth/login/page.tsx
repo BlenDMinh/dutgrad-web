@@ -57,7 +57,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          {/* Replace with your logo */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold">DUT Grad</h1>
           </div>

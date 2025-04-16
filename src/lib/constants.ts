@@ -26,7 +26,10 @@ export const API_ROUTES = {
     ACCEPT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/accept`,
     REJECT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/reject`,
   },
-
+  USER:{
+    MINE: "/user/me",
+    ME: (userId: string) => `/user/${userId}`,
+  },
   DOCUMENT: {
     UPLOAD: "/documents/upload",
     DETAIL: (id: string) => `/documents/${id}`,
