@@ -143,7 +143,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
       <div className="p-4 border-b">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src="/placeholder.svg" alt="User" />
+            <AvatarImage alt="User" />
             <AvatarFallback>{user?.username?.charAt(0) || "U"}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
