@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { spaceService } from "@/services/api/space.service";
+import { documentService } from "@/services/api/document.service";
 import { chatService } from "@/services/api/chat.service";
 import {
   FaFilePdf,
@@ -12,6 +13,16 @@ import {
   FaFile,
   FaCheckCircle,
 } from "react-icons/fa";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/ui/search-bar";
 import {
@@ -39,6 +50,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
 
 interface SpaceDocument {
   id: number;
@@ -60,7 +72,10 @@ export default function SpaceDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isStartingChat, setIsStartingChat] = useState(false);
-
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [documentToDelete, setDocumentToDelete] =
+    useState<SpaceDocument | null>(null);
+  const [userRole, setUserRole] = useState<string>("");
   useEffect(() => {
     if (!spaceId) return;
     setLoading(true);
@@ -84,6 +99,22 @@ export default function SpaceDetailPage() {
 
     fetchData();
   }, [documentPage, spaceId]);
+
+  useEffect(() => {
+    if (!spaceId) return;
+
+    const fetchUserRole = async () => {
+      try {
+        const response = await spaceService.getUserRole(spaceId);
+        setUserRole(response.role.name);
+      } catch (err) {
+        console.error("Failed to fetch user role:", err);
+        setUserRole("");
+      }
+    };
+
+    fetchUserRole();
+  }, [spaceId]);
 
   const router = useRouter();
 
@@ -173,6 +204,28 @@ export default function SpaceDetailPage() {
     return (
       Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
     );
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!documentToDelete) return;
+
+    try {
+      await documentService.deleteDocument(documentToDelete.id.toString());
+      setDocuments(documents.filter((doc) => doc.id !== documentToDelete.id));
+      setDocumentTotal((prev) => prev - 1);
+      toast.success(`${documentToDelete.name} has been successfully deleted.`);
+    } catch (err) {
+      console.error("Failed to delete document:", err);
+      toast.error("Failed to delete document. Please try again.");
+    } finally {
+      setDocumentToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const openDeleteDialog = (document: SpaceDocument) => {
+    setDocumentToDelete(document);
+    setIsDeleteDialogOpen(true);
   };
 
   if (loading) {
@@ -333,23 +386,28 @@ export default function SpaceDetailPage() {
                                     </Tooltip>
                                   </TooltipProvider>
 
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-8 w-8 text-destructive hover:text-destructive"
-                                          onClick={() => {}}
-                                        >
-                                          <Trash2 size={16} />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Delete document</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  {(userRole === "owner" ||
+                                    userRole === "editor") && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-destructive hover:text-destructive"
+                                            onClick={() =>
+                                              openDeleteDialog(document)
+                                            }
+                                          >
+                                            <Trash2 size={16} />
+                                          </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Delete document</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
                                 </div>
                               </div>
 
@@ -433,6 +491,33 @@ export default function SpaceDetailPage() {
             </Button>
           </div>
         )}
+
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Are you sure you want to delete this document?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                document
+                {documentToDelete?.name} and remove it from the space.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteDocument}
+                className="bg-destructive text-white hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
