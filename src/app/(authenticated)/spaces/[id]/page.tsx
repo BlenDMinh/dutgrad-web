@@ -35,6 +35,7 @@ import {
   Edit,
   Eye,
   Trash2,
+  Settings,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
 import { APP_ROUTES } from "@/lib/constants";
@@ -277,6 +278,16 @@ export default function SpaceDetailPage() {
             >
               Manage Members
             </Button>
+
+            {(userRole === "owner") && (
+              <Button
+                onClick={() => router.push(APP_ROUTES.SPACES.SETTINGS(spaceId))}
+                variant="outline"
+              >
+                <Settings size={18} />
+                Settings
+              </Button>
+            )}
             <Button
               className="flex items-center gap-2"
               onClick={handleOpenChat}

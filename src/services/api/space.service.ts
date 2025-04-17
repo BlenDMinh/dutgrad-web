@@ -11,6 +11,18 @@ export const spaceService = {
     const response = await apiClient.post(API_ROUTES.SPACE.ALL, data);
     return handleResponse(response.data);
   },
+  updateSpace: async (spaceId: string, data: {
+    name?: string;
+    description?: string;
+    privacy_status?: boolean;
+  }) => {
+    const response = await apiClient.put(API_ROUTES.SPACE.DETAIL(spaceId), data);
+    return handleResponse(response.data);
+  },
+  deleteSpace: async (spaceId: string) => {
+    const response = await apiClient.delete(API_ROUTES.SPACE.DETAIL(spaceId));
+    return handleResponse(response.data);
+  },
   getSpacePublic: async () => {
     const response = await apiClient.get(API_ROUTES.SPACE.PUBLIC);
     return handleResponse(response.data);
