@@ -54,6 +54,8 @@ export const APP_ROUTES = {
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me",
     MEMBER: (spaceId: string) => `/spaces/${spaceId}/members`,
+    SETTINGS:  (spaceId: string) => `/spaces/${spaceId}/settings`,
+    DETAIL: (spaceId: string) => `/spaces/${spaceId}`,
   },
   DOCUMENT: {
     UPLOAD_PROGRESS: (id: string) => `/documents/upload-progress/${id}`,
