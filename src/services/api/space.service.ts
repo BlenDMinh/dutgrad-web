@@ -11,12 +11,18 @@ export const spaceService = {
     const response = await apiClient.post(API_ROUTES.SPACE.ALL, data);
     return handleResponse(response.data);
   },
-  updateSpace: async (spaceId: string, data: {
-    name?: string;
-    description?: string;
-    privacy_status?: boolean;
-  }) => {
-    const response = await apiClient.put(API_ROUTES.SPACE.DETAIL(spaceId), data);
+  updateSpace: async (
+    spaceId: string,
+    data: {
+      name?: string;
+      description?: string;
+      privacy_status?: boolean;
+    }
+  ) => {
+    const response = await apiClient.put(
+      API_ROUTES.SPACE.DETAIL(spaceId),
+      data
+    );
     return handleResponse(response.data);
   },
   deleteSpace: async (spaceId: string) => {
@@ -82,23 +88,46 @@ export const spaceService = {
     return handleResponse(response.data);
   },
   joinSpaceWithToken: async (token: string) => {
-    const response = await apiClient.post(`${API_ROUTES.SPACE.JOIN_SPACE_LINK(token)}`);
+    const response = await apiClient.post(
+      `${API_ROUTES.SPACE.JOIN_SPACE_LINK(token)}`
+    );
     return handleResponse(response.data);
   },
   getMyInvitations: async () => {
-    const response = await apiClient.get(`${API_ROUTES.SPACE.MY_INVITATIONS()}`);
+    const response = await apiClient.get(
+      `${API_ROUTES.SPACE.MY_INVITATIONS()}`
+    );
     return handleResponse(response.data);
   },
   acceptInvitation: async (invitationId: string) => {
-    const response = await apiClient.put(`${API_ROUTES.SPACE.ACCEPT_INVITATION(invitationId)}`);
+    const response = await apiClient.put(
+      `${API_ROUTES.SPACE.ACCEPT_INVITATION(invitationId)}`
+    );
     return handleResponse(response.data);
   },
   rejectInvitation: async (invitationId: string) => {
-    const response = await apiClient.put(`${API_ROUTES.SPACE.REJECT_INVITATION(invitationId)}`);
+    const response = await apiClient.put(
+      `${API_ROUTES.SPACE.REJECT_INVITATION(invitationId)}`
+    );
     return handleResponse(response.data);
   },
   joinSpace: async (spaceId: string) => {
-    const response = await apiClient.post(API_ROUTES.SPACE.JOIN_PUBLIC(spaceId));
-    return handleResponse(response.data); 
+    const response = await apiClient.post(
+      API_ROUTES.SPACE.JOIN_PUBLIC(spaceId)
+    );
+    return handleResponse(response.data);
+  },
+  getPopularSpaces: async () => {
+    const response = await apiClient.get(API_ROUTES.SPACE.POPULAR_SPACE);
+    return handleResponse(response.data);
+  },
+  getCountMySpace: async () => {
+    const response = await apiClient.head(API_ROUTES.SPACE.COUNT_MY_SPACE);
+    const count = response.headers["x-space-count"];
+    return Number(count);
+  },
+  getCountMyChatSessions: async (): Promise<number> => {
+    const response = await apiClient.head(API_ROUTES.SPACE.COUNT_USER_QUERY_SESSION);
+    return Number(response.headers["x-total-count"]);
   }
 };
