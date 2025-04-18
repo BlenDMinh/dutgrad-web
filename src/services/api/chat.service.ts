@@ -50,6 +50,8 @@ export const chatService = {
     const response = await apiClient.post(API_ROUTES.CHAT.ASK, {
       query_session_id: querySessionId,
       query: query,
+    }, {
+      timeout: 60000, // Set timeout to 60 seconds
     });
     return handleResponse(response.data);
   },
