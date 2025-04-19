@@ -2,7 +2,6 @@ import apiClient from "@/lib/axios";
 import { handleResponse } from "./helper";
 import { API_ROUTES } from "../../lib/constants";
 
-// Interfaces for chat service
 interface BeginSessionResponse {
   id: number;
   user_id: number;
@@ -51,14 +50,13 @@ export const chatService = {
       query_session_id: querySessionId,
       query: query,
     }, {
-      timeout: 60000, // Set timeout to 60 seconds
+      timeout: 60000, 
     });
     return handleResponse(response.data);
   },
 
-  // You can add more methods here as needed
-  getSessionHistory: async (sessionId: number) => {
-    // This is a placeholder for future implementation
-    // Would fetch previous messages in a chat session
+  getRecentChat: async () => {
+    const response = await apiClient.get(API_ROUTES.CHAT.SESSION_HISTORY);
+    return handleResponse(response.data);
   },
 };
