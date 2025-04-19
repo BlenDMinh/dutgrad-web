@@ -1,5 +1,6 @@
 import { Bot } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm"
 
 type MessageProps = {
   message: {
@@ -35,67 +36,57 @@ export default function ChatMessage({ message }: MessageProps) {
         ) : (
           <div className="text-sm">
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 p: ({ children }) => <p className="mb-2">{children}</p>,
-                h1: ({ children }) => (
-                  <h1 className="text-xl font-bold mb-2">{children}</h1>
-                ),
-                h2: ({ children }) => (
-                  <h2 className="text-lg font-bold mb-2">{children}</h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="text-md font-bold mb-2">{children}</h3>
-                ),
-                ul: ({ children }) => (
-                  <ul className="list-disc pl-5 mb-2">{children}</ul>
-                ),
-                ol: ({ children }) => (
-                  <ol className="list-decimal pl-5 mb-2">{children}</ol>
-                ),
+                h1: ({ children }) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-md font-bold mb-2">{children}</h3>,
+                ul: ({ children }) => <ul className="list-disc pl-5 mb-2">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal pl-5 mb-2">{children}</ol>,
                 li: ({ children }) => <li className="mb-1">{children}</li>,
                 a: ({ href, children }) => (
-                  <a
-                    href={href}
-                    className="text-primary underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={href} className="text-primary underline" target="_blank" rel="noopener noreferrer">
                     {children}
                   </a>
                 ),
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-muted-foreground/30 pl-4 italic my-2">
-                    {children}
-                  </blockquote>
+                  <blockquote className="border-l-4 border-muted-foreground/30 pl-4 italic my-2">{children}</blockquote>
                 ),
-                code: ({
-                  inline,
-                  className,
-                  children,
-                  ...props
-                }: React.ComponentPropsWithoutRef<"code"> & {
-                  inline?: boolean;
-                }) => {
+                code: ({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<"code"> & { inline?: boolean; }) => {
+                  const match = /language-(\w+)/.exec(className || "")
                   if (inline) {
                     return (
-                      <code
-                        className="px-1 py-0.5 rounded bg-muted-foreground/20 text-sm font-mono"
-                        {...props}
-                      >
+                      <code className="px-1 py-0.5 rounded bg-muted-foreground/20 text-sm font-mono" {...props}>
                         {children}
                       </code>
-                    );
+                    )
                   }
                   return (
                     <pre className="p-3 rounded-md bg-muted-foreground/20 overflow-auto my-2 font-mono text-sm">
                       <code {...props}>{children}</code>
                     </pre>
-                  );
+                  )
                 },
-                strong: ({ children }) => (
-                  <strong className="font-bold">{children}</strong>
-                ),
+                strong: ({ children }) => <strong className="font-bold">{children}</strong>,
                 em: ({ children }) => <em className="italic">{children}</em>,
+                // Table styling components
+                table: ({ children }) => (
+                  <div className="my-4 w-full overflow-auto">
+                    <table className="w-full border-collapse text-sm">{children}</table>
+                  </div>
+                ),
+                thead: ({ children }) => <thead className="bg-muted-foreground/10">{children}</thead>,
+                tbody: ({ children }) => <tbody>{children}</tbody>,
+                tr: ({ children }) => (
+                  <tr className="border-b border-muted-foreground/20 m-0 p-0 even:bg-muted-foreground/5">{children}</tr>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-muted-foreground/20 px-4 py-2 text-left font-semibold">{children}</th>
+                ),
+                td: ({ children }) => (
+                  <td className="border border-muted-foreground/20 px-4 py-2 text-left">{children}</td>
+                ),
               }}
             >
               {message.content}
