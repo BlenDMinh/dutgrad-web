@@ -70,6 +70,22 @@ export default function ChatMessage({ message }: MessageProps) {
                 },
                 strong: ({ children }) => <strong className="font-bold">{children}</strong>,
                 em: ({ children }) => <em className="italic">{children}</em>,
+                table: ({ children }) => (
+                  <div className="my-4 w-full overflow-auto">
+                    <table className="w-full border-collapse text-sm">{children}</table>
+                  </div>
+                ),
+                thead: ({ children }) => <thead className="bg-muted-foreground/10">{children}</thead>,
+                tbody: ({ children }) => <tbody>{children}</tbody>,
+                tr: ({ children }) => (
+                  <tr className="border-b border-muted-foreground/20 m-0 p-0 even:bg-muted-foreground/5">{children}</tr>
+                ),
+                th: ({ children }) => (
+                  <th className="border border-muted-foreground/20 px-4 py-2 text-left font-semibold">{children}</th>
+                ),
+                td: ({ children }) => (
+                  <td className="border border-muted-foreground/20 px-4 py-2 text-left">{children}</td>
+                ),
               }}
             >
               {message.content}
