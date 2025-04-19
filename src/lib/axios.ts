@@ -83,6 +83,9 @@ export const apiClient = {
   patch: <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
     return api.patch<ApiResponse<T>>(url, data, config);
   },
+  head: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> => {
+    return api.head<T>(url, config);
+  },
   
   delete: <T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<ApiResponse<T>>> => {
     return api.delete<ApiResponse<T>>(url, config);
