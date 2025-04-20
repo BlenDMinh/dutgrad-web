@@ -6,11 +6,11 @@ import { useParams, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 
 export interface Role {
-    id: number;
-    name: string
-    permission: number;
-    created_at: string;
-    updated_at: string;
+  id: number;
+  name: string;
+  permission: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Space {
@@ -67,13 +67,16 @@ function SpaceProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    spaceService.getUserRole(id as string).then((res) => {
-      setRole(res.role);
-    }).catch((err) => {
-      setError("Failed to fetch user role");
-      console.error(err);
-      router.push(APP_ROUTES.SPACES.PUBLIC);
-    })
+    spaceService
+      .getUserRole(id as string)
+      .then((res) => {
+        setRole(res.role);
+      })
+      .catch((err) => {
+        setError("Failed to fetch user role");
+        console.error(err);
+        router.push(APP_ROUTES.SPACES.PUBLIC);
+      });
 
     Promise.all([
       spaceService.getSpaceById(id as string).then((res) => {
@@ -86,21 +89,18 @@ function SpaceProvider({ children }: { children: React.ReactNode }) {
         setInvitations(res.invitations);
       }),
     ])
-    .catch((err) => {
-      setError("Failed to fetch space details");
-      router.push(APP_ROUTES.SPACES.PUBLIC);
-      console.error(err);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-  }, [id]);
-
+      .catch((err) => {
+        setError("Failed to fetch space details");
+        router.push(APP_ROUTES.SPACES.PUBLIC);
+        console.error(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [id, router]);
 
   return (
-    <SpaceContext.Provider
-      value={{ space, role, loading, error }}
-    >
+    <SpaceContext.Provider value={{ space, role, loading, error }}>
       {children}
     </SpaceContext.Provider>
   );
