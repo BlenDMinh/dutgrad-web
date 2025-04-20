@@ -25,7 +25,7 @@ export default function AuthenticatedLayout({
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -36,7 +36,7 @@ export default function AuthenticatedLayout({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
 

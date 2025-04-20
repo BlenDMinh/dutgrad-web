@@ -1,6 +1,6 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+"use client";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,12 +8,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCcw, XCircle, CheckCircle, Inbox } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
-import { spaceService } from '@/services/api/space.service';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RefreshCcw, XCircle, CheckCircle, Inbox } from "lucide-react";
+import { toast, Toaster } from "sonner";
+import { spaceService } from "@/services/api/space.service";
 
 export default function MyInvitationsPage() {
   const [loading, setLoading] = useState(false);
@@ -25,7 +25,7 @@ export default function MyInvitationsPage() {
       const res = await spaceService.getMyInvitations();
       setInvitations(res.invitations);
     } catch (err: any) {
-      toast.error('Failed to fetch invitations');
+      toast.error("Failed to fetch invitations");
     } finally {
       setLoading(false);
     }
@@ -34,20 +34,20 @@ export default function MyInvitationsPage() {
   const handleJoin = async (invitationId: string) => {
     try {
       await spaceService.acceptInvitation(invitationId);
-      toast.success('Successfully joined the space!');
+      toast.success("Successfully joined the space!");
       fetchInvitations();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to join space');
+      toast.error(err?.response?.data?.message || "Failed to join space");
     }
   };
 
   const handleReject = async (invitationId: string) => {
     try {
       await spaceService.rejectInvitation(invitationId);
-      toast.success('Invitation rejected successfully!');
+      toast.success("Invitation rejected successfully!");
       await fetchInvitations();
     } catch (err: any) {
-      toast.error('Failed to reject invitation');
+      toast.error("Failed to reject invitation");
     }
   };
 
@@ -131,13 +131,13 @@ export default function MyInvitationsPage() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Invited by{' '}
+                      Invited by{" "}
                       <span className="font-medium">
-                        {invitation.inviter?.username || 'Unknown'}
+                        {invitation.inviter?.username || "Unknown"}
                       </span>
                     </p>
                   </div>
-                  {invitation.status === 'pending' ? (
+                  {invitation.status === "pending" ? (
                     <div className="flex">
                       <Button
                         variant="outline"
@@ -159,12 +159,12 @@ export default function MyInvitationsPage() {
                     <Badge
                       variant="outline"
                       className={`text-sm ${
-                        invitation.status === 'accepted'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                        invitation.status === "accepted"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {invitation.status === 'accepted' ? 'Joined' : 'Declined'}
+                      {invitation.status === "accepted" ? "Joined" : "Declined"}
                     </Badge>
                   )}
                 </CardDescription>

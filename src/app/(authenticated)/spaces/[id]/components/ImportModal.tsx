@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogHeader,
@@ -10,7 +10,7 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -18,32 +18,32 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useForm } from 'react-hook-form';
-import { FaPlus } from 'react-icons/fa';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, AlertCircle } from 'lucide-react';
-import { documentService } from '@/services/api/document.service';
-import { useRouter } from 'next/navigation';
-import { APP_ROUTES, SPACE_ROLE } from '@/lib/constants';
-import { useSpace } from '@/context/space.context';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { FaPlus } from "react-icons/fa";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { documentService } from "@/services/api/document.service";
+import { useRouter } from "next/navigation";
+import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
+import { useSpace } from "@/context/space.context";
 
 interface ImportDialogProps {
   spaceId: string;
+  children?: ReactNode;
 }
 
-export default function ImportDialog(props: ImportDialogProps) {
+export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
   const { space, role } = useSpace();
-  const { spaceId } = props;
   const [isUploading, setIsUploading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
   const [feedback, setFeedback] = useState<{
-    type: 'success' | 'error' | null;
+    type: "success" | "error" | null;
     message: string;
-  }>({ type: null, message: '' });
+  }>({ type: null, message: "" });
 
   const form = useForm({
     defaultValues: {
@@ -53,15 +53,15 @@ export default function ImportDialog(props: ImportDialogProps) {
 
   const handleFileUpload = async (data: { file: FileList }) => {
     try {
-      setFeedback({ type: null, message: '' });
+      setFeedback({ type: null, message: "" });
       setIsUploading(true);
 
       const file = data.file?.[0];
 
       if (!file) {
         setFeedback({
-          type: 'error',
-          message: 'Please select a file to upload.',
+          type: "error",
+          message: "Please select a file to upload.",
         });
         setIsUploading(false);
         return;
@@ -74,8 +74,8 @@ export default function ImportDialog(props: ImportDialogProps) {
 
       if (response.data.status === 200 || response.data.status === 201) {
         setFeedback({
-          type: 'success',
-          message: response.data.message || 'Document uploaded successfully.',
+          type: "success",
+          message: response.data.message || "Document uploaded successfully.",
         });
 
         form.reset();
@@ -85,16 +85,16 @@ export default function ImportDialog(props: ImportDialogProps) {
 
         setTimeout(() => {
           setIsOpen(false);
-          setFeedback({ type: null, message: '' });
+          setFeedback({ type: null, message: "" });
           router.push(APP_ROUTES.DOCUMENT.UPLOAD_PROGRESS(docId));
         }, 1000);
       } else {
-        throw new Error(response.data.message || 'Failed to upload document');
+        throw new Error(response.data.message || "Failed to upload document");
       }
     } catch (error: any) {
-      console.error('Document upload error:', error);
+      console.error("Document upload error:", error);
 
-      let errorMessage = 'Failed to upload document. Please try again.';
+      let errorMessage = "Failed to upload document. Please try again.";
 
       if (error.response?.data) {
         errorMessage =
@@ -106,7 +106,7 @@ export default function ImportDialog(props: ImportDialogProps) {
       }
 
       setFeedback({
-        type: 'error',
+        type: "error",
         message: errorMessage,
       });
     } finally {
@@ -116,7 +116,7 @@ export default function ImportDialog(props: ImportDialogProps) {
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setFeedback({ type: null, message: '' });
+      setFeedback({ type: null, message: "" });
       form.reset();
     }
     setIsOpen(open);
@@ -125,12 +125,15 @@ export default function ImportDialog(props: ImportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-      {(role?.id === SPACE_ROLE.OWNER || role?.id === SPACE_ROLE.EDITOR) ? (
-        <Button variant="outline" className="flex items-center gap-2">
-          <FaPlus size={16} />
-          <span>Import</span>
-        </Button>
-        ) : null}
+        {children
+          ? children
+          : (role?.id === SPACE_ROLE.OWNER ||
+              role?.id === SPACE_ROLE.EDITOR) && (
+              <Button variant="outline" className="flex items-center gap-2">
+                <FaPlus size={16} />
+                <span>Import</span>
+              </Button>
+            )}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px]">
@@ -167,7 +170,7 @@ export default function ImportDialog(props: ImportDialogProps) {
               )}
             />
 
-            {feedback.type === 'success' && (
+            {feedback.type === "success" && (
               <Alert
                 variant="default"
                 className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-900"
@@ -178,7 +181,7 @@ export default function ImportDialog(props: ImportDialogProps) {
               </Alert>
             )}
 
-            {feedback.type === 'error' && (
+            {feedback.type === "error" && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Error</AlertTitle>
@@ -188,7 +191,7 @@ export default function ImportDialog(props: ImportDialogProps) {
 
             <DialogFooter className="sm:justify-start gap-2">
               <Button type="submit" disabled={isUploading}>
-                {isUploading ? 'Uploading...' : 'Upload'}
+                {isUploading ? "Uploading..." : "Upload"}
               </Button>
               <DialogClose asChild>
                 <Button type="button" variant="secondary">

@@ -36,6 +36,13 @@ import {
   Eye,
   Trash2,
   Settings,
+  Users,
+  Share2,
+  FilePlus2,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Filter,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
 import { APP_ROUTES } from "@/lib/constants";
@@ -52,6 +59,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SpaceDocument {
   id: number;
@@ -77,6 +94,10 @@ export default function SpaceDetailPage() {
   const [documentToDelete, setDocumentToDelete] =
     useState<SpaceDocument | null>(null);
   const [userRole, setUserRole] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [fileTypeFilter, setFileTypeFilter] = useState<string>("all");
+
   useEffect(() => {
     if (!spaceId) return;
     setLoading(true);
@@ -130,7 +151,7 @@ export default function SpaceDetailPage() {
       router.push(APP_ROUTES.CHAT.SPACE(spaceId, chatSession.id.toString()));
     } catch (error) {
       console.error("Failed to start chat session:", error);
-      console.log("Toast: Failed to start chat session. Please try again.");
+      toast.error("Failed to start chat session. Please try again.");
     } finally {
       setIsStartingChat(false);
     }
@@ -153,6 +174,26 @@ export default function SpaceDetailPage() {
       return <FaFileWord className="text-blue-600 h-16 w-16" />;
     } else {
       return <FaFile className="text-gray-400 h-16 w-16" />;
+    }
+  };
+
+  const getFileType = (mimeType: string): string => {
+    if (mimeType.includes("pdf")) {
+      return "pdf";
+    } else if (
+      mimeType.includes("excel") ||
+      mimeType.includes("spreadsheet") ||
+      mimeType.includes("xlsx")
+    ) {
+      return "excel";
+    } else if (mimeType.includes("csv")) {
+      return "csv";
+    } else if (mimeType.includes("text/plain") || mimeType.includes("txt")) {
+      return "text";
+    } else if (mimeType.includes("word") || mimeType.includes("docx")) {
+      return "word";
+    } else {
+      return "other";
     }
   };
 
@@ -229,6 +270,30 @@ export default function SpaceDetailPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const filteredDocuments = documents.filter((doc) => {
+    // Filter by search query
+    const matchesSearch = doc.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    // Filter by processing status based on tab
+    const matchesStatus =
+      activeTab === "all" ||
+      (activeTab === "processing" && doc.processing_status === 1) ||
+      (activeTab === "queued" && doc.processing_status === 0) ||
+      (activeTab === "ready" && doc.processing_status === 2);
+
+    // Filter by file type
+    const matchesFileType =
+      fileTypeFilter === "all" || getFileType(doc.mime_type) === fileTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesFileType;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -249,230 +314,435 @@ export default function SpaceDetailPage() {
   if (!space) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-center px-4">
-        <Bot className="h-16 w-16 text-muted-foreground mb-4 animate-bounce" />
-        <h1 className="text-3xl font-bold mb-2">Oops! Space not found</h1>
-        <p className="text-muted-foreground mb-6">
-          {"We couldn't find the space you're looking for."}
-        </p>
-        <Button variant="default" onClick={() => window.history.back()}>
-          ← Go Back
-        </Button>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Bot className="h-16 w-16 text-muted-foreground mb-4 animate-bounce" />
+          <h1 className="text-3xl font-bold mb-2">Oops! Space not found</h1>
+          <p className="text-muted-foreground mb-6">
+            {"We couldn't find the space you're looking for."}
+          </p>
+          <Button variant="default" onClick={() => window.history.back()}>
+            ← Go Back
+          </Button>
+        </motion.div>
       </div>
     );
   }
 
+  const fileTypeOptions = [
+    { value: "all", label: "All Types" },
+    { value: "pdf", label: "PDF Files" },
+    { value: "excel", label: "Excel Files" },
+    { value: "word", label: "Word Documents" },
+    { value: "csv", label: "CSV Files" },
+    { value: "text", label: "Text Files" },
+    { value: "other", label: "Other Files" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto relative">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-primary mb-2">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        className="max-w-5xl mx-auto relative"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute left-0 top-0"
+            onClick={() => router.back()}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" /> Back
+          </Button>
+
+          <motion.h1
+            className="text-4xl font-extrabold bg-gradient-to-r from-primary to-primary/70 text-transparent bg-clip-text mb-2"
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             {space.name}
-          </h1>
+          </motion.h1>
+
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             {space.description}
           </p>
-          <div className="flex justify-center mt-6 gap-4">
+
+          <div className="flex flex-wrap justify-center mt-6 gap-3">
             <Button
               onClick={() => router.push(APP_ROUTES.SPACES.MEMBER(spaceId))}
               variant="outline"
+              className="group transition-all duration-300 hover:border-primary"
             >
+              <Users
+                size={18}
+                className="mr-2 group-hover:text-primary transition-colors"
+              />
               Manage Members
             </Button>
 
-            {(userRole === "owner") && (
+            {userRole === "owner" && (
               <Button
                 onClick={() => router.push(APP_ROUTES.SPACES.SETTINGS(spaceId))}
                 variant="outline"
+                className="group transition-all duration-300 hover:border-primary"
               >
-                <Settings size={18} />
+                <Settings
+                  size={18}
+                  className="mr-2 group-hover:text-primary transition-colors"
+                />
                 Settings
               </Button>
             )}
+
             <Button
-              className="flex items-center gap-2"
+              className="bg-primary hover:bg-primary/90 flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
               onClick={handleOpenChat}
               disabled={isStartingChat}
             >
-              <RobotIcon size={18} />
+              <RobotIcon
+                size={18}
+                className="transition-transform group-hover:rotate-12"
+              />
               {isStartingChat ? "Starting Chat..." : "Open Chat"}
             </Button>
           </div>
         </div>
 
-        <Card className="border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between w-full mb-6">
-              <div className="flex">
-                <SearchBar onSearch={(query) => console.log(query)} />
-              </div>
-              <ImportModal spaceId={spaceId} />
-            </div>
-
-            <Separator className="my-6" />
-
-            <div className="mt-6">
-              {documents.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <p className="text-xl font-medium text-muted-foreground">
-                    No documents uploaded yet
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2 mb-6">
-                    Upload your first document to get started
-                  </p>
+        <Card className="border border-border/50 shadow-lg overflow-hidden">
+          <CardContent className="p-0">
+            <div className="p-6 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full space-y-4 sm:space-y-0">
+                <div className="flex flex-1 max-w-md">
+                  <SearchBar onSearch={handleSearch} />
                 </div>
-              ) : (
-                <ul className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
-                  {documents.map((document) => {
-                    const statusInfo = getProcessingStatusInfo(
-                      document.processing_status
-                    );
-                    const fileDate = new Date(document.created_at);
-                    const timeAgo = formatDistanceToNow(fileDate, {
-                      addSuffix: true,
-                    });
 
-                    return (
-                      <Card
-                        key={document.id}
-                        className="overflow-hidden transition-all duration-300 hover:shadow-md group border border-border/50"
+                <div className="flex items-center gap-3">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="gap-2">
+                        <Filter size={16} />
+                        <span className="hidden sm:inline">File Type</span>
+                        <span className="sm:hidden">Filter</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>Filter by file type</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {fileTypeOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={() => setFileTypeFilter(option.value)}
+                          className={
+                            fileTypeFilter === option.value
+                              ? "bg-accent text-accent-foreground"
+                              : ""
+                          }
+                        >
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <ImportModal spaceId={spaceId}>
+                    <Button className="gap-2">
+                      <FilePlus2 size={18} />
+                      <span className="hidden sm:inline">Upload Documents</span>
+                      <span className="sm:hidden">Upload</span>
+                    </Button>
+                  </ImportModal>
+                </div>
+              </div>
+
+              <Tabs
+                defaultValue="all"
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="mb-4 w-full sm:w-auto grid grid-cols-4 gap-2">
+                  <TabsTrigger value="all" className="flex gap-2">
+                    <FileIcon className="h-4 w-4" /> All
+                  </TabsTrigger>
+                  <TabsTrigger value="ready" className="flex gap-2">
+                    <FaCheckCircle className="h-4 w-4 text-green-500" /> Ready
+                  </TabsTrigger>
+                  <TabsTrigger value="processing" className="flex gap-2">
+                    <AlertCircle className="h-4 w-4 text-blue-500" /> Processing
+                  </TabsTrigger>
+                  <TabsTrigger value="queued" className="flex gap-2">
+                    <Clock className="h-4 w-4 text-yellow-500" /> Queued
+                  </TabsTrigger>
+                </TabsList>
+
+                <Separator className="my-6" />
+
+                <div className="mt-6">
+                  <AnimatePresence mode="wait">
+                    {filteredDocuments.length === 0 ? (
+                      <motion.div
+                        key="empty-state"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-center py-12"
                       >
-                        <CardContent className="p-0">
-                          <div className="flex items-stretch">
-                            <div className="flex items-center justify-center p-4 bg-background w-24 border-r border-border/50">
-                              <div className="relative">
-                                {getFileIcon(document.mime_type)}
-                                <div className="absolute -top-2 -right-2 text-xs font-medium bg-background px-1 rounded border border-border/50 text-muted-foreground">
-                                  {formatFileSize(document.size)}
-                                </div>
-                              </div>
-                            </div>
+                        <FileIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
 
-                            <div className="flex-1 p-4">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
-                                    {document.name}
-                                  </h3>
-                                  <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                                    <Calendar className="h-3.5 w-3.5 mr-1" />
-                                    <span>{timeAgo}</span>
-                                  </div>
-                                </div>
+                        {documents.length === 0 ? (
+                          <>
+                            <p className="text-xl font-medium text-muted-foreground">
+                              No documents uploaded yet
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-2 mb-6">
+                              Upload your first document to get started
+                            </p>
+                            <ImportModal spaceId={spaceId}>
+                              <Button className="gap-2">
+                                <FilePlus2 size={18} />
+                                Upload your first document
+                              </Button>
+                            </ImportModal>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-xl font-medium text-muted-foreground">
+                              No matching documents found
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-2 mb-6">
+                              Try adjusting your filters or search query
+                            </p>
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setSearchQuery("");
+                                setFileTypeFilter("all");
+                                setActiveTab("all");
+                              }}
+                            >
+                              Clear filters
+                            </Button>
+                          </>
+                        )}
+                      </motion.div>
+                    ) : (
+                      <div
+                        key="document-list"
+                        className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto pr-2"
+                      >
+                        <AnimatePresence>
+                          {filteredDocuments.map((document, index) => {
+                            const statusInfo = getProcessingStatusInfo(
+                              document.processing_status
+                            );
+                            const fileDate = new Date(document.created_at);
+                            const timeAgo = formatDistanceToNow(fileDate, {
+                              addSuffix: true,
+                            });
 
-                                <div className="flex space-x-1">
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-8 w-8"
-                                          onClick={() => {}}
-                                        >
-                                          <Eye size={16} />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>View document</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                            return (
+                              <motion.div
+                                key={document.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{
+                                  duration: 0.3,
+                                  delay: index * 0.05,
+                                }}
+                              >
+                                <Card className="overflow-hidden transition-all duration-300 hover:shadow-md group border border-border/50 hover:border-primary/30">
+                                  <CardContent className="p-0">
+                                    <div className="flex items-stretch">
+                                      <div className="flex items-center justify-center p-4 bg-background w-24 border-r border-border/50 group-hover:border-primary/30 transition-colors">
+                                        <div className="relative">
+                                          {getFileIcon(document.mime_type)}
+                                          <div className="absolute -top-2 -right-2 text-xs font-medium bg-background px-1 rounded border border-border/50 text-muted-foreground group-hover:border-primary/30 transition-colors">
+                                            {formatFileSize(document.size)}
+                                          </div>
+                                        </div>
+                                      </div>
 
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          size="icon"
-                                          variant="ghost"
-                                          className="h-8 w-8"
-                                          onClick={() => {}}
-                                        >
-                                          <Edit size={16} />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Edit document</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                      <div className="flex-1 p-4">
+                                        <div className="flex justify-between items-start">
+                                          <div>
+                                            <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
+                                              {document.name}
+                                            </h3>
+                                            <div className="flex items-center mt-1 text-sm text-muted-foreground">
+                                              <Calendar className="h-3.5 w-3.5 mr-1" />
+                                              <span>{timeAgo}</span>
+                                            </div>
+                                          </div>
 
-                                  {(userRole === "owner" ||
-                                    userRole === "editor") && (
-                                    <TooltipProvider>
-                                      <Tooltip>
-                                        <TooltipTrigger asChild>
-                                          <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-8 w-8 text-destructive hover:text-destructive"
-                                            onClick={() =>
-                                              openDeleteDialog(document)
+                                          <div className="flex space-x-1">
+                                            <TooltipProvider>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => {}}
+                                                  >
+                                                    <Eye size={16} />
+                                                  </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                  <p>View document</p>
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider>
+
+                                            <TooltipProvider>
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => {}}
+                                                  >
+                                                    <Edit size={16} />
+                                                  </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                  <p>Edit document</p>
+                                                </TooltipContent>
+                                              </Tooltip>
+                                            </TooltipProvider>
+
+                                            {(userRole === "owner" ||
+                                              userRole === "editor") && (
+                                              <TooltipProvider>
+                                                <Tooltip>
+                                                  <TooltipTrigger asChild>
+                                                    <Button
+                                                      size="icon"
+                                                      variant="ghost"
+                                                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                      onClick={() =>
+                                                        openDeleteDialog(
+                                                          document
+                                                        )
+                                                      }
+                                                    >
+                                                      <Trash2 size={16} />
+                                                    </Button>
+                                                  </TooltipTrigger>
+                                                  <TooltipContent>
+                                                    <p>Delete document</p>
+                                                  </TooltipContent>
+                                                </Tooltip>
+                                              </TooltipProvider>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <div className="flex items-center mt-3 space-x-2">
+                                          <Badge
+                                            variant={
+                                              document.privacy_status
+                                                ? "outline"
+                                                : "secondary"
                                             }
+                                            className="px-2 py-0.5 text-xs"
                                           >
-                                            <Trash2 size={16} />
-                                          </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                          <p>Delete document</p>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </TooltipProvider>
-                                  )}
-                                </div>
-                              </div>
+                                            {document.privacy_status
+                                              ? "Private"
+                                              : "Public"}
+                                          </Badge>
 
-                              <div className="flex items-center mt-3 space-x-2">
-                                <Badge
-                                  variant={
-                                    document.privacy_status
-                                      ? "outline"
-                                      : "secondary"
-                                  }
-                                  className="px-2 py-0.5 text-xs"
-                                >
-                                  {document.privacy_status
-                                    ? "Private"
-                                    : "Public"}
-                                </Badge>
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <Badge
+                                                  variant={statusInfo.variant}
+                                                  className={`flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity px-2 py-0.5 text-xs ${
+                                                    document.processing_status ===
+                                                    2
+                                                      ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                                                      : document.processing_status ===
+                                                        1
+                                                      ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                                                      : "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                                                  }`}
+                                                  onClick={() =>
+                                                    handleProcessingStatusClick(
+                                                      document.id
+                                                    )
+                                                  }
+                                                >
+                                                  {statusInfo.icon}
+                                                  {statusInfo.text}
+                                                </Badge>
+                                              </TooltipTrigger>
+                                              <TooltipContent>
+                                                <p>
+                                                  Click to view processing
+                                                  details
+                                                </p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
 
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Badge
-                                        variant={statusInfo.variant}
-                                        className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity px-2 py-0.5 text-xs"
-                                        onClick={() =>
-                                          handleProcessingStatusClick(
-                                            document.id
-                                          )
-                                        }
-                                      >
-                                        {statusInfo.icon}
-                                        {statusInfo.text}
-                                      </Badge>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Click to view processing details</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
+                                          <TooltipProvider>
+                                            <Tooltip>
+                                              <TooltipTrigger asChild>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  className="h-6 w-6 rounded-full"
+                                                  onClick={() => {}}
+                                                >
+                                                  <Info size={14} />
+                                                </Button>
+                                              </TooltipTrigger>
+                                              <TooltipContent className="max-w-xs">
+                                                <p>
+                                                  Document ID: {document.id}
+                                                </p>
+                                                <p>
+                                                  MIME Type:{" "}
+                                                  {document.mime_type}
+                                                </p>
+                                                <p>
+                                                  Size:{" "}
+                                                  {formatFileSize(
+                                                    document.size
+                                                  )}
+                                                </p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
+                                        </div>
 
-                              <div className="mt-3">
-                                <Progress
-                                  value={statusInfo.progressValue}
-                                  className="h-1.5 w-full"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </ul>
-              )}
+                                        <div className="mt-3">
+                                          <Progress
+                                            value={statusInfo.progressValue}
+                                            className={`h-1.5 w-full ${statusInfo.progressColor} transition-all duration-500`}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              </motion.div>
+                            );
+                          })}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </Tabs>
             </div>
           </CardContent>
         </Card>
@@ -484,8 +754,9 @@ export default function SpaceDetailPage() {
               onClick={() => setDocumentPage((prev) => Math.max(prev - 1, 1))}
               disabled={documentPage === 1}
               size="sm"
+              className="gap-2"
             >
-              Previous
+              <ChevronLeft size={16} /> Previous
             </Button>
             <span className="flex items-center text-sm font-medium">
               Page {documentPage} of {totalPages}
@@ -497,8 +768,9 @@ export default function SpaceDetailPage() {
               }
               disabled={documentPage === totalPages}
               size="sm"
+              className="gap-2"
             >
-              Next
+              Next <ChevronRight size={16} />
             </Button>
           </div>
         )}
@@ -514,8 +786,9 @@ export default function SpaceDetailPage() {
               </AlertDialogTitle>
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the
-                document
-                {documentToDelete?.name} and remove it from the space.
+                document{" "}
+                <span className="font-semibold">{documentToDelete?.name}</span>{" "}
+                and remove it from the space.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -529,7 +802,7 @@ export default function SpaceDetailPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+      </motion.div>
     </div>
   );
 }
