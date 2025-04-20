@@ -152,7 +152,7 @@ export default function ImportDialog(props: ImportDialogProps) {
                   <FormControl>
                     <Input
                       type="file"
-                      accept=".pdf,.docx,.txt"
+                      accept=".pdf,.docx,.txt,.xlsx"
                       onChange={(e) => onChange(e.target.files)}
                       disabled={isUploading}
                       className="cursor-pointer"

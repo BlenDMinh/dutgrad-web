@@ -41,6 +41,7 @@ export const API_ROUTES = {
   CHAT: {
     BEGIN_SESSION: "/user-query-sessions/begin-chat-session",
     ASK: "/user-query/ask",
+    SESSION_HISTORY: "/user-query-sessions/me"
   },
 };
 
