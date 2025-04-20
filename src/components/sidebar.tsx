@@ -255,7 +255,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
 
   useEffect(() => {
     fetchRecentChats();
-  }, [isRecentChatsOpen, fetchRecentChats]);
+  }, [isRecentChatsOpen]);
 
   const sidebarNavItems = [
     {
