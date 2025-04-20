@@ -225,7 +225,7 @@ export default function PublicSpacesPage() {
         >
           {searchTerm ? (
             <p className="text-center text-gray-600 dark:text-gray-300 text-lg">
-              🔍 No spaces found matching "{searchTerm}"
+              🔍 No spaces found matching &quot;{searchTerm}&quot;
             </p>
           ) : (
             <>
