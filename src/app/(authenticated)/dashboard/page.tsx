@@ -112,7 +112,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
       <div className="container mx-auto px-4 py-8">
-        {/* Animated Header - No dependency on data */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -126,7 +125,7 @@ export default function Dashboard() {
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 flex items-center justify-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
-            Welcome back! Here's what's happening in your spaces
+            {"Welcome back! Here's what's happening in your spaces"}
             <Sparkles className="h-5 w-5 text-amber-500" />
           </p>
         </motion.div>
