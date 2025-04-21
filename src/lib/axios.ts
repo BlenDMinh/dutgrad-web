@@ -1,6 +1,11 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import Cookies from "js-cookie";
-import { getAccessToken, setAccessToken } from "./auth";
+import {
+  clearAuthTokens,
+  clearAuthUser,
+  getAccessToken,
+  setAccessToken,
+} from "./auth";
 import { ApiResponse } from "@/schemas/api";
 import { APP_ROUTES } from "./constants";
 
@@ -36,8 +41,8 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (error.response?.status === 401 || error.response?.status === 403) {
-      Cookies.set("has-session", "false", { expires: 1 });
-      Cookies.set("access-token", "", { expires: -1 });
+      clearAuthTokens();
+      clearAuthUser();
       window.location.href = APP_ROUTES.LOGIN;
     }
 
