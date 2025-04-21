@@ -44,7 +44,7 @@ import {
   Filter,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
-import { APP_ROUTES } from "@/lib/constants";
+import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
 import { useSpace } from "@/context/space.context";
 import {
   Tooltip,
@@ -81,7 +81,7 @@ interface SpaceDocument {
 }
 
 export default function SpaceDetailPage() {
-  const { space } = useSpace();
+  const { space, role } = useSpace();
   const spaceId = space?.id?.toString() || "";
   const [documents, setDocuments] = useState<SpaceDocument[]>([]);
   const [documentPage, setDocumentPage] = useState<number>(1);
@@ -379,7 +379,7 @@ export default function SpaceDetailPage() {
                 size={18}
                 className="mr-2 group-hover:text-primary transition-colors"
               />
-              Manage Members
+              Members
             </Button>
 
             {userRole === "owner" && (
@@ -446,13 +446,17 @@ export default function SpaceDetailPage() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <ImportModal spaceId={spaceId}>
-                    <Button className="gap-2">
-                      <FilePlus2 size={18} />
-                      <span className="hidden sm:inline">Upload Documents</span>
-                      <span className="sm:hidden">Upload</span>
-                    </Button>
-                  </ImportModal>
+                  {role?.id !== SPACE_ROLE.VIEWER && (
+                    <ImportModal spaceId={spaceId}>
+                      <Button className="gap-2">
+                        <FilePlus2 size={18} />
+                        <span className="hidden sm:inline">
+                          Upload Documents
+                        </span>
+                        <span className="sm:hidden">Upload</span>
+                      </Button>
+                    </ImportModal>
+                  )}
                 </div>
               </div>
 

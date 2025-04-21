@@ -1,9 +1,16 @@
-"use client"
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+"use client";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +19,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,165 +38,186 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Label } from "@/components/ui/label"
-import { toast } from "sonner"
-import { motion } from "framer-motion"
-import { Key, Plus, Copy, Eye, EyeOff, Trash2, Loader2, AlertTriangle, CheckCircle2, Info } from "lucide-react"
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+import {
+  Key,
+  Plus,
+  Copy,
+  Eye,
+  EyeOff,
+  Trash2,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+} from "lucide-react";
 import { spaceService } from "@/services/api/space.service";
+import { useRouter } from "next/navigation";
+import ApiDocument from "./ApiDocument";
 
 interface ApiKey {
-  id: string
-  name: string
-  description: string
-  token?: string
-  created_at: string
+  id: string;
+  name: string;
+  description: string;
+  token?: string;
+  created_at: string;
 }
 
-export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showTokens, setShowTokens] = useState<Record<string, boolean>>({})
-  const [isCreating, setIsCreating] = useState(false)
-  const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({})
-  const [newApiKey, setNewApiKey] = useState<ApiKey | null>(null)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [tokenCopied, setTokenCopied] = useState(false)
+export function ChatApi({ spaceId }: { spaceId: string }) {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showTokens, setShowTokens] = useState<Record<string, boolean>>({});
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<Record<string, boolean>>({});
+  const [newApiKey, setNewApiKey] = useState<ApiKey | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [tokenCopied, setTokenCopied] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-  })
+  });
   const [formErrors, setFormErrors] = useState({
     name: "",
     description: "",
-  })
+  });
+  const router = useRouter();
+  const [currentHost, setCurrentHost] = useState("");
 
   useEffect(() => {
-    fetchApiKeys()
-  }, [spaceId])
+    // Get the current host for documentation examples
+    if (typeof window !== "undefined") {
+      setCurrentHost(window.location.origin);
+    }
+    fetchApiKeys();
+  }, [spaceId]);
 
   const fetchApiKeys = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const data = await spaceService.getApiKeys(spaceId)
-      setApiKeys(data.API)
+      const data = await spaceService.getApiKeys(spaceId);
+      setApiKeys(data.API);
     } catch (err) {
-      console.error("Failed to fetch API keys:", err)
-      setError("Failed to load API keys. Please try again later.")
+      console.error("Failed to fetch API keys:", err);
+      setError("Failed to load API keys. Please try again later.");
       toast.error("Failed to load API keys", {
         description: "Please try again later",
-      })
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
 
   const toggleShowToken = async (keyId: string) => {
     if (!showTokens[keyId] && !apiKeys.find((k) => k.id === keyId)?.token) {
       try {
-        const data = await spaceService.getApiKey(spaceId, keyId)
-        setApiKeys((prev) => prev.map((key) => (key.id === keyId ? { ...key, token: data.API.token } : key)))
+        const data = await spaceService.getApiKey(spaceId, keyId);
+        setApiKeys((prev) =>
+          prev.map((key) =>
+            key.id === keyId ? { ...key, token: data.API.token } : key
+          )
+        );
         setShowTokens((prev) => ({
           ...prev,
           [keyId]: true,
-        }))
+        }));
       } catch (err) {
         toast.error("Failed to load API key token", {
           description: "Please try again later",
-        })
+        });
       }
     } else {
       setShowTokens((prev) => ({
         ...prev,
         [keyId]: !prev[keyId],
-      }))
+      }));
     }
-  }
-
+  };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
+    navigator.clipboard.writeText(text);
     toast.success("API key copied to clipboard", {
       icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
-    })
-  }
+    });
+  };
 
   const validateForm = () => {
     const errors = {
       name: "",
       description: "",
-    }
-    let isValid = true
+    };
+    let isValid = true;
 
     if (!formData.name.trim()) {
-      errors.name = "Name is required"
-      isValid = false
+      errors.name = "Name is required";
+      isValid = false;
     } else if (formData.name.length > 50) {
-      errors.name = "Name must be less than 50 characters"
-      isValid = false
+      errors.name = "Name must be less than 50 characters";
+      isValid = false;
     }
 
     if (!formData.description.trim()) {
-      errors.description = "Description is required"
-      isValid = false
+      errors.description = "Description is required";
+      isValid = false;
     } else if (formData.description.length > 200) {
-      errors.description = "Description must be less than 200 characters"
-      isValid = false
+      errors.description = "Description must be less than 200 characters";
+      isValid = false;
     }
 
-    setFormErrors(errors)
-    return isValid
-  }
+    setFormErrors(errors);
+    return isValid;
+  };
 
   const handleCreateApiKey = async () => {
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsCreating(true)
+    setIsCreating(true);
     try {
       const data = await spaceService.createApiKey(spaceId, {
         name: formData.name,
         description: formData.description,
-      })
+      });
 
-      setNewApiKey(data)
-      await fetchApiKeys()
+      setNewApiKey(data);
+      await fetchApiKeys();
 
-      setFormData({ name: "", description: "" })
+      setFormData({ name: "", description: "" });
     } catch (err) {
       toast.error("Failed to create API key", {
         description: "Please try again later",
-      })
+      });
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleDeleteApiKey = async (keyId: string) => {
-    setIsDeleting((prev) => ({ ...prev, [keyId]: true }))
+    setIsDeleting((prev) => ({ ...prev, [keyId]: true }));
     try {
-      await spaceService.deleteApiKey(spaceId, keyId)
-      setApiKeys((prev) => prev.filter((key) => key.id !== keyId))
-      toast.success("API key deleted successfully")
+      await spaceService.deleteApiKey(spaceId, keyId);
+      setApiKeys((prev) => prev.filter((key) => key.id !== keyId));
+      toast.success("API key deleted successfully");
     } catch (err) {
       toast.error("Failed to delete API key", {
         description: "Please try again later",
-      })
+      });
     } finally {
-      setIsDeleting((prev) => ({ ...prev, [keyId]: false }))
+      setIsDeleting((prev) => ({ ...prev, [keyId]: false }));
     }
-  }
+  };
 
   const closeCreateModal = () => {
-    setShowCreateModal(false)
-    setNewApiKey(null)
-    setFormData({ name: "", description: "" })
-    setFormErrors({ name: "", description: "" })
-  }
+    setShowCreateModal(false);
+    setNewApiKey(null);
+    setFormData({ name: "", description: "" });
+    setFormErrors({ name: "", description: "" });
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -193,18 +228,25 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
         when: "beforeChildren",
       },
     },
-  }
+  };
 
   const formatTokenForDisplay = (token: string) => {
-    if (!token) return ""
-    if (token.length <= 40) return token
-    return `${token.substring(0, 20)}...${token.substring(token.length - 20)}`
-  }
-
+    if (!token) return "";
+    if (token.length <= 40) return token;
+    return `${token.substring(0, 20)}...${token.substring(token.length - 20)}`;
+  };
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
-      <Card className="overflow-hidden backdrop-blur-sm bg-card/80 shadow-sm">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      {/* API Documentation Card */}
+      <ApiDocument spaceId={spaceId} />
+
+      <Card className="overflow-hidden backdrop-blur-sm bg-card/80 shadow-sm w-full">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -227,18 +269,28 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                         API Key Created
                       </DialogTitle>
                       <DialogDescription>
-                        {"Your new API key has been created. Please copy it now as you won't be able to see it again."}
+                        {
+                          "Your new API key has been created. Please copy it now as you won't be able to see it again."
+                        }
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
                       <div className="mb-4 p-3 bg-muted/50 rounded-md border">
                         <div className="flex items-center justify-between mb-2">
-                          <Label className="text-sm font-medium">API Key Token</Label>
+                          <Label className="text-sm font-medium">
+                            API Key Token
+                          </Label>
                           <Button
                             variant={tokenCopied ? "outline" : "ghost"}
                             size="sm"
-                            className={`h-8 px-2 ${tokenCopied ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" : ""}`}
-                            onClick={() => copyToClipboard(newApiKey.token || "")}
+                            className={`h-8 px-2 ${
+                              tokenCopied
+                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              copyToClipboard(newApiKey.token || "")
+                            }
                           >
                             {tokenCopied ? (
                               <CheckCircle2 size={14} className="mr-1" />
@@ -261,8 +313,12 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                           <div className="text-sm mt-1">{newApiKey.name}</div>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium">Description</Label>
-                          <div className="text-sm mt-1">{newApiKey.description}</div>
+                          <Label className="text-sm font-medium">
+                            Description
+                          </Label>
+                          <div className="text-sm mt-1">
+                            {newApiKey.description}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -281,7 +337,9 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                         <Key size={18} />
                         Create New API Key
                       </DialogTitle>
-                      <DialogDescription>Create an API key to access this space programmatically.</DialogDescription>
+                      <DialogDescription>
+                        Create an API key to access this space programmatically.
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="py-4 space-y-4">
                       <div className="space-y-2">
@@ -289,17 +347,22 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                           <Label htmlFor="name" className="text-sm font-medium">
                             Name
                           </Label>
-                          <span className="text-xs text-muted-foreground">{formData.name.length}/50</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.name.length}/50
+                          </span>
                         </div>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => {
-                            setFormData({ ...formData, name: e.target.value })
-                            if (e.target.value.trim()) setFormErrors({ ...formErrors, name: "" })
+                            setFormData({ ...formData, name: e.target.value });
+                            if (e.target.value.trim())
+                              setFormErrors({ ...formErrors, name: "" });
                           }}
                           placeholder="Enter a name for this API key"
-                          className={formErrors.name ? "border-destructive" : ""}
+                          className={
+                            formErrors.name ? "border-destructive" : ""
+                          }
                         />
                         {formErrors.name && (
                           <p className="text-sm text-destructive flex items-center gap-1">
@@ -310,21 +373,32 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label htmlFor="description" className="text-sm font-medium">
+                          <Label
+                            htmlFor="description"
+                            className="text-sm font-medium"
+                          >
                             Description
                           </Label>
-                          <span className="text-xs text-muted-foreground">{formData.description.length}/200</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.description.length}/200
+                          </span>
                         </div>
                         <Textarea
                           id="description"
                           value={formData.description}
                           onChange={(e) => {
-                            setFormData({ ...formData, description: e.target.value })
-                            if (e.target.value.trim()) setFormErrors({ ...formErrors, description: "" })
+                            setFormData({
+                              ...formData,
+                              description: e.target.value,
+                            });
+                            if (e.target.value.trim())
+                              setFormErrors({ ...formErrors, description: "" });
                           }}
                           placeholder="What is this API key for?"
                           rows={3}
-                          className={formErrors.description ? "border-destructive" : ""}
+                          className={
+                            formErrors.description ? "border-destructive" : ""
+                          }
                         />
                         {formErrors.description && (
                           <p className="text-sm text-destructive flex items-center gap-1">
@@ -338,7 +412,11 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                       <Button variant="outline" onClick={closeCreateModal}>
                         Cancel
                       </Button>
-                      <Button onClick={handleCreateApiKey} disabled={isCreating} className="gap-2">
+                      <Button
+                        onClick={handleCreateApiKey}
+                        disabled={isCreating}
+                        className="gap-2"
+                      >
                         {isCreating ? (
                           <>
                             <Loader2 size={16} className="animate-spin" />
@@ -357,7 +435,9 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
               </DialogContent>
             </Dialog>
           </div>
-          <CardDescription>Manage API keys for programmatic access to this space</CardDescription>
+          <CardDescription>
+            Manage API keys for programmatic access to this space
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -379,17 +459,18 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
               </div>
               <h3 className="text-lg font-medium mb-1">No API Keys</h3>
               <p className="text-muted-foreground mb-4 max-w-md">
-                {"You haven't created any API keys yet. Create one to access this space programmatically."}
+                {
+                  "You haven't created any API keys yet. Create one to access this space programmatically."
+                }
               </p>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="flex items-center gap-2">
-                    <Plus size={16} />
-                    Create API Key
-                  </Button>
-                </DialogTrigger>
-                {/* Dialog content is the same as above */}
-              </Dialog>
+              <Button
+                variant={"outline"}
+                disabled
+                className="flex items-center gap-2"
+              >
+                <Plus size={16} />
+                Create your API Key now
+              </Button>
             </div>
           ) : (
             <div className="overflow-hidden rounded-md border">
@@ -406,11 +487,15 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                   {apiKeys.map((key) => (
                     <TableRow key={key.id}>
                       <TableCell className="font-medium">{key.name}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{key.description}</TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {key.description}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="font-mono text-xs bg-muted/30 p-1.5 rounded max-w-[180px] truncate">
-                          {showTokens[key.id] ? formatTokenForDisplay(key.token || "") : "••••••••••••••••••••••"}
+                            {showTokens[key.id]
+                              ? formatTokenForDisplay(key.token || "")
+                              : "••••••••••••••••••••••"}
                           </div>
                           <Button
                             variant="ghost"
@@ -418,8 +503,14 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                             className="h-8 w-8 p-0"
                             onClick={() => toggleShowToken(key.id)}
                           >
-                            {showTokens[key.id] ? <EyeOff size={14} /> : <Eye size={14} />}
-                            <span className="sr-only">{showTokens[key.id] ? "Hide" : "Show"}</span>
+                            {showTokens[key.id] ? (
+                              <EyeOff size={14} />
+                            ) : (
+                              <Eye size={14} />
+                            )}
+                            <span className="sr-only">
+                              {showTokens[key.id] ? "Hide" : "Show"}
+                            </span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -451,7 +542,8 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                                 Delete API Key
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete this API key? This action cannot be undone.
+                                Are you sure you want to delete this API key?
+                                This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -462,7 +554,10 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
                               >
                                 {isDeleting[key.id] ? (
                                   <>
-                                    <Loader2 size={16} className="animate-spin" />
+                                    <Loader2
+                                      size={16}
+                                      className="animate-spin"
+                                    />
                                     Deleting...
                                   </>
                                 ) : (
@@ -486,10 +581,12 @@ export function ApiKeyManagement({ spaceId }: { spaceId: string }) {
         <CardFooter className="border-t py-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Info size={14} />
-            <span>API keys provide full access to your space. Keep them secure!</span>
+            <span>
+              API keys provide full access to your space. Keep them secure!
+            </span>
           </div>
         </CardFooter>
       </Card>
     </motion.div>
-  )
+  );
 }

@@ -239,20 +239,22 @@ export default function SpaceMembersPage() {
                         })}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => {
-                            if (
-                              confirm(
-                                "Are you sure you want to delete this user?"
-                              )
-                            ) {
-                            }
-                          }}
-                        >
-                          <FaTrash />
-                        </Button>
+                        {role?.id !== SPACE_ROLE.VIEWER && (
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Are you sure you want to delete this user?"
+                                )
+                              ) {
+                              }
+                            }}
+                          >
+                            <FaTrash />
+                          </Button>
+                        )}
                       </TableCell>
                     </motion.tr>
                   ))}
