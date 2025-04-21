@@ -38,7 +38,6 @@ export interface Invitation {
   status: string;
 }
 
-// Animation variants
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -240,21 +239,22 @@ export default function SpaceMembersPage() {
                         })}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => {
-                            if (
-                              confirm(
-                                "Are you sure you want to delete this user?"
-                              )
-                            ) {
-                              // Delete user logic here
-                            }
-                          }}
-                        >
-                          <FaTrash />
-                        </Button>
+                        {role?.id !== SPACE_ROLE.VIEWER && (
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              if (
+                                confirm(
+                                  "Are you sure you want to delete this user?"
+                                )
+                              ) {
+                              }
+                            }}
+                          >
+                            <FaTrash />
+                          </Button>
+                        )}
                       </TableCell>
                     </motion.tr>
                   ))}

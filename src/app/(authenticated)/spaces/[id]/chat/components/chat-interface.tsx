@@ -29,7 +29,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -62,7 +62,6 @@ interface RecentChat {
   timestamp: string;
 }
 
-// Utility functions
 const getRelativeTime = (dateString: string): string => {
   const now = new Date();
   const date = new Date(dateString);
@@ -104,11 +103,9 @@ export default function ChatInterface() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Query history state
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
-  // Session history state
   const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
@@ -185,7 +182,6 @@ export default function ChatInterface() {
         setRecentChats(formattedChats);
       }
     } catch (error) {
-      console.error("Failed to fetch recent chats:", error);
       setHistoryError("Failed to load chat history. Please try again.");
     } finally {
       setIsLoadingHistory(false);
@@ -200,11 +196,10 @@ export default function ChatInterface() {
     e.preventDefault();
     if (!input.trim() || !sessionId) return;
 
-    // Add to query history only if it's not the same as the most recent one
     if (queryHistory.length === 0 || queryHistory[0] !== input.trim()) {
-      setQueryHistory((prev) => [input.trim(), ...prev.slice(0, 49)]); // Store up to 50 queries
+      setQueryHistory((prev) => [input.trim(), ...prev.slice(0, 49)]);
     }
-    setHistoryIndex(-1); // Reset history index after sending
+    setHistoryIndex(-1); 
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -229,7 +224,6 @@ export default function ChatInterface() {
       };
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error("Error getting bot response:", error);
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);
@@ -237,13 +231,11 @@ export default function ChatInterface() {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Handle Shift+Enter for new line
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(e);
     }
 
-    // Handle Up arrow for history navigation
     if (e.key === "ArrowUp" && !e.shiftKey && input === "") {
       e.preventDefault();
       if (queryHistory.length > 0) {
@@ -256,7 +248,6 @@ export default function ChatInterface() {
       }
     }
 
-    // Handle Down arrow for history navigation
     if (e.key === "ArrowDown" && !e.shiftKey) {
       e.preventDefault();
       if (historyIndex > 0) {
@@ -281,7 +272,6 @@ export default function ChatInterface() {
     }
   };
 
-  // Auto-resize the textarea based on content
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.style.height = "auto";
@@ -333,7 +323,6 @@ export default function ChatInterface() {
           </CardContent>
         </Card>
 
-        {/* Chat Messages */}
         <div className="flex-1 overflow-hidden relative">
           <ScrollArea className="h-[calc(100vh-18rem)]" ref={scrollAreaRef}>
             <div className="p-4 space-y-6">
@@ -401,7 +390,6 @@ export default function ChatInterface() {
             </div>
           </ScrollArea>
 
-          {/* Scroll to bottom button */}
           {!isAtBottom && messages.length > 2 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
@@ -425,7 +413,6 @@ export default function ChatInterface() {
           )}
         </div>
 
-        {/* Input Form */}
         <Card className="rounded-none border-x-0 border-b-0 shadow-lg">
           <CardContent className="p-4">
             <form
@@ -464,7 +451,6 @@ export default function ChatInterface() {
       </div>
       <div className="rounded hidden md:block w-72 border-l border-border bg-background/50 mt-5">
         <div className="flex flex-col h-full">
-          {/* History Header */}
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
@@ -495,7 +481,6 @@ export default function ChatInterface() {
             </TooltipProvider>
           </div>
 
-          {/* Search */}
           <div className="p-3 border-b border-border">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -506,7 +491,6 @@ export default function ChatInterface() {
             </div>
           </div>
 
-          {/* History List */}
           <ScrollArea className="flex-1">
             <div className="p-2 space-y-1">
               {isLoadingHistory ? (

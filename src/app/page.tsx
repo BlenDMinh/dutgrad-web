@@ -31,14 +31,12 @@ export default function Home() {
     setIsLoaded(true);
   }, []);
 
-  // Refs for scroll animations
   const featuresRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const chatbotRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLDivElement>(null);
   const pricingRef = useRef<HTMLDivElement>(null);
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -87,10 +85,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground overflow-hidden">
       <Navbar />
-
-      {/* Hero Section */}
       <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-primary/5 to-background relative">
-        {/* Decorative elements */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.5 }}
@@ -188,7 +183,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section
         className="w-full py-12 md:py-24 bg-background"
         ref={featuresRef}
@@ -293,7 +287,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works Section */}
       <section
         className="w-full py-12 md:py-24 bg-muted/50"
         ref={howItWorksRef}
@@ -317,7 +310,6 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 relative">
-            {/* Connecting line */}
             <motion.div
               initial={{ scaleX: 0 }}
               whileInView={{ scaleX: 1 }}
@@ -370,7 +362,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ChatBot Demo Section */}
       <section className="w-full py-12 md:py-24 bg-background" ref={chatbotRef}>
         <div className="container px-6 md:px-12 lg:px-16">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
@@ -496,7 +487,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section
         className="w-full py-12 md:py-24 bg-muted/50"
         ref={testimonialsRef}
@@ -576,7 +566,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pricing Section */}
       <section className="w-full py-12 md:py-24 bg-background" ref={pricingRef}>
         <div className="container px-6 md:px-12 lg:px-16">
           <motion.div
@@ -716,7 +705,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="w-full py-12 md:py-24 bg-primary text-primary-foreground relative overflow-hidden">
         <motion.div
           initial={{ opacity: 0 }}
@@ -777,7 +765,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="w-full py-12 bg-muted/80 text-foreground">
         <div className="container px-6 md:px-12 lg:px-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

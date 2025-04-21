@@ -97,7 +97,7 @@ function SpaceProvider({ children }: { children: React.ReactNode }) {
       .finally(() => {
         setLoading(false);
       });
-  }, [id, router]);
+  }, [id]);
 
   return (
     <SpaceContext.Provider value={{ space, role, loading, error }}>
