@@ -48,14 +48,14 @@ export default function ApiDocumentBlock(props: ApiDocumentBlockProps) {
     }
   }, [spaceId]);
 
-  const endpoint = `${currentHost}/api/spaces/${spaceId}/chat`;
+  const endpoint = `${currentHost}/api/v1/spaces/${spaceId}/chat`;
 
   const curlCode = `curl -X POST "${endpoint}" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_TOKEN" \\
   -d '{"query": "What is this space about?"}'`;
 
-  const httpCode = `POST /api/spaces/${spaceId}/chat HTTP/1.1
+  const httpCode = `POST /api/v1/spaces/${spaceId}/chat HTTP/1.1
 Host: ${currentHost.replace(/^https?:\/\//, "")}
 Content-Type: application/json
 Authorization: Bearer YOUR_API_TOKEN
