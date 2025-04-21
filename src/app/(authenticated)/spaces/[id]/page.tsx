@@ -37,7 +37,6 @@ import {
   Trash2,
   Settings,
   Users,
-  Share2,
   FilePlus2,
   ChevronLeft,
   ChevronRight,
@@ -68,7 +67,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SpaceDocument {
   id: number;
@@ -275,19 +274,16 @@ export default function SpaceDetailPage() {
   };
 
   const filteredDocuments = documents.filter((doc) => {
-    // Filter by search query
     const matchesSearch = doc.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
-    // Filter by processing status based on tab
     const matchesStatus =
       activeTab === "all" ||
       (activeTab === "processing" && doc.processing_status === 1) ||
       (activeTab === "queued" && doc.processing_status === 0) ||
       (activeTab === "ready" && doc.processing_status === 2);
 
-    // Filter by file type
     const matchesFileType =
       fileTypeFilter === "all" || getFileType(doc.mime_type) === fileTypeFilter;
 

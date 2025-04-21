@@ -40,18 +40,14 @@ export default function AuthenticatedLayout({
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
 
-      {/* Mobile Navigation */}
       <MobileNav onOpenSidebar={() => setIsSidebarOpen(true)} />
 
-      {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - hidden on mobile, shown on desktop */}
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
         />
 
-        {/* Main Content */}
         <main className="flex-1 overflow-auto pb-16 md:pb-0 md:ml-0 transition-all duration-300md:ml-64">
           {children}
         </main>

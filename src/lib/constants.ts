@@ -28,6 +28,8 @@ export const API_ROUTES = {
     MEMBERS: (spaceId: string) => `/spaces/${spaceId}/members`,
     ACCEPT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/accept`,
     REJECT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/reject`,
+    API_KEYS: (spaceId: string) => `/spaces/${spaceId}/api-keys`,
+    API_KEY_DETAIL: (spaceId: string, keyId: string) => `/spaces/${spaceId}/api-keys/${keyId}`,
   },
   USER:{
     MINE: "/user/me",
