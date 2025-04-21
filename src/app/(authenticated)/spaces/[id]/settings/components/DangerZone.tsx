@@ -40,7 +40,6 @@ export function DangerZone({ spaceId, spaceName }: DangerZoneProps) {
   const handleDeleteSpace = async () => {
     if (!spaceId) return;
 
-    // Ensure user has typed the space name correctly
     if (confirmText !== spaceName) {
       toast.error("Please type the space name correctly to confirm deletion");
       return;

@@ -1,10 +1,8 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import Cookies from "js-cookie";
 import {
   clearAuthTokens,
   clearAuthUser,
   getAccessToken,
-  setAccessToken,
 } from "./auth";
 import { ApiResponse } from "@/schemas/api";
 import { APP_ROUTES } from "./constants";

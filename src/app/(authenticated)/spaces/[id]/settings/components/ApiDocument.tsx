@@ -8,8 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CheckCircle2, Code, Copy, Info } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { CheckCircle2, Code, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import ApiDocumentBlock from "./ApiDocumentBlock";
@@ -20,7 +19,6 @@ interface ApiDocumentProps {
 
 export default function ApiDocument(props: ApiDocumentProps) {
   const { spaceId } = props;
-  const router = useRouter();
   const [currentHost, setCurrentHost] = useState("");
 
   const copyToClipboard = (text: string) => {
