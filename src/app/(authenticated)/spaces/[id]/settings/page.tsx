@@ -178,6 +178,7 @@ export default function SpaceSettingsPage() {
                 className="w-full"
               >
                 <TabsList className="grid w-full grid-cols-3 mb-8">
+                <TabsList className="grid w-full grid-cols-3 mb-8">
                   <TabsTrigger
                     value="general"
                     className="flex items-center gap-2"
