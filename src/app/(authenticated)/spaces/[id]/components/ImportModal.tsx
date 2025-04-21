@@ -35,7 +35,7 @@ interface ImportDialogProps {
 }
 
 export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
-  const { space, role } = useSpace();
+  const {role } = useSpace();
   const [isUploading, setIsUploading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();

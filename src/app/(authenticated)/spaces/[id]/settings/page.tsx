@@ -25,6 +25,7 @@ import {
   Info,
   Settings2,
   Loader2,
+  Key,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +46,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { ApiKeyManagement } from "./api-key-management"
 
 export default function SpaceSettingsPage() {
   const { space } = useSpace();
@@ -63,7 +65,6 @@ export default function SpaceSettingsPage() {
   const [progress, setProgress] = useState(0);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
 
-  // Simulate loading state
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoaded(true);
@@ -71,7 +72,6 @@ export default function SpaceSettingsPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Reset success message after 3 seconds
   useEffect(() => {
     if (saveSuccess) {
       const timer = setTimeout(() => {
@@ -81,7 +81,6 @@ export default function SpaceSettingsPage() {
     }
   }, [saveSuccess]);
 
-  // Simulate progress for saving
   useEffect(() => {
     if (isSubmitting) {
       const interval = setInterval(() => {
@@ -142,7 +141,6 @@ export default function SpaceSettingsPage() {
         privacy_status: privacyStatus === "private",
       });
 
-      // Simulate a delay to show progress
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setSaveSuccess(true);
@@ -310,13 +308,19 @@ export default function SpaceSettingsPage() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 mb-8">
+                <TabsList className="grid w-full grid-cols-3 mb-8">
                   <TabsTrigger
                     value="general"
                     className="flex items-center gap-2"
                   >
                     <Settings2 size={16} />
                     General Settings
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="api-keys" 
+                    className="flex items-center gap-2">
+                    <Key size={16} />
+                    API Keys
                   </TabsTrigger>
                   <TabsTrigger
                     value="danger"
@@ -540,6 +544,10 @@ export default function SpaceSettingsPage() {
                       </CardFooter>
                     </Card>
                   </motion.div>
+                </TabsContent>
+
+                <TabsContent value="api-keys">
+                  <ApiKeyManagement spaceId={space.id.toString()} />
                 </TabsContent>
 
                 <TabsContent value="danger">

@@ -129,5 +129,21 @@ export const spaceService = {
   getCountMyChatSessions: async (): Promise<number> => {
     const response = await apiClient.head(API_ROUTES.SPACE.COUNT_USER_QUERY_SESSION);
     return Number(response.headers["x-total-count"]);
-  }
+  },
+  createApiKey: async (spaceId: string, data: { name: string; description: string }) => {
+    const response = await apiClient.post(API_ROUTES.SPACE.API_KEYS(spaceId), data)
+    return handleResponse(response.data)
+  },
+  getApiKeys: async (spaceId: string) => {
+    const response = await apiClient.get(API_ROUTES.SPACE.API_KEYS(spaceId))
+    return handleResponse(response.data)
+  },
+  getApiKey: async (spaceId: string, keyId: string) => {
+    const response = await apiClient.get(API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId))
+    return handleResponse(response.data)
+  },
+  deleteApiKey: async (spaceId: string, keyId: string) => {
+    const response = await apiClient.delete(API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId))
+    return handleResponse(response.data)
+  },
 };

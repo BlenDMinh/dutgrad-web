@@ -65,7 +65,6 @@ export default function Dashboard() {
         console.error("Error fetching dashboard data:", error);
       } finally {
         setLoading(false);
-        // Set data ready after a small delay to ensure DOM is ready
         setTimeout(() => setIsDataReady(true), 100);
       }
     };
@@ -85,7 +84,6 @@ export default function Dashboard() {
     }
   };
 
-  // Animation variants for staggered animations
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -132,7 +130,6 @@ export default function Dashboard() {
 
         {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-10">
-          {/* Render stats cards without animations during loading */}
           {!isDataReady ? (
             <>
               <StatsCard
@@ -218,7 +215,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Activity Section */}
         <div className="mb-10">
           {isDataReady ? (
             <motion.div
@@ -324,8 +320,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-
-        {/* Popular Spaces */}
+        
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

@@ -36,7 +36,6 @@ export default function YourSpacesPage() {
     fetchYourSpaces();
   }, []);
 
-  // Animation variants with conditional reduced motion
   const containerVariants = {
     hidden: shouldReduceMotion ? { opacity: 0.9 } : { opacity: 0 },
     visible: {

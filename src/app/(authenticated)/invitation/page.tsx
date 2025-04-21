@@ -2,13 +2,11 @@
 import { useEffect, useState } from "react";
 import { spaceService } from "@/services/api/space.service";
 import { toast, Toaster } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Loader, Sparkles, Rocket, Check } from "lucide-react";
 import { APP_ROUTES } from "@/lib/constants";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -273,7 +271,6 @@ export default function InvitationPage() {
         )}
       </AnimatePresence>
 
-      {/* Background animated elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         {[...Array(6)].map((_, i) => (
           <motion.div
