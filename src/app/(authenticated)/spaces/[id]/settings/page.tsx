@@ -186,6 +186,13 @@ export default function SpaceSettingsPage() {
                     General Settings
                   </TabsTrigger>
                   <TabsTrigger
+                    value="api-keys"
+                    className="flex items-center gap-2"
+                  >
+                    <BotIcon size={16} />
+                    Chat API
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="danger"
                     className="flex items-center gap-2"
                   >
@@ -203,6 +210,10 @@ export default function SpaceSettingsPage() {
                       initialPrivacyStatus={space.privacy_status}
                     />
                   </motion.div>
+                </TabsContent>
+
+                <TabsContent value="api-keys">
+                  <ChatApi spaceId={space.id.toString()} />
                 </TabsContent>
 
                 <TabsContent value="danger">
