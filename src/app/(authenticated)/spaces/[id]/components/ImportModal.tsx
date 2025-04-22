@@ -269,7 +269,7 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                   <FormControl>
                     <div
                       className={cn(
-                        "border-2 border-dashed rounded-md p-6 cursor-pointer text-center transition-colors",
+                        "border-2 border-dashed rounded-md p-6 cursor-pointer transition-colors",
                         isDragging
                           ? "border-primary bg-primary/5"
                           : "border-muted-foreground/25 hover:border-primary/50",
@@ -284,13 +284,22 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                         document.getElementById("file-upload")?.click()
                       }
                     >
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <FaFileUpload className="h-10 w-10 text-muted-foreground/50" />
-                        <p className="text-sm font-medium">
-                          {value && value[0]
-                            ? value[0].name
-                            : "Drag and drop your file here or click to browse"}
-                        </p>
+                      <div className="flex flex-col items-center justify-center gap-2 max-w-full">
+                        <FaFileUpload className="h-10 w-10 text-muted-foreground/50 flex-shrink-0" />
+                        <div className="w-full max-w-[280px] text-center">
+                          {value && value[0] ? (
+                            <p
+                              className="text-sm font-medium truncate overflow-hidden text-ellipsis"
+                              title={value[0].name}
+                            >
+                              {value[0].name}
+                            </p>
+                          ) : (
+                            <p className="text-sm font-medium">
+                              Drag and drop your file here or click to browse
+                            </p>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground">
                           Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT
                         </p>
