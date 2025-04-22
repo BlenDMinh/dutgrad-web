@@ -49,7 +49,6 @@ export default function SpaceCard({
     onJoin?.(spaceId);
   };
 
-  // Generate a random gradient for each card
   const gradients = [
     "from-purple-500 to-indigo-500",
     "from-blue-500 to-cyan-500",
@@ -73,12 +72,10 @@ export default function SpaceCard({
           enableJoin ? "hover:shadow-xl" : ""
         }`}
       >
-        {/* Decorative top gradient */}
         <div
           className={`absolute top-0 left-0 right-0 h-24 bg-gradient-to-br ${randomGradient} opacity-90`}
         />
 
-        {/* Decorative circle */}
         <div className="absolute top-16 right-4 w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm" />
 
         <CardHeader className="relative z-10 pt-6 pb-2">

@@ -14,7 +14,6 @@ import {
   User,
   LogOut,
   MessageSquare,
-  ChevronDown,
   ChevronRight,
   Users,
   Sparkles,
@@ -42,7 +41,6 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
-// Animation variants
 const fadeIn = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.4 } },
@@ -90,7 +88,6 @@ const pulseAnimation = {
   },
 };
 
-// Keep track of animation state globally to prevent replaying animations
 const animationState = {
   hasAnimated: false,
 };
@@ -186,7 +183,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
   const [error, setError] = useState<string | null>(null);
   const user = getAuthUser();
   const shouldReduceMotion = useReducedMotion();
-  const pathname = usePathname();
 
   const [hasAnimated, setHasAnimated] = useState(animationState.hasAnimated);
 

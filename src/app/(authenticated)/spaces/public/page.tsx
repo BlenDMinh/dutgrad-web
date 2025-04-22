@@ -60,7 +60,6 @@ export default function PublicSpacesPage() {
     }
   };
 
-  // Filter spaces based on search term
   const filteredSpaces = searchTerm
     ? publicSpaces.filter(
         (space) =>
@@ -69,7 +68,6 @@ export default function PublicSpacesPage() {
       )
     : publicSpaces;
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

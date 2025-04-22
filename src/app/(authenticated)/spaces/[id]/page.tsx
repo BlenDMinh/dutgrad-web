@@ -37,7 +37,6 @@ import {
   Trash2,
   Settings,
   Users,
-  Share2,
   FilePlus2,
   ChevronLeft,
   ChevronRight,
@@ -45,7 +44,7 @@ import {
   Filter,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
-import { APP_ROUTES } from "@/lib/constants";
+import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
 import { useSpace } from "@/context/space.context";
 import {
   Tooltip,
@@ -68,7 +67,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface SpaceDocument {
   id: number;
@@ -82,7 +81,7 @@ interface SpaceDocument {
 }
 
 export default function SpaceDetailPage() {
-  const { space } = useSpace();
+  const { space, role } = useSpace();
   const spaceId = space?.id?.toString() || "";
   const [documents, setDocuments] = useState<SpaceDocument[]>([]);
   const [documentPage, setDocumentPage] = useState<number>(1);
@@ -275,19 +274,16 @@ export default function SpaceDetailPage() {
   };
 
   const filteredDocuments = documents.filter((doc) => {
-    // Filter by search query
     const matchesSearch = doc.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
-    // Filter by processing status based on tab
     const matchesStatus =
       activeTab === "all" ||
       (activeTab === "processing" && doc.processing_status === 1) ||
       (activeTab === "queued" && doc.processing_status === 0) ||
       (activeTab === "ready" && doc.processing_status === 2);
 
-    // Filter by file type
     const matchesFileType =
       fileTypeFilter === "all" || getFileType(doc.mime_type) === fileTypeFilter;
 
@@ -383,7 +379,7 @@ export default function SpaceDetailPage() {
                 size={18}
                 className="mr-2 group-hover:text-primary transition-colors"
               />
-              Manage Members
+              Members
             </Button>
 
             {userRole === "owner" && (
@@ -450,13 +446,17 @@ export default function SpaceDetailPage() {
                     </DropdownMenuContent>
                   </DropdownMenu>
 
-                  <ImportModal spaceId={spaceId}>
-                    <Button className="gap-2">
-                      <FilePlus2 size={18} />
-                      <span className="hidden sm:inline">Upload Documents</span>
-                      <span className="sm:hidden">Upload</span>
-                    </Button>
-                  </ImportModal>
+                  {role?.id !== SPACE_ROLE.VIEWER && (
+                    <ImportModal spaceId={spaceId}>
+                      <Button className="gap-2">
+                        <FilePlus2 size={18} />
+                        <span className="hidden sm:inline">
+                          Upload Documents
+                        </span>
+                        <span className="sm:hidden">Upload</span>
+                      </Button>
+                    </ImportModal>
+                  )}
                 </div>
               </div>
 
