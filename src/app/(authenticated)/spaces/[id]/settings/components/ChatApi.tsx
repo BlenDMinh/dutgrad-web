@@ -84,11 +84,9 @@ export function ChatApi({ spaceId }: { spaceId: string }) {
     name: "",
     description: "",
   });
-  const router = useRouter();
   const [currentHost, setCurrentHost] = useState("");
 
   useEffect(() => {
-    // Get the current host for documentation examples
     if (typeof window !== "undefined") {
       setCurrentHost(window.location.origin);
     }
@@ -243,7 +241,6 @@ export function ChatApi({ spaceId }: { spaceId: string }) {
       animate="visible"
       className="space-y-6"
     >
-      {/* API Documentation Card */}
       <ApiDocument spaceId={spaceId} />
 
       <Card className="overflow-hidden backdrop-blur-sm bg-card/80 shadow-sm w-full">

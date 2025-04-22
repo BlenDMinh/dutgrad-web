@@ -1,26 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertCircleIcon,
   CheckCircle2,
   Code,
   Copy,
-  Info,
   KeyIcon,
   SendIcon,
   ServerIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +22,6 @@ interface ApiDocumentBlockProps {
 
 export default function ApiDocumentBlock(props: ApiDocumentBlockProps) {
   const { spaceId } = props;
-  const router = useRouter();
   const [currentHost, setCurrentHost] = useState("");
 
   const copyToClipboard = (text: string) => {
@@ -211,7 +200,6 @@ print(data)`;
         </div>
       </div>
 
-      {/* Error Response Section */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 mb-2">
           <AlertCircleIcon className="h-4 w-4 text-destructive" />
@@ -236,7 +224,6 @@ print(data)`;
         </div>
       </div>
 
-      {/* Code Examples Section */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold mb-2">Code Examples</h3>
         <Tabs defaultValue="curl" className="w-full">
