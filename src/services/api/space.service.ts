@@ -1,6 +1,6 @@
-import apiClient from '@/lib/axios';
-import { handleResponse } from './helper';
-import { API_ROUTES } from '../../lib/constants';
+import apiClient from "@/lib/axios";
+import { handleResponse } from "./helper";
+import { API_ROUTES } from "../../lib/constants";
 
 export const spaceService = {
   createSpace: async (data: {
@@ -62,14 +62,10 @@ export const spaceService = {
     const response = await apiClient.get(API_ROUTES.SPACE.INVITATIONS(spaceId));
     return handleResponse(response.data);
   },
-  inviteUser: async (
-    spaceId: string,
-    invited_user_email: string,
-    space_role_id: number
-  ) => {
+  inviteUser: async (spaceId: string, userId: number, roleId: number) => {
     const response = await apiClient.post(
-      API_ROUTES.SPACE.INVITATIONS(spaceId),
-      { invited_user_email, space_role_id }
+      `${API_ROUTES.SPACE.INVITATIONS(spaceId)}`,
+      { invited_user_id: userId, role_id: roleId }
     );
     return handleResponse(response.data);
   },
@@ -130,23 +126,35 @@ export const spaceService = {
     return Number(count);
   },
   getCountMyChatSessions: async (): Promise<number> => {
-    const response = await apiClient.head(API_ROUTES.SPACE.COUNT_USER_QUERY_SESSION);
+    const response = await apiClient.head(
+      API_ROUTES.SPACE.COUNT_USER_QUERY_SESSION
+    );
     return Number(response.headers["x-total-count"]);
   },
-  createApiKey: async (spaceId: string, data: { name: string; description: string }) => {
-    const response = await apiClient.post(API_ROUTES.SPACE.API_KEYS(spaceId), data)
-    return handleResponse(response.data)
+  createApiKey: async (
+    spaceId: string,
+    data: { name: string; description: string }
+  ) => {
+    const response = await apiClient.post(
+      API_ROUTES.SPACE.API_KEYS(spaceId),
+      data
+    );
+    return handleResponse(response.data);
   },
   getApiKeys: async (spaceId: string) => {
-    const response = await apiClient.get(API_ROUTES.SPACE.API_KEYS(spaceId))
-    return handleResponse(response.data)
+    const response = await apiClient.get(API_ROUTES.SPACE.API_KEYS(spaceId));
+    return handleResponse(response.data);
   },
   getApiKey: async (spaceId: string, keyId: string) => {
-    const response = await apiClient.get(API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId))
-    return handleResponse(response.data)
+    const response = await apiClient.get(
+      API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId)
+    );
+    return handleResponse(response.data);
   },
   deleteApiKey: async (spaceId: string, keyId: string) => {
-    const response = await apiClient.delete(API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId))
-    return handleResponse(response.data)
+    const response = await apiClient.delete(
+      API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId)
+    );
+    return handleResponse(response.data);
   },
 };
