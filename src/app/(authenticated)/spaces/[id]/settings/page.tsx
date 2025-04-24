@@ -24,7 +24,7 @@ import { DangerZone } from "./components/DangerZone";
 import { LimitsSettings } from "./components/LimitsSettings";
 
 export default function SpaceSettingsPage() {
-  const { space, loading } = useSpace();
+  const { space, loading, refetch } = useSpace();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("general");
   const [isPageLoaded, setIsPageLoaded] = useState(false);
@@ -217,6 +217,7 @@ export default function SpaceSettingsPage() {
                       initialName={space.name}
                       initialDescription={space.description}
                       initialPrivacyStatus={space.privacy_status}
+                      onUpdate={() => {refetch()}}
                     />
                   </motion.div>
                 </TabsContent>
@@ -228,6 +229,7 @@ export default function SpaceSettingsPage() {
                       initialDocumentLimit={space.document_limit ?? 0}
                       initialFileSizeLimitKb={space.file_size_limit_kb ?? 5120}
                       initialApiCallLimit={space.api_call_limit ?? 0}
+                      onUpdate={() => {refetch()}}
                     />
                   </motion.div>
                 </TabsContent>

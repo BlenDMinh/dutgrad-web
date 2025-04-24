@@ -22,7 +22,7 @@ export const spaceService = {
       api_call_limit?: number;
     }
   ) => {
-    const response = await apiClient.put(
+    const response = await apiClient.patch(
       API_ROUTES.SPACE.DETAIL(spaceId),
       data
     );

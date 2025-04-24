@@ -33,6 +33,7 @@ interface LimitsSettingsProps {
   initialDocumentLimit: number;
   initialFileSizeLimitKb: number;
   initialApiCallLimit: number;
+  onUpdate?: (spaceId: string) => void
 }
 
 export function LimitsSettings({
@@ -40,6 +41,7 @@ export function LimitsSettings({
   initialDocumentLimit,
   initialFileSizeLimitKb,
   initialApiCallLimit,
+  onUpdate,
 }: LimitsSettingsProps) {
   const [documentLimit, setDocumentLimit] = useState(initialDocumentLimit);
   const [fileSizeLimitKb, setFileSizeLimitKb] = useState(initialFileSizeLimitKb);
@@ -48,7 +50,6 @@ export function LimitsSettings({
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  // Format file size to MB with 2 decimal places
   const formattedFileSize = (fileSizeLimitKb / 1024).toFixed(2);
 
   useEffect(() => {
@@ -103,6 +104,9 @@ export function LimitsSettings({
       });
     } finally {
       setIsSubmitting(false);
+      if(onUpdate) {
+        onUpdate(spaceId)
+      }
     }
   };
 
