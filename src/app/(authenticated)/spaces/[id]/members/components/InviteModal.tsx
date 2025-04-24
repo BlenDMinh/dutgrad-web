@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,27 +21,15 @@ import { useSpace } from "@/context/space.context";
 import { spaceService } from "@/services/api/space.service";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import { Invitation, Member } from "../page";
-import { userService, User } from "@/services/api/user.service";
+import type { Invitation, Member } from "../page";
+import { userService, type User } from "@/services/api/user.service";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  CheckIcon,
-  ChevronsUpDown,
   Copy,
   Link2,
   Loader2,
+  Search,
   UserPlus,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -58,19 +48,22 @@ export function InviteModal(props: InviteModalProps) {
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const [invitationLink, setInvitationLink] = useState("");
   const [isLoadingLink, setIsLoadingLink] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchResultsRef = useRef<HTMLDivElement>(null);
 
   const { onSuccess, members, invitations } = props;
 
-  // Filter out users who are already members or have pending invitations
   const filterExistingUsers = (users: User[]) => {
-    const memberIds = new Set(members.map((member) => member.user_id));
-    const invitationEmails = new Set(invitations.map((inv) => inv.email));
+    const memberIds = new Set(members.map((member) => member.user.id));
+    const invitationEmails = new Set(
+      invitations.map((inv) => inv.invited_user.email)
+    );
 
     return users.filter(
       (user) => !memberIds.has(user.id) && !invitationEmails.has(user.email)
@@ -113,6 +106,24 @@ export function InviteModal(props: InviteModalProps) {
       }
     };
   }, [searchQuery, members, invitations]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchResultsRef.current &&
+        !searchResultsRef.current.contains(event.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleInvite = async () => {
     if (!selectedUser) {
@@ -163,7 +174,22 @@ export function InviteModal(props: InviteModalProps) {
 
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
-    setPopoverOpen(false);
+    setShowSearchResults(false);
+    setSearchQuery("");
+  };
+
+  const handleSearchFocus = () => {
+    setShowSearchResults(true);
+  };
+
+  const clearSelectedUser = () => {
+    setSelectedUser(null);
+    setSearchQuery("");
+    setTimeout(() => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    }, 0);
   };
 
   return (
@@ -182,72 +208,83 @@ export function InviteModal(props: InviteModalProps) {
         <div className="space-y-6 py-4">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground mb-1">User</p>
-            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={popoverOpen}
-                  className="w-full justify-between"
-                >
-                  {selectedUser ? (
-                    <div className="flex items-center">
-                      <span className="mr-2 font-medium">
-                        {selectedUser.username}
-                      </span>
-                      <span className="text-muted-foreground">
-                        ({selectedUser.email})
-                      </span>
-                    </div>
-                  ) : (
-                    "Search for users"
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="Search by name or email..."
-                    value={searchQuery}
-                    onValueChange={setSearchQuery}
-                  />
-                  {searching && (
-                    <div className="flex items-center justify-center p-4">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="ml-2">Searching...</span>
-                    </div>
-                  )}
-                  {!searching && (
-                    <CommandEmpty>
-                      {searchQuery.length > 1
-                        ? "No users found."
-                        : "Type at least 2 characters to search."}
-                    </CommandEmpty>
-                  )}
-                  <CommandGroup>
-                    {searchResults.map((user) => (
-                      <CommandItem
-                        key={user.id}
-                        value={`${user.id}`}
-                        onSelect={() => handleSelectUser(user)}
-                        className="flex justify-between"
-                      >
-                        <div className="flex flex-col">
-                          <span>{user.username}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {user.email}
-                          </span>
+
+            <div className="relative">
+              {selectedUser ? (
+                <div className="flex items-center justify-between border rounded-md p-2">
+                  <div className="flex items-center">
+                    <span className="mr-2 font-medium">
+                      {selectedUser.username}
+                    </span>
+                    <span className="text-muted-foreground">
+                      ({selectedUser.email})
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={clearSelectedUser}
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Clear selection</span>
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      ref={searchInputRef}
+                      placeholder="Search by name or email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={handleSearchFocus}
+                      className="pl-8"
+                    />
+                  </div>
+
+                  {showSearchResults && (
+                    <div
+                      ref={searchResultsRef}
+                      className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-md max-h-[200px] overflow-y-auto"
+                    >
+                      {searching && (
+                        <div className="flex items-center justify-center p-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="ml-2">Searching...</span>
                         </div>
-                        {selectedUser?.id === user.id && (
-                          <CheckIcon className="h-4 w-4" />
+                      )}
+
+                      {!searching &&
+                        searchQuery.length > 0 &&
+                        searchResults.length === 0 && (
+                          <div className="p-4 text-center text-muted-foreground">
+                            {searchQuery.length > 1
+                              ? "No users found."
+                              : "Type at least 2 characters to search."}
+                          </div>
                         )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
+
+                      {searchResults.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center justify-between p-2 hover:bg-muted cursor-pointer"
+                          onClick={() => handleSelectUser(user)}
+                        >
+                          <div className="flex flex-col">
+                            <span>{user.username}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {user.email}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">

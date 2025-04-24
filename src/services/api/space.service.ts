@@ -65,7 +65,7 @@ export const spaceService = {
   inviteUser: async (spaceId: string, userId: number, roleId: number) => {
     const response = await apiClient.post(
       `${API_ROUTES.SPACE.INVITATIONS(spaceId)}`,
-      { invited_user_id: userId, role_id: roleId }
+      { invited_user_id: userId, space_role_id: roleId }
     );
     return handleResponse(response.data);
   },
