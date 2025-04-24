@@ -19,6 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export interface Member {
   user: {
+    id: number;
+    email: string;
     username: string;
   };
   space_role: {
@@ -29,7 +31,9 @@ export interface Member {
 
 export interface Invitation {
   invited_user: {
+    id: number;
     username: string;
+    email: string;
   };
   space_role: {
     name: string;
