@@ -34,7 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface InviteModalProps {
-  onSuccess: () => void | undefined;
+  onSuccess: () => void | Promise<void> | undefined;
   members: Member[];
   invitations: Invitation[];
 }

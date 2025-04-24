@@ -157,4 +157,17 @@ export const spaceService = {
     );
     return handleResponse(response.data);
   },
+  updateUserRole: async (spaceId: string, memberId: string, roleId: number) => {
+    const response = await apiClient.patch(
+      `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}/role`,
+      { role_id: roleId }
+    );
+    return handleResponse(response.data);
+  },
+  removeMember: async (spaceId: string, memberId: string) => {
+    const response = await apiClient.delete(
+      `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}`
+    );
+    return handleResponse(response.data);
+  },
 };
