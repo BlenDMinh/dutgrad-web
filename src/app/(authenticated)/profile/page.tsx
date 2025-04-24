@@ -302,7 +302,7 @@ export default function ProfilePage() {
                     Created At
                   </dt>
                   <dd className="mt-1 font-medium">
-                    {new Date(user.created_at).toLocaleDateString(undefined, {
+                    {new Date(user.created_at).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",

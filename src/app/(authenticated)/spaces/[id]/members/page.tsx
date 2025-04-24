@@ -80,6 +80,7 @@ export default function SpaceMembersPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    if(!id) return
     const fetchData = async () => {
       setLoading(true);
       const resMembers = await spaceService.getSpaceMembers(id);
