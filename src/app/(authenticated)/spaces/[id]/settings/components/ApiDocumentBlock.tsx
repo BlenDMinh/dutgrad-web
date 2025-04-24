@@ -42,7 +42,7 @@ export default function ApiDocumentBlock(props: ApiDocumentBlockProps) {
   const curlCode = `curl -X POST "${endpoint}" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_TOKEN" \\
-  -d '{"query": "What is this space about?"}'`;
+  -d "{"query": "What is this space about?"}"`;
 
   const httpCode = `POST /api/v1/spaces/${spaceId}/chat HTTP/1.1
 Host: ${currentHost.replace(/^https?:\/\//, "")}
@@ -89,9 +89,13 @@ print(data)`;
 }`;
 
   const responseBodyCode = `{
-  "answer": "Response from the AI",
-  "session_id": 12345,
-  "query": "Your query"
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "answer": "Response from the AI",
+    "session_id": 12345,
+    "query": "Your query"
+  }
 }`;
 
   const errorResponseCode = `{

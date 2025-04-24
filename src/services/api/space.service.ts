@@ -17,9 +17,12 @@ export const spaceService = {
       name?: string;
       description?: string;
       privacy_status?: boolean;
+      document_limit?: number;
+      file_size_limit_kb?: number;
+      api_call_limit?: number;
     }
   ) => {
-    const response = await apiClient.put(
+    const response = await apiClient.patch(
       API_ROUTES.SPACE.DETAIL(spaceId),
       data
     );

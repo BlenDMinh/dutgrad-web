@@ -27,7 +27,11 @@ interface Space {
   name: string;
   description: string;
   privacy_status: boolean;
+  document_limit?: number;
+  file_size_limit_kb?: number;
+  api_call_limit?: number;
   created_at: string;
+  updated_at: string;
 }
 
 export default function Dashboard() {

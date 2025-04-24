@@ -18,6 +18,9 @@ export interface Space {
   name: string;
   description: string;
   privacy_status: boolean;
+  document_limit?: number;
+  file_size_limit_kb?: number;
+  api_call_limit?: number;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +30,7 @@ interface SpaceContextType {
   role: Role | null;
   loading: boolean;
   error: string | null;
+  refetch: () => void
 }
 
 interface Member {
@@ -60,9 +64,7 @@ function SpaceProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [space, setSpace] = useState<Space | null>(null);
-
-  const router = useRouter();
-  useEffect(() => {
+  const refetch = () => {
     if (!id) return;
     setLoading(true);
     setError(null);
@@ -97,10 +99,15 @@ function SpaceProvider({ children }: { children: React.ReactNode }) {
       .finally(() => {
         setLoading(false);
       });
+  }
+
+  const router = useRouter();
+  useEffect(() => {
+    refetch()
   }, [id]);
 
   return (
-    <SpaceContext.Provider value={{ space, role, loading, error }}>
+    <SpaceContext.Provider value={{ space, role, loading, error, refetch }}>
       {children}
     </SpaceContext.Provider>
   );

@@ -11,6 +11,7 @@ import {
   Settings2,
   Loader2,
   BotIcon,
+  Gauge,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { APP_ROUTES } from "@/lib/constants";
@@ -20,9 +21,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GeneralSettings } from "./components/GeneralSettings";
 import { ChatApi } from "./components/ChatApi";
 import { DangerZone } from "./components/DangerZone";
+import { LimitsSettings } from "./components/LimitsSettings";
 
 export default function SpaceSettingsPage() {
-  const { space, loading } = useSpace();
+  const { space, loading, refetch } = useSpace();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("general");
   const [isPageLoaded, setIsPageLoaded] = useState(false);
@@ -177,13 +179,20 @@ export default function SpaceSettingsPage() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-3 mb-8">
+                <TabsList className="grid w-full grid-cols-4 mb-8">
                   <TabsTrigger
                     value="general"
                     className="flex items-center gap-2"
                   >
                     <Settings2 size={16} />
-                    General Settings
+                    General
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="limits"
+                    className="flex items-center gap-2"
+                  >
+                    <Gauge size={16} />
+                    Limits
                   </TabsTrigger>
                   <TabsTrigger
                     value="api-keys"
@@ -208,6 +217,19 @@ export default function SpaceSettingsPage() {
                       initialName={space.name}
                       initialDescription={space.description}
                       initialPrivacyStatus={space.privacy_status}
+                      onUpdate={() => {refetch()}}
+                    />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="limits">
+                  <motion.div variants={itemVariants}>
+                    <LimitsSettings
+                      spaceId={space.id.toString()}
+                      initialDocumentLimit={space.document_limit ?? 0}
+                      initialFileSizeLimitKb={space.file_size_limit_kb ?? 5120}
+                      initialApiCallLimit={space.api_call_limit ?? 0}
+                      onUpdate={() => {refetch()}}
                     />
                   </motion.div>
                 </TabsContent>
