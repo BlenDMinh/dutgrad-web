@@ -55,7 +55,6 @@ import {
   Info,
 } from "lucide-react";
 import { spaceService } from "@/services/api/space.service";
-import { useRouter } from "next/navigation";
 import ApiDocument from "./ApiDocument";
 
 interface ApiKey {

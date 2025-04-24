@@ -33,6 +33,7 @@ interface GeneralSettingsProps {
   initialName: string;
   initialDescription: string;
   initialPrivacyStatus: boolean;
+  onUpdate?: (spaceId: string) => void
 }
 
 export function GeneralSettings({
@@ -40,6 +41,7 @@ export function GeneralSettings({
   initialName,
   initialDescription,
   initialPrivacyStatus,
+  onUpdate,
 }: GeneralSettingsProps) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
@@ -135,6 +137,9 @@ export function GeneralSettings({
       });
     } finally {
       setIsSubmitting(false);
+      if(onUpdate) {
+        onUpdate(spaceId)
+      }
     }
   };
 

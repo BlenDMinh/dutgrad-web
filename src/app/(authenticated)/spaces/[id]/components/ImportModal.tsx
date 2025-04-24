@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,23 +21,37 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaFileUpload } from "react-icons/fa";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { documentService } from "@/services/api/document.service";
 import { useRouter } from "next/navigation";
-import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
+import { ALLOWED_FILE_TYPES, APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
 import { useSpace } from "@/context/space.context";
+import { cn } from "@/lib/utils";
 
 interface ImportDialogProps {
   spaceId: string;
   children?: ReactNode;
 }
 
+// Extensions to MIME type mappings for better validation
+const ALLOWED_EXTENSIONS: Record<string, string[]> = {
+  pdf: ["application/pdf"],
+  doc: ["application/msword"],
+  docx: [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
+  xls: ["application/vnd.ms-excel"],
+  xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+  txt: ["text/plain"],
+};
+
 export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
-  const {role } = useSpace();
+  const { role } = useSpace();
   const [isUploading, setIsUploading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const router = useRouter();
 
   const [feedback, setFeedback] = useState<{
@@ -51,12 +65,63 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
     },
   });
 
+  // Function to get the correct MIME type based on file extension
+  const getCorrectMimeType = (file: File): string => {
+    // Get the file extension
+    const extension = file.name.toLowerCase().split(".").pop();
+
+    // If the file is detected as zip but has Office extensions, convert the MIME type
+    if (
+      file.type === "application/zip" ||
+      file.type === "application/x-zip-compressed" ||
+      file.type === "application/octet-stream"
+    ) {
+      if (extension === "docx") {
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+      }
+
+      if (extension === "xlsx") {
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      }
+    }
+
+    return file.type;
+  };
+
+  const validateFileType = (file: File): boolean => {
+    // Check if the file's MIME type is directly in our allowed list
+    if (ALLOWED_FILE_TYPES[file.type]) {
+      return true;
+    }
+
+    // Get the file extension
+    const extension = file.name.toLowerCase().split(".").pop();
+    if (!extension) return false;
+
+    // If file is detected as zip but has an Office extension
+    if (
+      (file.type === "application/zip" ||
+        file.type === "application/x-zip-compressed" ||
+        file.type === "application/octet-stream") &&
+      (extension === "xlsx" || extension === "docx")
+    ) {
+      return true;
+    }
+
+    // Check if the extension is in our allowed list
+    if (ALLOWED_EXTENSIONS[extension]) {
+      return true;
+    }
+
+    return false;
+  };
+
   const handleFileUpload = async (data: { file: FileList }) => {
     try {
       setFeedback({ type: null, message: "" });
       setIsUploading(true);
 
-      const file = data.file?.[0];
+      let file = data.file?.[0];
 
       if (!file) {
         setFeedback({
@@ -65,6 +130,24 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
         });
         setIsUploading(false);
         return;
+      }
+
+      // Validate file type
+      if (!validateFileType(file)) {
+        setFeedback({
+          type: "error",
+          message: `File type not supported. Please upload one of the following formats: PDF, DOC, DOCX, XLS, XLSX, or TXT.`,
+        });
+        setIsUploading(false);
+        return;
+      }
+
+      // Check if MIME type needs to be corrected
+      const correctMimeType = getCorrectMimeType(file);
+      if (correctMimeType !== file.type) {
+        // Create a new File object with the corrected MIME type
+        file = new File([file], file.name, { type: correctMimeType });
+        console.log(`Converted file MIME type to: ${correctMimeType}`);
       }
 
       const response = await documentService.uploadDocumet(
@@ -118,9 +201,40 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
     if (!open) {
       setFeedback({ type: null, message: "" });
       form.reset();
+      setIsDragging(false);
     }
     setIsOpen(open);
   };
+
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        form.setValue("file", e.dataTransfer.files);
+      }
+    },
+    [form]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -153,19 +267,54 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 <FormItem>
                   <FormLabel>Document</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept=".pdf,.docx,.txt,.xlsx"
-                      onChange={(e) => onChange(e.target.files)}
-                      disabled={isUploading}
-                      className="cursor-pointer"
-                      {...fieldProps}
-                    />
+                    <div
+                      className={cn(
+                        "border-2 border-dashed rounded-md p-6 cursor-pointer transition-colors",
+                        isDragging
+                          ? "border-primary bg-primary/5"
+                          : "border-muted-foreground/25 hover:border-primary/50",
+                        isUploading && "opacity-50 cursor-not-allowed"
+                      )}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onClick={() =>
+                        !isUploading &&
+                        document.getElementById("file-upload")?.click()
+                      }
+                    >
+                      <div className="flex flex-col items-center justify-center gap-2 max-w-full">
+                        <FaFileUpload className="h-10 w-10 text-muted-foreground/50 flex-shrink-0" />
+                        <div className="w-full max-w-[280px] text-center">
+                          {value && value[0] ? (
+                            <p
+                              className="text-sm font-medium truncate overflow-hidden text-ellipsis"
+                              title={value[0].name}
+                            >
+                              {value[0].name}
+                            </p>
+                          ) : (
+                            <p className="text-sm font-medium">
+                              Drag and drop your file here or click to browse
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT
+                        </p>
+                      </div>
+                      <Input
+                        id="file-upload"
+                        type="file"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                        onChange={(e) => onChange(e.target.files)}
+                        disabled={isUploading}
+                        className="hidden"
+                        {...fieldProps}
+                      />
+                    </div>
                   </FormControl>
-                  <FormDescription>
-                    Upload a document (PDF, Word, or Text) to import into your
-                    space.
-                  </FormDescription>
                 </FormItem>
               )}
             />

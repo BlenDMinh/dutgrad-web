@@ -1,4 +1,3 @@
-
 export const API_ROUTES = {
   AUTH: {
     LOGIN: "/auth/login",
@@ -23,15 +22,18 @@ export const API_ROUTES = {
     DOCUMENTS: (spaceId: string) => `/space/${spaceId}/documents`,
     USER_ROLE: (spaceId: string) => `/spaces/${spaceId}/user-role`,
     INVITATION_LINK: (spaceId: string) => `/spaces/${spaceId}/invitation-link`,
-    JOIN_SPACE_LINK: (token : string)=> `/spaces/join?token=${token}`,
+    JOIN_SPACE_LINK: (token: string) => `/spaces/join?token=${token}`,
     JOIN_PUBLIC: (spaceId: string) => `/spaces/${spaceId}/join-public`,
     MEMBERS: (spaceId: string) => `/spaces/${spaceId}/members`,
-    ACCEPT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/accept`,
-    REJECT_INVITATION: (invitationId: string) => `/space-invitations/${invitationId}/reject`,
+    ACCEPT_INVITATION: (invitationId: string) =>
+      `/space-invitations/${invitationId}/accept`,
+    REJECT_INVITATION: (invitationId: string) =>
+      `/space-invitations/${invitationId}/reject`,
     API_KEYS: (spaceId: string) => `/spaces/${spaceId}/api-keys`,
-    API_KEY_DETAIL: (spaceId: string, keyId: string) => `/spaces/${spaceId}/api-keys/${keyId}`,
+    API_KEY_DETAIL: (spaceId: string, keyId: string) =>
+      `/spaces/${spaceId}/api-keys/${keyId}`,
   },
-  USER:{
+  USER: {
     MINE: "/user/me",
     ME: (userId: string) => `/user/${userId}`,
   },
@@ -43,7 +45,7 @@ export const API_ROUTES = {
   CHAT: {
     BEGIN_SESSION: "/user-query-sessions/begin-chat-session",
     ASK: "/user-query/ask",
-    SESSION_HISTORY: "/user-query-sessions/me"
+    SESSION_HISTORY: "/user-query-sessions/me",
   },
 };
 
@@ -60,7 +62,7 @@ export const APP_ROUTES = {
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me",
     MEMBER: (spaceId: string) => `/spaces/${spaceId}/members`,
-    SETTINGS:  (spaceId: string) => `/spaces/${spaceId}/settings`,
+    SETTINGS: (spaceId: string) => `/spaces/${spaceId}/settings`,
     DETAIL: (spaceId: string) => `/spaces/${spaceId}`,
   },
   DOCUMENT: {
@@ -70,6 +72,23 @@ export const APP_ROUTES = {
     SPACE: (spaceId: string, sessionId: string) =>
       `/spaces/${spaceId}/chat?sessionId=${sessionId}`,
   },
+};
+
+export const ALLOWED_FILE_TYPES: Record<string, string> = {
+  // PDF files
+  "application/pdf": ".pdf",
+
+  // Word documents
+  "application/msword": ".doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    ".docx",
+
+  // Excel files
+  "application/vnd.ms-excel": ".xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+
+  // Text files
+  "text/plain": ".txt",
 };
 
 export const SPACE_ROLE = {
