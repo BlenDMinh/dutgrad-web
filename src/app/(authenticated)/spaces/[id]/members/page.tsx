@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { spaceService } from "@/services/api/space.service";
-import { FaTrash } from "react-icons/fa";
 import {
   Table,
   TableBody,
@@ -11,31 +10,48 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { useSpace } from "@/context/space.context";
 import { SPACE_ROLE } from "@/lib/constants";
 import { InviteModal } from "./components/InviteModal";
+import { DeleteMemberModal } from "./components/DeleteMemberModal";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
 
 export interface Member {
+  id: number;
   user: {
     id: number;
     email: string;
     username: string;
   };
   space_role: {
+    id: number;
     name: string;
   };
   created_at: string;
 }
 
+export interface SpaceRole {
+  id: number;
+  name: string;
+}
+
 export interface Invitation {
+  id: number;
   invited_user: {
     id: number;
     username: string;
     email: string;
   };
   space_role: {
+    id: number;
     name: string;
   };
   created_at: string;
@@ -73,6 +89,13 @@ const tableRowVariants = {
       damping: 15,
     },
   },
+  exit: {
+    opacity: 0,
+    x: 20,
+    transition: {
+      duration: 0.2,
+    },
+  },
 };
 
 export default function SpaceMembersPage() {
@@ -80,42 +103,116 @@ export default function SpaceMembersPage() {
   const id = space?.id?.toString() || "";
   const [members, setMembers] = useState<Member[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
-  const [refresh, setRefresh] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [spaceRoles, setSpaceRoles] = useState<SpaceRole[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [updatingRoleFor, setUpdatingRoleFor] = useState<number | null>(null);
+  const [removingMemberId, setRemovingMemberId] = useState<number | null>(null);
 
-  useEffect(() => {
-    if(!id) return
-    const fetchData = async () => {
-      setLoading(true);
-      const resMembers = await spaceService.getSpaceMembers(id);
-      const resInvitations = await spaceService.getSpaceInvitations(id);
+  const fetchData = async () => {
+    if (!id) return;
+
+    try {
+      setIsLoading(true);
+      const [resMembers, resInvitations, resRoles] = await Promise.all([
+        spaceService.getSpaceMembers(id),
+        spaceService.getSpaceInvitations(id),
+        spaceService.getSpaceRoles(),
+      ]);
+
       setMembers(resMembers.members);
       setInvitations(resInvitations.invitations);
-      setLoading(false);
-    };
-    fetchData();
-  }, [id, refresh]);
+      setSpaceRoles(resRoles.roles);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load members data");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const refreshList = () => {
-    setRefresh(!refresh);
+  useEffect(() => {
+    fetchData();
+  }, [id]);
+
+  const handleRoleChange = async (memberId: number, roleId: number) => {
+    try {
+      setUpdatingRoleFor(memberId);
+      await spaceService.updateUserRole(id, memberId.toString(), roleId);
+
+      setMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.user.id === memberId
+            ? {
+                ...member,
+                space_role: {
+                  id: roleId,
+                  name:
+                    spaceRoles.find((r) => r.id === roleId)?.name ||
+                    member.space_role.name,
+                },
+              }
+            : member
+        )
+      );
+
+      toast.success("User role updated successfully");
+    } catch (error) {
+      console.error("Failed to update user role:", error);
+      toast.error("Failed to update user role");
+      fetchData();
+    } finally {
+      setUpdatingRoleFor(null);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: number) => {
+    try {
+      setRemovingMemberId(memberId);
+      setMembers((prevMembers) =>
+        prevMembers.filter((member) => member.user.id !== memberId)
+      );
+      setInvitations((prevInvitations) =>
+        prevInvitations.filter(
+          (invitation) => invitation.invited_user.id !== memberId
+        )
+      );
+      await spaceService.removeMember(id, memberId.toString());
+      toast.success("Member removed successfully");
+    } catch (error: any) {
+      console.error("Failed to remove member:", error);
+      toast.error(error.response?.data?.message || "Failed to remove member");
+      fetchData();
+    } finally {
+      setRemovingMemberId(null);
+    }
   };
 
   const combinedData = [
     ...members.map((m) => ({
+      id: m.id,
+      userId: m.user.id,
       username: m.user.username,
+      roleId: m.space_role.id,
       role: m.space_role.name,
       joinDate: m.created_at,
       status: "",
+      isPending: false,
     })),
     ...invitations
       .filter((i) => i.status !== "accepted" && i.status !== "rejected")
       .map((i) => ({
+        id: i.id,
+        userId: i.invited_user.id,
         username: i.invited_user.username,
+        roleId: i.space_role.id,
         role: i.space_role.name,
         joinDate: i.created_at,
         status: i.status,
+        isPending: true,
       })),
-  ];
+  ].sort(
+    (a, b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime()
+  );
 
   return (
     <motion.div
@@ -144,9 +241,7 @@ export default function SpaceMembersPage() {
           <InviteModal
             members={members}
             invitations={invitations}
-            onSuccess={() => {
-              refreshList();
-            }}
+            onSuccess={fetchData}
           />
         </motion.div>
       )}
@@ -168,8 +263,8 @@ export default function SpaceMembersPage() {
           </TableHeader>
 
           <TableBody>
-            <AnimatePresence>
-              {loading
+            <AnimatePresence mode="popLayout">
+              {isLoading
                 ? Array(3)
                     .fill(0)
                     .map((_, index) => (
@@ -192,7 +287,7 @@ export default function SpaceMembersPage() {
                                   opacity: [0.5, 0.8, 0.5],
                                 }}
                                 transition={{
-                                  repeat: Infinity,
+                                  repeat: Number.POSITIVE_INFINITY,
                                   duration: 1.5,
                                 }}
                               />
@@ -202,13 +297,13 @@ export default function SpaceMembersPage() {
                     ))
                 : combinedData.map((item, index) => (
                     <motion.tr
-                      key={index}
+                      key={`${item.userId}-${index}`}
                       className="hover:bg-muted/50 transition cursor-pointer"
                       variants={tableRowVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
                       layout
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 20 }}
                       transition={{
                         type: "spring",
                         stiffness: 100,
@@ -235,7 +330,40 @@ export default function SpaceMembersPage() {
                           </motion.span>
                         )}
                       </TableCell>
-                      <TableCell>{item.role}</TableCell>
+                      <TableCell>
+                        {role?.id === SPACE_ROLE.OWNER && !item.status ? (
+                          <Select
+                            defaultValue={item.roleId.toString()}
+                            disabled={
+                              updatingRoleFor === item.id ||
+                              item.roleId === SPACE_ROLE.OWNER
+                            }
+                            onValueChange={(value) =>
+                              handleRoleChange(
+                                item.userId,
+                                Number.parseInt(value)
+                              )
+                            }
+                          >
+                            <SelectTrigger className="w-[180px]">
+                              <SelectValue placeholder={item.role} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {spaceRoles.map((role) => (
+                                <SelectItem
+                                  key={role.id}
+                                  value={role.id.toString()}
+                                  disabled={role.id === SPACE_ROLE.OWNER}
+                                >
+                                  {role.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          item.role
+                        )}
+                      </TableCell>
                       <TableCell>
                         {new Date(item.joinDate).toLocaleDateString("en-GB", {
                           day: "2-digit",
@@ -244,21 +372,14 @@ export default function SpaceMembersPage() {
                         })}
                       </TableCell>
                       <TableCell className="text-right">
-                        {role?.id !== SPACE_ROLE.VIEWER && (
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => {
-                              if (
-                                confirm(
-                                  "Are you sure you want to delete this user?"
-                                )
-                              ) {
-                              }
-                            }}
-                          >
-                            <FaTrash />
-                          </Button>
+                        {role?.id === SPACE_ROLE.OWNER && (
+                          <DeleteMemberModal
+                            memberName={item.username}
+                            memberRole={item.role}
+                            isOwner={item.roleId === SPACE_ROLE.OWNER}
+                            isPending={item.isPending}
+                            onConfirm={() => handleRemoveMember(item.userId)}
+                          />
                         )}
                       </TableCell>
                     </motion.tr>
