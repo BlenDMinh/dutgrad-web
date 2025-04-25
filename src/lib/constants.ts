@@ -37,6 +37,7 @@ export const API_ROUTES = {
     MINE: "/user/me",
     ME: (userId: string) => `/user/${userId}`,
     SEARCH: "/user/search",
+    TIER: "/user/tier",
   },
   DOCUMENT: {
     UPLOAD: "/documents/upload",

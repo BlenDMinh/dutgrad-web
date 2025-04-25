@@ -33,4 +33,8 @@ export const userService = {
     );
     return handleResponse(response.data);
   },
+  getUserTier: async () => {
+    const response = await apiClient.get(API_ROUTES.USER.TIER);
+    return handleResponse(response.data);
+  },
 };

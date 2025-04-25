@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { UserTierInfo } from "./user/UserTierInfo";
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -628,6 +629,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
         transition={{ delay: 0.5 }}
         className="border-t p-4"
       >
+        <UserTierInfo/>
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Button
             variant="destructive"
