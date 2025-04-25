@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { userService } from '@/services/api/user.service';
+import { userService, TierUsageResponse } from '@/services/api/user.service';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -17,22 +17,10 @@ import {
   FaChevronRight,
   FaCrown,
 } from 'react-icons/fa';
-
-interface TierData {
-  id: number;
-  name?: string;
-  space_limit: number;
-  document_limit: number;
-  api_call_limit: number;
-  file_size_limit_kb: number;
-  query_limit: number;
-  query_history_limit: number;
-  cost_month: number;
-  discount: number;
-}
+import { Progress } from '@/components/ui/progress';
 
 export function UserTierInfo() {
-  const [tierData, setTierData] = useState<TierData | null>(null);
+  const [tierUsage, setTierUsage] = useState<TierUsageResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -41,20 +29,16 @@ export function UserTierInfo() {
       try {
         setIsLoading(true);
         const response = await userService.getUserTier();
-        if (response?.tier) {
-          setTierData(response.tier);
+        if (response) {
+          setTierUsage(response);
         } else {
-          setTierData(null);
-          console.warn(
-            'Using default tier since no tier information was received'
-          );
+          setTierUsage(null);
+          console.warn('No tier information was received');
         }
       } catch (err) {
         console.error('Failed to fetch tier info:', err);
-        setTierData(null);
-        console.warn(
-          'Using default tier due to error fetching tier information'
-        );
+        setTierUsage(null);
+        console.warn('Error fetching tier information');
       } finally {
         setIsLoading(false);
       }
@@ -75,50 +59,57 @@ export function UserTierInfo() {
     );
   }
 
-  if (!tierData) {
+  if (!tierUsage || !tierUsage.tier) {
     return null;
   }
 
+  const { tier, usage } = tierUsage;
+
+  const calculatePercentage = (used: number, limit: number) => {
+    return Math.min(Math.round((used / limit) * 100), 100);
+  };
+
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 90) return 'bg-red-500';
+    if (percentage >= 75) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  };
+
   const limitItems = [
     {
-      icon: (
-        <FaDatabase className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-      ),
+      icon: <FaDatabase className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />,
       label: 'Spaces',
-      value: tierData.space_limit,
-      tooltipText: `Space limit: ${tierData.space_limit}`,
+      value: `${usage.space_count}/${tier.space_limit}`,
+      tooltipText: `Space usage: ${usage.space_count} of ${tier.space_limit}`,
+      percentage: calculatePercentage(usage.space_count, tier.space_limit),
     },
     {
-      icon: (
-        <FaFileAlt className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-      ),
+      icon: <FaFileAlt className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />,
       label: 'Documents',
-      value: tierData.document_limit,
-      tooltipText: `Document limit: ${tierData.document_limit}`,
+      value: `${usage.document_count}/${tier.document_limit}`,
+      tooltipText: `Document usage: ${usage.document_count} of ${tier.document_limit}`,
+      percentage: calculatePercentage(usage.document_count, tier.document_limit),
     },
     {
-      icon: (
-        <FaQuestionCircle className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
-      ),
-      label: 'Queries',
-      value: `${tierData.query_limit}/day`,
-      tooltipText: `Query limit: ${tierData.query_limit} per day`,
+      icon: <FaQuestionCircle className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />,
+      label: 'Today Queries',
+      value: `${usage.today_query_count}/${tier.query_limit}`,
+      tooltipText: `Query usage today: ${usage.today_query_count} of ${tier.query_limit}`,
+      percentage: calculatePercentage(usage.today_query_count, tier.query_limit),
     },
     {
-      icon: (
-        <FaHistory className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-      ),
+      icon: <FaHistory className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />,
       label: 'History',
-      value: tierData.query_history_limit,
-      tooltipText: `Query history limit: ${tierData.query_history_limit} records`,
+      value: `${usage.query_history_count}/${tier.query_history_limit}`,
+      tooltipText: `Query history: ${usage.query_history_count} of ${tier.query_history_limit}`,
+      percentage: calculatePercentage(usage.query_history_count, tier.query_history_limit),
     },
     {
-      icon: (
-        <FaServer className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
-      ),
-      label: 'API Calls',
-      value: `${tierData.api_call_limit}/day`,
-      tooltipText: `API call limit: ${tierData.api_call_limit} per day`,
+      icon: <FaServer className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />,
+      label: 'Today API Calls',
+      value: `${usage.today_api_call_count}/${tier.api_call_limit}`,
+      tooltipText: `API calls today: ${usage.today_api_call_count} of ${tier.api_call_limit}`,
+      percentage: calculatePercentage(usage.today_api_call_count, tier.api_call_limit),
     },
   ];
 
@@ -136,7 +127,7 @@ export function UserTierInfo() {
         >
           <FaCrown className="mr-2 h-4 w-4 text-amber-500" />
         </motion.span>
-        {tierData.cost_month > 0 ? 'Premium Plan' : 'Free Plan'}
+        {tier.cost_month > 0 ? 'Premium Plan' : 'Free Plan'}
         <motion.span
           animate={{ rotate: isExpanded ? 90 : 0 }}
           transition={{ duration: 0.3 }}
@@ -157,7 +148,7 @@ export function UserTierInfo() {
       >
         {isExpanded && (
           <TooltipProvider>
-            <div className="ml-6 mt-1 flex flex-col gap-1.5 mb-1">
+            <div className="ml-6 mt-1 flex flex-col gap-2.5 mb-1">
               {limitItems.map((item, index) => (
                 <Tooltip key={index}>
                   <TooltipTrigger asChild>
@@ -169,19 +160,27 @@ export function UserTierInfo() {
                       initial="hidden"
                       animate="visible"
                       transition={{ delay: index * 0.05 }}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-muted cursor-help text-sm"
+                      className="px-3 py-1.5 rounded-md hover:bg-muted cursor-help text-sm"
                     >
-                      <div className="flex items-center gap-2">
-                        {item.icon}
-                        <span className="text-muted-foreground">
-                          {item.label}
-                        </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          {item.icon}
+                          <span className="text-muted-foreground">
+                            {item.label}
+                          </span>
+                        </div>
+                        <span className="font-medium">{item.value}</span>
                       </div>
-                      <span className="font-medium">{item.value}</span>
+                      <Progress
+                        value={item.percentage}
+                        className="h-1.5 bg-gray-200 dark:bg-gray-700"
+                        indicatorClassName={getProgressColor(item.percentage)}
+                      />
                     </motion.div>
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p className="text-xs">{item.tooltipText}</p>
+                    <p className="text-xs font-medium">{item.percentage}% used</p>
                   </TooltipContent>
                 </Tooltip>
               ))}
