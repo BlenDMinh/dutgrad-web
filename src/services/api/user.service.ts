@@ -13,7 +13,31 @@ export interface User {
   sessions: any | null;
   tier: any | null;
 }
+export interface TierData {
+  id: number;
+  name?: string;
+  space_limit: number;
+  document_limit: number;
+  api_call_limit: number;
+  file_size_limit_kb: number;
+  query_limit: number;
+  query_history_limit: number;
+  cost_month: number;
+  discount: number;
+}
 
+export interface UsageData {
+  space_count: number;
+  document_count: number;
+  query_history_count: number;
+  today_query_count: number;
+  today_api_call_count: number;
+}
+
+export interface TierUsageResponse {
+  tier: TierData;
+  usage: UsageData;
+}
 export interface UserSearchResponse {
   users: User[];
 }
@@ -31,6 +55,10 @@ export const userService = {
     const response = await apiClient.get(
       `${API_ROUTES.USER.SEARCH}?query=${encodeURIComponent(query)}`
     );
+    return handleResponse(response.data);
+  },
+  getUserTier: async (): Promise<TierUsageResponse> => {
+    const response = await apiClient.get(API_ROUTES.USER.TIER);
     return handleResponse(response.data);
   },
 };
