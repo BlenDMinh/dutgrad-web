@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { loginUser } from "@/actions/auth-actions"
 import { APP_ROUTES } from "@/lib/constants"
-import { useAuth } from "@/providers/auth-provider"
+import { useAuth } from "@/context/auth.context"
 import OAuthButtons from "@/components/auth/oauth-buttons"
+import { loginUser } from "./action"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { loginSuccess } = useAuth()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
 
@@ -41,10 +41,8 @@ export default function LoginPage() {
       }
       
       if (result.data) {
-        // Update auth context with the access token
-        login(result.data.accessToken)
+        loginSuccess(result.data.accessToken, result.data.user)
         
-        // Navigate to home/dashboard
         router.push(APP_ROUTES.DASHBOARD)
       }
     } catch (err) {
@@ -59,7 +57,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center">
-          {/* Replace with your logo */}
           <div className="mb-4">
             <h1 className="text-2xl font-bold">DUT Grad</h1>
           </div>
@@ -111,18 +108,16 @@ export default function LoginPage() {
               {isLoading ? "Signing in..." : "Sign in with Email"}
             </Button>
           </form>
-          
-          {/* OAuth Buttons */}
           <OAuthButtons />
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            {"Don't have an account?"}
             <Link
-              href="/register"
+              href={APP_ROUTES.REGISTER}
               className="text-primary underline-offset-4 hover:underline"
             >
-              Sign up
+              {" Sign up"}
             </Link>
           </p>
         </CardFooter>

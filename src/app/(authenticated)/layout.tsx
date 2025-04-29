@@ -1,10 +1,12 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/providers/auth-provider";
+import { useAuth } from "@/context/auth.context";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { APP_ROUTES } from "@/lib/constants";
 import { Sidebar } from "@/components/sidebar";
+import { Toaster } from "sonner";
+import { MobileNav } from "@/components/mobile-nav";
 
 export default function AuthenticatedLayout({
   children,
@@ -13,33 +15,43 @@ export default function AuthenticatedLayout({
 }) {
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
-  
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
-    // Redirect to login if not authenticated
     if (!isLoading && !isLoggedIn) {
       router.push(APP_ROUTES.LOGIN);
     }
   }, [isLoading, isLoggedIn, router]);
-  
+
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
-  
-  // Don't render content until we're sure the user is authenticated
+
   if (!isLoggedIn) {
     return null;
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 ml-64">
-        {children}
-      </main>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
+      <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
+      <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
+
+      <MobileNav onOpenSidebar={() => setIsSidebarOpen(true)} />
+
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+
+        <main className="flex-1 overflow-auto pb-16 md:pb-0 md:ml-0 transition-all duration-300md:ml-64">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

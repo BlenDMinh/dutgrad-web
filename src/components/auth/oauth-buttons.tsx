@@ -2,16 +2,14 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { API_ROUTES } from "@/lib/constants";
+import { authService } from '@/services/api/auth.service';
 
 export default function OAuthButtons() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    // Redirect to the Google OAuth URL from your backend
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    window.location.href = `${apiUrl}${API_ROUTES.AUTH.GOOGLE}`;
+    window.location.href = authService.getGoogleAuthUrl();
   };
   
   return (

@@ -2,16 +2,21 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getAccessToken, isAuthenticated, clearAuthTokens, setAuthTokens } from '@/lib/auth';
-import { logoutUser } from '@/actions/auth-actions';
+import { isAuthenticated, clearAuthTokens, setAuthTokens, setAuthUser, clearAuthUser } from '@/lib/auth';
 import { APP_ROUTES } from '@/lib/constants';
+import { logoutUser } from './action';
+import { User } from '@/schemas/auth';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
   isLoggedIn: boolean;
   isLoading: boolean;
+  user: User | null;
+  setUser: (user: User | null) => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
-  login: (accessToken: string) => void;
+  loginSuccess: (accessToken: string, user: User) => void;
+  getAuthUser: () => User | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,32 +26,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
   const pathname = usePathname();
+  const [user, setUser] = useState<User | null>(null);
 
-  // Check authentication on mount and path change
+
   useEffect(() => {
     const checkInitialAuth = async () => {
-      const authenticated = isAuthenticated();
+      const authenticated = await checkAuth();
+      if (authenticated) {
+        setUser(getAuthUser());
+      }
       setIsLoggedIn(authenticated);
       setIsLoading(false);
     };
     
     checkInitialAuth();
-  }, [pathname]); // Re-check auth when pathname changes
+  }, [pathname]); 
 
-  // Check authentication status
   const checkAuth = async () => {
     const authenticated = isAuthenticated();
     setIsLoggedIn(authenticated);
     return authenticated;
   };
 
-  // Handle login with just the access token
-  const login = (accessToken: string) => {
+  const loginSuccess = (accessToken: string, user: User) => {
     setAuthTokens({ accessToken });
+    setAuthUser(user);
+    setUser(user);
     setIsLoggedIn(true);
   };
 
-  // Handle logout
+  const getAuthUser = () => {
+    let userStr = null;
+    if (typeof window !== 'undefined') {
+      userStr = Cookies.get('auth-user')
+    } else {
+      userStr = localStorage.getItem('authUser')
+    }
+
+    if(!userStr) {
+      return null;
+    }
+
+    return JSON.parse(userStr) as User
+  }
+  
   const logout = async () => {
     try {
       await logoutUser();
@@ -54,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error during logout:', error);
     } finally {
       clearAuthTokens();
+      clearAuthUser();
+      setUser(null);
       setIsLoggedIn(false);
       router.push(APP_ROUTES.LOGIN);
     }
@@ -62,9 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     isLoggedIn,
     isLoading,
+    user,
+    setUser,
     logout,
     checkAuth,
-    login,
+    loginSuccess,
+    getAuthUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -77,3 +105,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
