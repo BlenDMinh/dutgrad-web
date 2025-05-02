@@ -19,6 +19,10 @@ import {
   BarChart3,
   Activity,
   Zap,
+  X,
+  Info,
+  Lightbulb,
+  ArrowRight,
 } from "lucide-react";
 import SpaceCard from "../spaces/components/SpaceCard";
 
@@ -41,8 +45,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [joinedSpaceIds, setJoinedSpaceIds] = useState<number[]>([]);
   const [isDataReady, setIsDataReady] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [currentGuideStep, setCurrentGuideStep] = useState(0);
 
   useEffect(() => {
+    const hasVisitedBefore = localStorage.getItem("hasVisitedDashboard");
+    if (!hasVisitedBefore) {
+      setShowGuide(true);
+      localStorage.setItem("hasVisitedDashboard", "true");
+    }
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -111,9 +123,157 @@ export default function Dashboard() {
     },
   };
 
+  const guideSteps = [
+    {
+      title: "Welcome to Your Dashboard!",
+      content:
+        "This is your central hub where you can manage all your activities, spaces, and see what's happening.",
+      icon: <Info className="h-6 w-6 text-primary" />,
+    },
+    {
+      title: "Spaces",
+      content:
+        "Spaces are collaborative environments where you can chat, share documents, and work with others. Join existing spaces or create your own.",
+      icon: <Users className="h-6 w-6 text-primary" />,
+    },
+    {
+      title: "Chat Sessions",
+      content:
+        "Start conversations in spaces to collaborate with other members. All your chat sessions will be tracked here.",
+      icon: <MessageSquare className="h-6 w-6 text-primary" />,
+    },
+    {
+      title: "Popular Spaces",
+      content:
+        "Discover trending spaces that might interest you. Join them directly from your dashboard.",
+      icon: <TrendingUp className="h-6 w-6 text-primary" />,
+    },
+  ];
+
+  const handleNextStep = () => {
+    if (currentGuideStep < guideSteps.length - 1) {
+      setCurrentGuideStep(currentGuideStep + 1);
+    } else {
+      setShowGuide(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
       <div className="container mx-auto px-4 py-8">
+        {showGuide && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card rounded-lg shadow-xl border border-border p-6 max-w-md w-full"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    {guideSteps[currentGuideStep].icon}
+                  </div>
+                  <h2 className="text-xl font-bold">
+                    {guideSteps[currentGuideStep].title}
+                  </h2>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowGuide(false)}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="mb-6">
+                <p className="text-muted-foreground">
+                  {guideSteps[currentGuideStep].content}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex gap-1">
+                  {guideSteps.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-1.5 w-6 rounded-full ${
+                        index === currentGuideStep ? "bg-primary" : "bg-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <Button onClick={handleNextStep}>
+                  {currentGuideStep < guideSteps.length - 1 ? (
+                    <>
+                      Next <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    "Get Started"
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {spaceCount === 0 && isDataReady && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-6"
+          >
+            <Card className="bg-primary/5 border border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 rounded-full bg-primary/10 mt-1">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">
+                      Getting Started Tips
+                    </h3>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                        Join a space from the Popular Spaces section below
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                        {`Create your own space by clicking "Create Space" in the
+                        sidebar`}
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary"></div>
+                        Start a chat session within any space you join or create
+                      </li>
+                    </ul>
+                    <div className="mt-4">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-primary/30 hover:bg-primary/10"
+                        onClick={() => setShowGuide(true)}
+                      >
+                        Show Guide Again
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,7 +292,6 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-10">
           {!isDataReady ? (
             <>
@@ -324,7 +483,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-        
+
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

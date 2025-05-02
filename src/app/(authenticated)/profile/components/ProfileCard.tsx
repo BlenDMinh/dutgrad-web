@@ -113,7 +113,7 @@ export function ProfileCard({ user, setUser }: ProfileCardProps) {
               className="space-y-4"
             >
               <div className="flex flex-col items-center">
-                <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-white mb-4">
+                <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-2xl font-bold text-primary-foreground mb-4">
                   {user.username.charAt(0).toUpperCase()}
                 </div>
                 <h2 className="text-lg font-semibold">{user.username}</h2>
