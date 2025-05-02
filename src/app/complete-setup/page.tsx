@@ -154,9 +154,9 @@ export default function CompleteSetupPage() {
 
               <TabsContent value="mfa" className="mt-0">
                 <div className="space-y-6">
-                  <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+                  <div className="rounded-lg bg-muted p-4">
                     <div className="flex gap-3">
-                      <LockKeyhole className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <LockKeyhole className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                       <div>
                         <h3 className="font-medium text-sm mb-1">
                           Two-Factor Authentication
@@ -174,10 +174,7 @@ export default function CompleteSetupPage() {
                     <Button variant="outline" onClick={handleMfaSkip}>
                       Skip for now
                     </Button>
-                    <Button
-                      onClick={() => setActiveTab("mfa-setup")}
-                      className="bg-slate-900 hover:bg-slate-800"
-                    >
+                    <Button onClick={() => setActiveTab("mfa-setup")}>
                       Set up MFA
                     </Button>
                   </div>
