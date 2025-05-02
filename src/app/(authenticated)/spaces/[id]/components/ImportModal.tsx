@@ -142,10 +142,8 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
         return;
       }
 
-      // Check if MIME type needs to be corrected
       const correctMimeType = getCorrectMimeType(file);
       if (correctMimeType !== file.type) {
-        // Create a new File object with the corrected MIME type
         file = new File([file], file.name, { type: correctMimeType });
         console.log(`Converted file MIME type to: ${correctMimeType}`);
       }

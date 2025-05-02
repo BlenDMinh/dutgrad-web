@@ -6,6 +6,14 @@ export const API_ROUTES = {
     GOOGLE: "/auth/oauth/google",
     CALLBACK: "/auth/callback",
     EXCHANGE_STATE: "/auth/exchange-state",
+    VERIFY_MFA: "/auth/verify-mfa",
+    MFA: {
+      STATUS: "/auth/mfa/status",
+      SETUP: "/auth/mfa/setup",
+      VERIFY: "/auth/mfa/verify",
+      VERIFY_EXTERNAL: "/auth/oauth/verify-mfa",
+      DISABLE: "/auth/mfa/disable",
+    },
   },
   SPACE: {
     ALL: "/spaces",
@@ -58,6 +66,7 @@ export const APP_ROUTES = {
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
   AUTH_CALLBACK: "/auth/callback",
+  COMPLETE_SETUP: "/complete-setup",
   MY_INVITATIONS: "/invitation/me",
   SPACES: {
     CREATE: "/spaces/create",

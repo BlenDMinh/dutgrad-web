@@ -21,7 +21,7 @@ export default function AuthenticatedLayout({
     if (!isLoading && !isLoggedIn) {
       router.push(APP_ROUTES.LOGIN);
     }
-  }, [isLoading, isLoggedIn, router]);
+  }, [isLoading, isLoggedIn]);
 
   if (isLoading) {
     return (

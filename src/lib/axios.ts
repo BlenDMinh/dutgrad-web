@@ -1,9 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import {
-  clearAuthTokens,
-  clearAuthUser,
-  getAccessToken,
-} from "./auth";
+import { clearAuthTokens, clearAuthUser, getAccessToken } from "./auth";
 import { ApiResponse } from "@/schemas/api";
 import { APP_ROUTES } from "./constants";
 
@@ -41,7 +37,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 || error.response?.status === 403) {
       clearAuthTokens();
       clearAuthUser();
-      window.location.href = APP_ROUTES.LOGIN;
+      if (typeof window !== "undefined") {
+        window.location.href = APP_ROUTES.LOGIN;
+      }
     }
 
     return Promise.reject(error);

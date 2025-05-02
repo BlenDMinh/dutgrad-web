@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-
+import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Unlock, Users, Calendar, Star } from "lucide-react";
+import { APP_ROUTES } from "@/lib/constants";
 
 interface Space {
   id: number;
@@ -44,7 +44,7 @@ export default function SpaceCard({
   const router = useRouter();
   const handleCardClick = (spaceId: number) => {
     if (!enableJoin) {
-      router.push(`/spaces/${spaceId}`);
+      router.push(APP_ROUTES.SPACES.DETAIL(spaceId.toString()));
     }
   };
 
@@ -53,49 +53,65 @@ export default function SpaceCard({
     onJoin?.(spaceId);
   };
 
-  const gradients = [
-    "from-purple-500 to-indigo-500",
-    "from-blue-500 to-cyan-500",
-    "from-emerald-500 to-teal-500",
-    "from-orange-500 to-amber-500",
-    "from-pink-500 to-rose-500",
-    "from-violet-500 to-purple-500",
+  const pastels = [
+    "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800/70",
+    "bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800/70",
+    "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/70",
+    "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800/70",
+    "bg-rose-50 border-rose-200 dark:bg-rose-900/20 dark:border-rose-800/70",
   ];
 
-  const randomGradient = gradients[space.id % gradients.length];
+  const accentColors = [
+    "text-blue-600 dark:text-blue-400",
+    "text-emerald-600 dark:text-emerald-400",
+    "text-amber-600 dark:text-amber-400",
+    "text-purple-600 dark:text-purple-400",
+    "text-rose-600 dark:text-rose-400",
+  ];
+
+  const buttonColors = [
+    "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800",
+    "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800",
+    "bg-amber-600 hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-800",
+    "bg-purple-600 hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-800",
+    "bg-rose-600 hover:bg-rose-700 dark:bg-rose-700 dark:hover:bg-rose-800",
+  ];
+
+  const colorIndex = space.id % pastels.length;
+  const themeColor = pastels[colorIndex];
+  const accentColor = accentColors[colorIndex];
+  const buttonColor = buttonColors[colorIndex];
 
   return (
     <motion.div
-      whileHover={{ y: -5 }}
-      transition={{ type: "spring", stiffness: 300 }}
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 200 }}
+      className="w-full"
     >
       <Card
         key={space.id}
         onClick={() => handleCardClick(space.id)}
-        className={`cursor-pointer h-full overflow-hidden group relative border-none shadow-lg ${
-          enableJoin ? "hover:shadow-xl" : ""
+        className={`cursor-pointer h-full overflow-hidden border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 ${
+          enableJoin ? "hover:border-gray-300 dark:hover:border-gray-700" : ""
         }`}
       >
-        <div
-          className={`absolute top-0 left-0 right-0 h-24 bg-gradient-to-br ${randomGradient} opacity-90`}
-        />
+        <div className={`h-2 ${themeColor}`} />
 
-        <div className="absolute top-16 right-4 w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm" />
-
-        <CardHeader className="relative z-10 pt-6 pb-2">
-          <div className="flex items-center justify-between">
+        <CardHeader className="pt-5 pb-2">
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-3">
               <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br ${randomGradient} text-white font-bold`}
+                className={`flex items-center justify-center w-8 h-8 rounded-md ${themeColor} ${accentColor} font-medium text-sm`}
               >
                 {space.name.substring(0, 2).toUpperCase()}
               </div>
-              <CardTitle className="text-xl font-bold text-white group-hover:underline transition-all">
+              <CardTitle className="text-lg font-semibold group-hover:underline transition-all">
                 {space.name}
               </CardTitle>
             </div>
           </div>
-          <CardDescription className="text-foreground/30 mt-1">
+          <CardDescription className="text-xs text-gray-500 dark:text-gray-400">
+            Created{" "}
             {new Date(space.created_at).toLocaleDateString(undefined, {
               year: "numeric",
               month: "short",
@@ -104,36 +120,36 @@ export default function SpaceCard({
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="relative z-10 bg-white dark:bg-background pt-6">
+        <CardContent className="pt-3">
           <div className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 min-h-[4.5rem]">
             {space.description || "No description available for this space."}
           </div>
 
-          <div className="flex items-center gap-2 mt-4">
+          <div className="flex flex-wrap items-center gap-3 mt-4">
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-              <Users className="h-3.5 w-3.5 mr-1" />
+              <Users className="h-3.5 w-3.5 mr-1.5" />
               <span>12 members</span>
             </div>
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-              <Calendar className="h-3.5 w-3.5 mr-1" />
+              <Calendar className="h-3.5 w-3.5 mr-1.5" />
               <span>5 sessions</span>
             </div>
             {space.id % 3 === 0 && (
-              <div className="flex items-center text-xs text-amber-500 dark:text-amber-400">
-                <Star className="h-3.5 w-3.5 mr-1 fill-amber-500 dark:fill-amber-400" />
+              <div className="flex items-center text-xs text-amber-600 dark:text-amber-400">
+                <Star className="h-3.5 w-3.5 mr-1.5 fill-amber-500 dark:fill-amber-400" />
                 <span>Popular</span>
               </div>
             )}
           </div>
         </CardContent>
 
-        <CardFooter className="flex justify-between items-center pt-2 mt-auto bg-white dark:bg-background border-t border-gray-100 dark:border-gray-700/50">
+        <CardFooter className="flex justify-between items-center pt-3 mt-auto border-t border-gray-100 dark:border-gray-800">
           <Badge
             variant={space.privacy_status ? "secondary" : "outline"}
-            className={`px-3 py-1 flex items-center gap-1 ${
+            className={`px-2 py-0.5 text-xs flex items-center gap-1 ${
               !space.privacy_status
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-400"
-                : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/70 dark:text-amber-400"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400"
+                : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-400"
             }`}
           >
             {space.privacy_status ? (
@@ -151,7 +167,7 @@ export default function SpaceCard({
             <Button
               size="sm"
               onClick={(e) => handleJoin(e, space.id)}
-              className={`bg-gradient-to-r ${randomGradient} hover:opacity-90 text-white shadow-md hover:shadow-lg transition-all`}
+              className={`${buttonColor} text-white shadow-sm hover:shadow-md transition-all`}
             >
               Join Space
             </Button>

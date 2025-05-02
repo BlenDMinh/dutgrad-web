@@ -203,7 +203,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
         setIsLoading(true);
         setError(null);
         const response = await chatService.getRecentChat();
-        console.log(response);
 
         if (response && Array.isArray(response)) {
           const formattedChats = response.map((session: ChatSession) => {
@@ -629,7 +628,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
         transition={{ delay: 0.5 }}
         className="border-t p-4"
       >
-        <UserTierInfo/>
+        <UserTierInfo />
         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
           <Button
             variant="destructive"
