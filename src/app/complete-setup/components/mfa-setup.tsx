@@ -118,9 +118,9 @@ export function MFASetup({ onSuccess, onSkip }: MFASetupProps) {
 
   return (
     <div className="space-y-5 max-w-xl mx-auto">
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 dark:bg-amber-900/20 dark:border-amber-800">
+      <div className="bg-muted/70 border border-border rounded-lg p-4">
         <div className="flex gap-3">
-          <Smartphone className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-medium text-sm mb-1">Scan QR Code</h3>
             <p className="text-sm text-muted-foreground">
@@ -133,7 +133,7 @@ export function MFASetup({ onSuccess, onSkip }: MFASetupProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex justify-center">
-          <div className="p-3 bg-white rounded-lg shadow-sm border border-gray-100">
+          <div className="p-3 bg-card rounded-lg shadow-sm border border-border">
             <Image
               src={setupData.qrCode || "/placeholder.svg"}
               alt="QR Code for MFA setup"
@@ -148,7 +148,7 @@ export function MFASetup({ onSuccess, onSkip }: MFASetupProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="font-medium flex items-center text-sm">
-                <Save className="mr-2 h-4 w-4 text-gray-500" />
+                <Save className="mr-2 h-4 w-4 text-muted-foreground" />
                 Backup Codes
               </h4>
               <Button
@@ -158,19 +158,19 @@ export function MFASetup({ onSuccess, onSkip }: MFASetupProps) {
                 onClick={copyToClipboard}
               >
                 {codeCopied ? (
-                  <Check className="h-3.5 w-3.5 text-green-500" />
+                  <Check className="h-3.5 w-3.5 text-primary" />
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
                 {codeCopied ? "Copied" : "Copy All"}
               </Button>
             </div>
-            <div className="bg-gray-50 rounded-lg border border-gray-200 p-3 dark:bg-gray-800/50 dark:border-gray-700 h-[160px] overflow-y-auto">
+            <div className="bg-muted/50 rounded-lg border border-border p-3 h-[160px] overflow-y-auto">
               <div className="text-xs font-mono grid grid-cols-1 gap-2">
                 {setupData.backupCodes.map((code, index) => (
                   <div
                     key={index}
-                    className="p-1.5 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 text-center"
+                    className="p-1.5 bg-card rounded border border-border text-center"
                   >
                     {code}
                   </div>
@@ -218,11 +218,7 @@ export function MFASetup({ onSuccess, onSkip }: MFASetupProps) {
               <Button type="button" variant="outline" onClick={onSkip}>
                 Back
               </Button>
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="bg-slate-900 hover:bg-slate-800"
-              >
+              <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
