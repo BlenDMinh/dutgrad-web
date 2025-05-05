@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/auth.context";
 import { mfaService } from "@/services/api/mfa.service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Import the extracted components
 import { ProfileSkeleton } from "./components/ProfileSkeleton";
 import { ProfileCard } from "./components/ProfileCard";
 import { AccountDetailsCard } from "./components/AccountDetailsCard";
@@ -25,7 +23,6 @@ export default function ProfilePage() {
         const data = await userService.getProfile();
         setUser(data);
 
-        // Fetch MFA status
         const mfaStatusData = await mfaService.getMFAStatus();
         setMfaStatus(mfaStatusData.mfa_enabled);
       } catch (error) {

@@ -35,7 +35,6 @@ export default function MfaVerifyForm({
       const formData = new FormData(event.currentTarget);
       const code = formData.get("code") as string;
 
-      // Call the MFA verification API directly with the temp token
       const result = await authService.verifyMFA(
         code,
         useBackupCode,

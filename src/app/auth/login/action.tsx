@@ -101,7 +101,6 @@ export async function verifyMFA(formData: FormData): Promise<
     const tempToken = formData.get("tempToken") as string;
     const useBackupCode = formData.get("useBackupCode") === "true";
 
-    // Call verifyExternalMFA instead of regular verifyMFA
     const authData = await authService.verifyExternalMFA(
       code,
       useBackupCode,

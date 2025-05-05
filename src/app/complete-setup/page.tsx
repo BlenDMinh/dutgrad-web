@@ -58,7 +58,6 @@ export default function CompleteSetupPage() {
       setUser(updated);
       toast.success("Username updated successfully");
 
-      // Move to the next tab
       setActiveTab("mfa");
     } catch (error) {
       console.error("Failed to update username:", error);
@@ -72,7 +71,6 @@ export default function CompleteSetupPage() {
   };
 
   const handleMfaSkip = () => {
-    // If user skips MFA setup, redirect to dashboard
     router.push(APP_ROUTES.DASHBOARD);
   };
 
