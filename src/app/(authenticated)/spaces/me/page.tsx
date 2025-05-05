@@ -4,7 +4,10 @@ import { spaceService } from "@/services/api/space.service";
 import { useRouter } from "next/navigation";
 import SpaceCard from "../components/SpaceCard";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Search, Sparkles, Crown, UserPlus, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 interface YourSpace {
   id: number;
@@ -16,12 +19,19 @@ interface YourSpace {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
+  _role?: {
+    id: number;
+    name: string;
+    permission: number;
+  };
 }
 
 export default function YourSpacesPage() {
   const [yourSpaces, setYourSpaces] = useState<YourSpace[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<string>("all");
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
 
@@ -39,6 +49,27 @@ export default function YourSpacesPage() {
 
     fetchYourSpaces();
   }, []);
+
+  const filterSpaces = (spaces: YourSpace[], tab: string, query: string) => {
+    let filteredSpaces = spaces;
+    if (query.trim() !== "") {
+      const lowerQuery = query.toLowerCase();
+      filteredSpaces = spaces.filter(
+        (space) =>
+          space.name.toLowerCase().includes(lowerQuery) ||
+          (space.description && space.description.toLowerCase().includes(lowerQuery))
+      );
+    }
+    
+    if (tab === "owned") {
+      return filteredSpaces.filter((space) => space._role?.name === "owner");
+    } else if (tab === "joined") {
+      return filteredSpaces.filter((space) => space._role?.name !== "owner");
+    }
+    return filteredSpaces;
+  };
+
+  const filteredSpaces = filterSpaces(yourSpaces, activeTab, searchQuery);
 
   const containerVariants = {
     hidden: shouldReduceMotion ? { opacity: 0.9 } : { opacity: 0 },
@@ -113,7 +144,7 @@ export default function YourSpacesPage() {
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
       <motion.h1
-        className="text-5xl font-extrabold text-center mb-10"
+        className="text-5xl font-extrabold text-center mb-6"
         initial="hidden"
         animate="visible"
         variants={headerVariants}
@@ -122,36 +153,6 @@ export default function YourSpacesPage() {
           Your Spaces
         </span>
       </motion.h1>
-
-      <motion.p
-        className="text-center text-primary text-lg mb-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3, duration: shouldReduceMotion ? 0.3 : 0.7 }}
-      >
-        <span className="inline-flex items-center gap-2">
-          View the spaces you have created or joined
-          <motion.span
-            animate={
-              shouldReduceMotion
-                ? {}
-                : {
-                    rotate: [0, 10, -10, 10, 0],
-                    scale: [1, 1.2, 1],
-                  }
-            }
-            transition={{
-              duration: 0.8,
-              ease: "easeInOut",
-              delay: 1,
-              repeat: shouldReduceMotion ? 0 : 2,
-              repeatDelay: 4,
-            }}
-          >
-            🏠
-          </motion.span>
-        </span>
-      </motion.p>
 
       {error ? (
         <motion.div
@@ -192,29 +193,144 @@ export default function YourSpacesPage() {
           </motion.button>
         </motion.div>
       ) : (
-        <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <AnimatePresence>
-            {yourSpaces.map((space: YourSpace) => (
-              <motion.div
-                key={space.id}
-                variants={itemVariants}
-                whileHover={
-                  shouldReduceMotion
-                    ? {}
-                    : { y: -5, transition: { duration: 0.2 } }
-                }
-                layout
-              >
-                <SpaceCard key={space.id} space={space} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div className="relative w-full md:w-1/2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search spaces by name or description..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+            <Button 
+              onClick={() => router.push("/spaces/create")}
+              className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white"
+            >
+              <Plus className="mr-2 h-4 w-4" /> Create New Space
+            </Button>
+          </div>
+
+          <Tabs defaultValue="all" className="mb-8" onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto">
+              <TabsTrigger value="all">All Spaces</TabsTrigger>
+              <TabsTrigger value="owned" className="flex items-center gap-1">
+                <Crown className="h-4 w-4" /> Owned
+              </TabsTrigger>
+              <TabsTrigger value="joined" className="flex items-center gap-1">
+                <UserPlus className="h-4 w-4" /> Joined
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="all" className="mt-6">
+              {filteredSpaces.length === 0 ? (
+                <div className="text-center p-8 bg-white/80 dark:bg-gray-800/80 rounded-lg shadow-sm">
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {searchQuery ? "No spaces matching your search" : "You have no spaces yet"}
+                  </p>
+                </div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <AnimatePresence>
+                    {filteredSpaces.map((space: YourSpace) => (
+                      <motion.div
+                        key={space.id}
+                        variants={itemVariants}
+                        whileHover={
+                          shouldReduceMotion
+                            ? {}
+                            : { y: -5, transition: { duration: 0.2 } }
+                        }
+                        layout
+                      >
+                        <SpaceCard key={space.id} space={space} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="owned" className="mt-6">
+              {filterSpaces(yourSpaces, "owned", searchQuery).length === 0 ? (
+                <div className="text-center p-8 bg-white/80 dark:bg-gray-800/80 rounded-lg shadow-sm">
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {searchQuery 
+                      ? "No owned spaces matching your search" 
+                      : "You don't own any spaces yet"}
+                  </p>
+                </div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <AnimatePresence>
+                    {filterSpaces(yourSpaces, "owned", searchQuery).map((space: YourSpace) => (
+                      <motion.div
+                        key={space.id}
+                        variants={itemVariants}
+                        whileHover={
+                          shouldReduceMotion
+                            ? {}
+                            : { y: -5, transition: { duration: 0.2 } }
+                        }
+                        layout
+                      >
+                        <SpaceCard key={space.id} space={space} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="joined" className="mt-6">
+              {filterSpaces(yourSpaces, "joined", searchQuery).length === 0 ? (
+                <div className="text-center p-8 bg-white/80 dark:bg-gray-800/80 rounded-lg shadow-sm">
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {searchQuery 
+                      ? "No joined spaces matching your search" 
+                      : "You haven't joined any spaces yet"}
+                  </p>
+                </div>
+              ) : (
+                <motion.div
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <AnimatePresence>
+                    {filterSpaces(yourSpaces, "joined", searchQuery).map((space: YourSpace) => (
+                      <motion.div
+                        key={space.id}
+                        variants={itemVariants}
+                        whileHover={
+                          shouldReduceMotion
+                            ? {}
+                            : { y: -5, transition: { duration: 0.2 } }
+                        }
+                        layout
+                      >
+                        <SpaceCard key={space.id} space={space} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       )}
     </div>
   );
