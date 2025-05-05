@@ -13,7 +13,6 @@ export const mfaVerifySchema = z.object({
   use_backup_code: z.boolean().optional().default(false),
 });
 
-// Simplified MFA schemas - no password required
 export const mfaSetupSchema = z.object({});
 
 export const mfaVerifyEnableSchema = z.object({
@@ -53,7 +52,7 @@ export const userSchema = z.object({
   username: z.string(),
   created_at: z.date(),
   mfa_enabled: z.boolean().optional(),
-  auth_provider: z.string().optional(), // 'google', 'email', etc.
+  auth_provider: z.string().optional(), 
 });
 
 export type User = z.infer<typeof userSchema>;

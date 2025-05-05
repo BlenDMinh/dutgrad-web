@@ -20,7 +20,6 @@ import Image from "next/image";
 import { useAuth } from "@/context/auth.context";
 import { Smartphone, Save, Copy, Check } from "lucide-react";
 
-// Define simplified schemas for MFA
 const verifySchema = z.object({
   code: z
     .string()

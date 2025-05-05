@@ -47,7 +47,6 @@ export default function LoginPage() {
       }
 
       if (result.data?.mfaRequired && result.data.tempToken) {
-        // Handle MFA Required
         setTempToken(result.data.tempToken);
         setShowMfaForm(true);
         setIsLoading(false);
@@ -55,7 +54,6 @@ export default function LoginPage() {
       }
 
       if (result.data?.accessToken && result.data.user) {
-        // Show success before redirecting
         setIsSuccess(true);
         loginSuccess(result.data.accessToken, result.data.user);
 
@@ -89,7 +87,6 @@ export default function LoginPage() {
     setError(null);
   }
 
-  // Success state
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -110,7 +107,6 @@ export default function LoginPage() {
     );
   }
 
-  // MFA verification form
   if (showMfaForm) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
@@ -144,7 +140,6 @@ export default function LoginPage() {
     );
   }
 
-  // Login form
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
