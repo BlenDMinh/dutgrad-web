@@ -133,7 +133,7 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
   );
 
   return (
-    <div className="rounded hidden md:block w-72 border-l border-border bg-background/50 mt-5">
+    <div className="rounded hidden md:block w-72 border-l border-border bg-background/50 mt-5 h-[calc(100vh-6rem)] flex flex-col overflow-hidden">
       <div className="flex flex-col h-full">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -177,7 +177,7 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 overflow-y-auto">
           <div className="p-2 space-y-1">
             {isLoadingHistory ? (
               <div className="space-y-2 p-2">
