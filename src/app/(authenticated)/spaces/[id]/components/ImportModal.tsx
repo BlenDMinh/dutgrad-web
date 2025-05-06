@@ -30,7 +30,6 @@ interface ImportDialogProps {
   children?: ReactNode
 }
 
-// Extensions to MIME type mappings for better validation
 const ALLOWED_EXTENSIONS: Record<string, string[]> = {
   pdf: ["application/pdf"],
   doc: ["application/msword"],
@@ -60,12 +59,9 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
     },
   })
 
-  // Function to get the correct MIME type based on file extension
   const getCorrectMimeType = (file: File): string => {
-    // Get the file extension
     const extension = file.name.toLowerCase().split(".").pop()
 
-    // If the file is detected as zip but has Office extensions, convert the MIME type
     if (
       file.type === "application/zip" ||
       file.type === "application/x-zip-compressed" ||

@@ -145,7 +145,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <div className="mb-4">
-            <h1 className="text-2xl font-bold">DUT Grad</h1>
+            <h1 className="text-4xl font-bold">DUT Grad</h1>
           </div>
           <CardTitle className="text-2xl font-bold">
             Sign in to your account
