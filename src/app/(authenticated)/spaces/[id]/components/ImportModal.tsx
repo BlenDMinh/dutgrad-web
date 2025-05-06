@@ -170,10 +170,26 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
 
       let errorMessage = "Failed to upload document. Please try again."
 
-      if (error.response?.data) {
-        errorMessage = error.response.data.message || error.response.data.error || errorMessage
+      if (error.response) {
+        if (error.response.status === 413) {
+          errorMessage = "File is too large. Please upload a smaller document."
+        } else if (error.response.status === 415) {
+          errorMessage = "Unsupported file type. Please check the supported formats and try again."
+        } else if (error.response.status === 401 || error.response.status === 403) {
+          errorMessage = "You don't have permission to upload documents to this space."
+        } else if (error.response.status === 429) {
+          errorMessage = "Too many upload requests. Please wait a moment and try again."
+        } else if (error.response.status >= 500) {
+          errorMessage = "Server error occurred. Please try again later."
+        } else if (error.response.data) {
+          errorMessage = error.response.data.message || error.response.data.error || errorMessage
+        }
       } else if (error instanceof Error) {
-        errorMessage = error.message
+        if (error.message.includes("network") || error.message.includes("connection")) {
+          errorMessage = "Network error. Please check your internet connection and try again."
+        } else {
+          errorMessage = error.message
+        }
       }
 
       setFeedback({
