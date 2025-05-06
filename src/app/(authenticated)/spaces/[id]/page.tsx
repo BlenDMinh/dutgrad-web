@@ -42,6 +42,8 @@ import {
   ChevronRight,
   Info,
   Filter,
+  ExternalLink,
+  Download,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
 import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
@@ -68,6 +70,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface SpaceDocument {
   id: number;
@@ -96,6 +104,8 @@ export default function SpaceDetailPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [fileTypeFilter, setFileTypeFilter] = useState<string>("all");
+  const [documentToView, setDocumentToView] = useState<SpaceDocument | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!spaceId) return;
@@ -271,6 +281,19 @@ export default function SpaceDetailPage() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+  };
+
+  const handleOpenDocument = (document: SpaceDocument) => {
+    router.push(`/documents/view?id=${document.id}`);
+  };
+
+  const getDocumentViewerUrl = (document: SpaceDocument) => {
+    if (document.mime_type.includes("pdf")) {
+      return document.s3_url;
+    }
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(
+      document.s3_url
+    )}&embedded=true`;
   };
 
   const filteredDocuments = documents.filter((doc) => {
@@ -590,7 +613,11 @@ export default function SpaceDetailPage() {
                                                     size="icon"
                                                     variant="ghost"
                                                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    onClick={() => {}}
+                                                    onClick={() =>
+                                                      handleOpenDocument(
+                                                        document
+                                                      )
+                                                    }
                                                   >
                                                     <Eye size={16} />
                                                   </Button>
@@ -802,6 +829,31 @@ export default function SpaceDetailPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] w-full p-4">
+            <DialogHeader className="mb-2">
+              <DialogTitle>{documentToView?.name}</DialogTitle>
+            </DialogHeader>
+            {documentToView && (
+              <div className="relative w-full h-[85vh]">
+                <iframe
+                  src={getDocumentViewerUrl(documentToView)}
+                  className="absolute inset-0 w-full h-full border-none"
+                  title={documentToView.name}
+                />
+                <a
+                  href={documentToView.s3_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-1 left-1 bg-gray-600 text-white p-2 hover:bg-gray-400 rounded-2xl transition"
+                >
+                  <Download size={16} />
+                </a>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </div>
   );

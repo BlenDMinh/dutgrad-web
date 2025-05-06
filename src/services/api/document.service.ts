@@ -18,8 +18,9 @@ export const documentService = {
             timeout: 0
         });
     },
-    getDocumentById(documentId: number) {
-        return apiClient.instance.get(API_ROUTES.DOCUMENT.DETAIL(documentId.toString()))
+    getDocumentById: async(documentId: number) => {
+        const response = await apiClient.instance.get(API_ROUTES.DOCUMENT.DETAIL(documentId.toString()));
+        return handleResponse(response.data);
     },
     deleteDocument: async(documentId: string)=> {
         const response = await apiClient.instance.delete(API_ROUTES.DOCUMENT.DELETE(documentId));

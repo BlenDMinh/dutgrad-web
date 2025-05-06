@@ -83,8 +83,8 @@ export default function DocumentUploadProgressPage() {
         parseInt(documentId)
       );
 
-      if (response?.data?.data) {
-        const documentData = response.data.data;
+      if (response) {
+        const documentData = response as Document;
         setDocument(documentData);
         setProgressPercent(calculateProgress(documentData.processing_status));
       } else {
