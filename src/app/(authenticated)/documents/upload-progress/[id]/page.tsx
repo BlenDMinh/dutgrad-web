@@ -75,9 +75,12 @@ export default function DocumentUploadProgressPage() {
 
   const calculateProgress = (status: number) => {
     if (status === -1) return 0;
-
+    const normalStages = PROCESSING_STAGES.filter(stage => stage.status !== -1).length;
+    
+    if (status === 2) return 100;
+    
     return Math.min(
-      Math.round(((status + 1) / PROCESSING_STAGES.length) * 100),
+      Math.round(((status + 1) / normalStages) * 100),
       100
     );
   };
@@ -295,7 +298,7 @@ export default function DocumentUploadProgressPage() {
           {isComplete ? (
             <>
               <Button
-                onClick={() => router.push(`/documents/${document.id}`)}
+                onClick={() => router.push(`/documents/view?id=${document.id}`)}
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />
