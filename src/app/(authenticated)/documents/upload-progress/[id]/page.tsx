@@ -214,13 +214,16 @@ export default function DocumentUploadProgressPage() {
           </div>
 
           <div className="space-y-6">
-            {PROCESSING_STAGES.map((stage, index) => {
+            {PROCESSING_STAGES.filter(stage => 
+              document?.processing_status === -1 ? stage.status === -1 : stage.status !== -1
+            ).map((stage, index) => {
               const docStatus = document?.processing_status || 0;
               const isActive = docStatus === stage.status;
-              const isCompleted = docStatus > stage.status;
-              const isPending = docStatus < stage.status;
+              const isCompleted = docStatus > 0 && docStatus > stage.status;
+              const isPending = docStatus >= 0 && docStatus < stage.status;
               const isFinalStageCompleted =
                 stage.status === 2 && docStatus === 2;
+              const isErrorState = docStatus === -1 && stage.status === -1;
 
               return (
                 <div
@@ -229,12 +232,15 @@ export default function DocumentUploadProgressPage() {
                     "flex items-start gap-4 p-4 rounded-lg transition-colors",
                     isActive && "bg-primary/10 border border-primary/20",
                     isCompleted && "bg-muted/30",
+                    isErrorState && "bg-destructive/10 border border-destructive/20",
                     isPending && "opacity-60"
                   )}
                 >
                   <div className="mt-1">
                     {isCompleted || isFinalStageCompleted ? (
                       <CheckCircle2 className="h-6 w-6 text-green-500" />
+                    ) : isErrorState ? (
+                      <AlertCircle className="h-6 w-6 text-destructive" />
                     ) : isActive ? (
                       stage.status === 1 ? (
                         <Brain className="h-6 w-6 text-primary animate-pulse" />
@@ -249,12 +255,14 @@ export default function DocumentUploadProgressPage() {
                     <h3
                       className={cn(
                         "text-lg font-medium",
-                        isActive && "text-primary font-semibold"
+                        isActive && "text-primary font-semibold",
+                        isErrorState && "text-destructive font-semibold"
                       )}
                     >
                       {stage.title}
-                      {isActive && " (In Progress)"}
-                      {isCompleted || isFinalStageCompleted
+                      {isActive && !isErrorState && " (In Progress)"}
+                      {isErrorState && " (Error)"}
+                      {(isCompleted || isFinalStageCompleted) && !isErrorState
                         ? " (Completed)"
                         : ""}
                     </h3>
