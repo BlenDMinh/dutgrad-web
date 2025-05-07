@@ -54,6 +54,13 @@ const PROCESSING_STAGES = [
     icon: <CheckCircle2 className="h-6 w-6 text-green-500" />,
     status: 2,
   },
+  {
+    title: "Processing Failed",
+    description:
+      "There was an error processing your document. Please try uploading it again.",
+    icon: <AlertCircle className="h-6 w-6 text-red-500" />,
+    status: -1,
+  },
 ];
 
 export default function DocumentUploadProgressPage() {
@@ -67,6 +74,8 @@ export default function DocumentUploadProgressPage() {
   const [progressPercent, setProgressPercent] = useState(0);
 
   const calculateProgress = (status: number) => {
+    if (status === -1) return 0;
+
     return Math.min(
       Math.round(((status + 1) / PROCESSING_STAGES.length) * 100),
       100
@@ -109,6 +118,7 @@ export default function DocumentUploadProgressPage() {
   }, [documentId]);
 
   const isComplete = document?.processing_status === 2;
+  const isProcessingError = document?.processing_status === -1;
 
   if (loading && !document) {
     return (
@@ -137,6 +147,47 @@ export default function DocumentUploadProgressPage() {
             Return to Dashboard
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  if (isProcessingError) {
+    return (
+      <div className="container max-w-3xl mx-auto py-10 px-4">
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Document Processing Failed</CardTitle>
+            {document?.title && (
+              <p className="text-muted-foreground mt-2 text-lg font-medium">
+                {document.title}
+              </p>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Alert variant="destructive" className="flex flex-col items-center py-6">
+              <AlertCircle className="h-12 w-12 mb-4" />
+              <AlertDescription className="text-center text-base">
+                <p className="font-medium mb-2">We encountered an error while processing your document.</p>
+                <p>This could be due to the file format, size, or content. Please try uploading the document again or use a different file.</p>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+          <CardFooter className="flex justify-center gap-4">
+            <Button 
+              onClick={() => router.push(`/documents/upload?spaceId=${document?.space_id}`)}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Upload Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/spaces/${document?.space_id}`)}
+            >
+              Return to Space
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     );
   }
