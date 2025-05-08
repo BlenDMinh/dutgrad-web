@@ -42,9 +42,9 @@ export default function ChatMessage({ message }: MessageProps) {
   return (
     <motion.div
       className={cn(
-        "flex items-start gap-3 p-4 rounded-lg w-fit overflow-hidden",
+        "flex items-start gap-3 p-4 rounded-lg overflow-hidden",
         message.isUser
-          ? "bg-primary text-primary-foreground self-end max-w-[80%]"
+          ? "bg-primary text-primary-foreground self-end ml-auto flex-row-reverse max-w-[80%]"
           : "bg-muted self-start max-w-[80%]"
       )}
       initial={{ opacity: 0, y: 20 }}
@@ -61,7 +61,12 @@ export default function ChatMessage({ message }: MessageProps) {
           <Bot className="h-5 w-5 text-primary" />
         </div>
       )}
-      <div className="flex flex-col gap-1 w-full min-w-0">
+      <div
+        className={cn(
+          "flex flex-col gap-1 min-w-0",
+          message.isUser ? "items-end text-right" : "w-full"
+        )}
+      >
         {message.isUser ? (
           <p className="text-sm break-words">{message.content}</p>
         ) : (

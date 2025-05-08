@@ -1,3 +1,7 @@
+"use client";
+
+import type React from "react";
+
 import { useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -12,6 +16,7 @@ type Message = {
   content: string;
   isUser: boolean;
   timestamp: Date;
+  isTempMessage?: boolean;
 };
 
 interface ChatMessagesProps {
@@ -69,8 +74,8 @@ export function ChatMessages({
 
   return (
     <div className="flex-1 overflow-hidden relative">
-      <ScrollArea className="h-[calc(100vh-18rem)]" ref={scrollAreaRef}>
-        <div className="p-4 space-y-6">
+      <ScrollArea className="h-[calc(100vh-18rem)] w-full" ref={scrollAreaRef}>
+        <div className="p-4 space-y-6 max-w-full">
           {messages.length === 0 ? (
             <EmptyChatSuggestions setInput={setInput} inputRef={inputRef} />
           ) : (
@@ -80,6 +85,7 @@ export function ChatMessages({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
+                className="w-full flex flex-col"
               >
                 <ChatMessage message={message} />
               </motion.div>
