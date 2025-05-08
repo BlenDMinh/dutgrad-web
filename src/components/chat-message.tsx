@@ -42,10 +42,10 @@ export default function ChatMessage({ message }: MessageProps) {
   return (
     <motion.div
       className={cn(
-        "flex items-start gap-3 p-4 rounded-lg overflow-hidden",
+        "flex items-start gap-3 p-4 rounded-lg overflow-hidden max-w-[80%] w-fit",
         message.isUser
-          ? "bg-primary text-primary-foreground self-end ml-auto flex-row-reverse max-w-[80%]"
-          : "bg-muted self-start max-w-[80%]"
+          ? "bg-primary text-primary-foreground self-end ml-auto flex-row-reverse"
+          : "bg-muted self-start"
       )}
       initial={{ opacity: 0, y: 20 }}
       animate={
@@ -164,8 +164,11 @@ export default function ChatMessage({ message }: MessageProps) {
                     />
                   ),
                   table: ({ children }) => (
-                    <ScrollableTable className="my-4 max-w-full">
-                      <table className="w-full border-collapse text-sm">
+                    <ScrollableTable className="my-4 w-full max-w-full">
+                      <table
+                        className="w-full border-collapse text-sm"
+                        style={{ tableLayout: "fixed", width: "100%" }}
+                      >
                         {children}
                       </table>
                     </ScrollableTable>
@@ -185,7 +188,15 @@ export default function ChatMessage({ message }: MessageProps) {
                     </th>
                   ),
                   td: ({ children }) => (
-                    <td className="border border-muted-foreground/20 px-4 py-2 text-left whitespace-nowrap">
+                    <td
+                      className="border border-muted-foreground/20 px-4 py-2 text-left overflow-hidden text-ellipsis"
+                      style={{
+                        maxWidth: "200px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "normal",
+                      }}
+                    >
                       {children}
                     </td>
                   ),

@@ -186,18 +186,20 @@ export default function ChatInterface() {
   const displayMessages = tempMessage ? [...messages, tempMessage] : messages;
 
   return (
-    <div key={sessionId} className="flex w-full">
-      <div className="flex flex-col mx-5 mt-5 flex-1 bg-gradient-to-b from-background to-background/95 rounded">
+    <div className="flex w-full">
+      <div className="flex flex-col mx-5 mt-5 flex-1 bg-gradient-to-b from-background to-background/95 rounded overflow-hidden">
         <ChatHeader onClearChat={clearChat} />
 
-        <ChatMessages
-          messages={displayMessages}
-          isLoading={(isLoading && !tempMessage) || isInitialLoading}
-          isAtBottom={isAtBottom}
-          setIsAtBottom={setIsAtBottom}
-          setInput={setInput}
-          inputRef={inputRef}
-        />
+        <div className="flex-1 overflow-hidden w-full">
+          <ChatMessages
+            messages={displayMessages}
+            isLoading={(isLoading && !tempMessage) || isInitialLoading}
+            isAtBottom={isAtBottom}
+            setIsAtBottom={setIsAtBottom}
+            setInput={setInput}
+            inputRef={inputRef}
+          />
+        </div>
 
         <ChatInput
           input={input}
