@@ -2,6 +2,7 @@ import { Bot } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion } from "framer-motion";
+import { ScrollableTable } from "@/components/ui/scrollable-table";
 
 type MessageProps = {
   message: {
@@ -129,11 +130,11 @@ export default function ChatMessage({ message }: MessageProps) {
                 ),
                 em: ({ children }) => <em className="italic">{children}</em>,
                 table: ({ children }) => (
-                  <div className="my-4 w-full overflow-auto">
+                  <ScrollableTable className="my-4">
                     <table className="w-full border-collapse text-sm">
                       {children}
                     </table>
-                  </div>
+                  </ScrollableTable>
                 ),
                 thead: ({ children }) => (
                   <thead className="bg-muted-foreground/10">{children}</thead>
