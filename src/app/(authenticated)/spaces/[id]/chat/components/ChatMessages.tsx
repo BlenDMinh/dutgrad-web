@@ -73,9 +73,12 @@ export function ChatMessages({
   }, [setIsAtBottom]);
 
   return (
-    <div className="flex-1 overflow-hidden relative">
-      <ScrollArea className="h-[calc(100vh-18rem)] w-full" ref={scrollAreaRef}>
-        <div className="p-4 space-y-6 max-w-full">
+    <div className="flex-1 overflow-hidden relative w-full">
+      <ScrollArea
+        className="h-[calc(100vh-18rem)] w-full overflow-x-hidden"
+        ref={scrollAreaRef}
+      >
+        <div className="p-4 space-y-6 w-full overflow-x-hidden">
           {messages.length === 0 ? (
             <EmptyChatSuggestions setInput={setInput} inputRef={inputRef} />
           ) : (
@@ -85,7 +88,7 @@ export function ChatMessages({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
-                className="w-full flex flex-col"
+                className="w-full flex flex-col overflow-hidden"
               >
                 <ChatMessage message={message} />
               </motion.div>
