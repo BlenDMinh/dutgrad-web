@@ -14,6 +14,8 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
   const [error, setError] = useState(false);
   const [useDirect, setUseDirect] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [reloadAttempts, setReloadAttempts] = useState(0);
+  const maxReloadAttempts = 3;
   
   const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
   
@@ -22,9 +24,40 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
     setUseDirect(isInternalUrl || url.length > 2000);
   }, [url]);
 
+  const checkIframeContent = () => {
+    if (!iframeRef.current || useDirect) return;
+    
+    try {
+      const iframeDoc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document;
+      
+      if (iframeDoc) {
+        const bodyContent = iframeDoc.body.innerHTML.trim();
+        
+        if ((bodyContent === "" || bodyContent === "<pre></pre>") && reloadAttempts < maxReloadAttempts) {
+          console.log("Detected empty Google Docs viewer response (possibly 204), reloading...");
+          setReloadAttempts(prev => prev + 1);
+          
+          setTimeout(() => {
+            if (iframeRef.current) {
+              iframeRef.current.src = googleViewerUrl + `&rand=${Date.now()}`;
+            }
+          }, 1000);
+          
+          return false;
+        }
+      }
+    } catch (e) {
+      console.log("Could not check iframe content due to cross-origin restriction");
+    }
+    
+    return true;
+  };
+
   const handleLoad = () => {
-    setLoading(false);
-    if (onLoadSuccess) onLoadSuccess();
+    if (checkIframeContent()) {
+      setLoading(false);
+      if (onLoadSuccess) onLoadSuccess();
+    }
   };
   
   const handleError = () => {
@@ -41,6 +74,16 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
     setError(true);
     if (onError) onError("Unable to load PDF document");
   };
+  
+  useEffect(() => {
+    if (reloadAttempts >= maxReloadAttempts && !useDirect) {
+      console.log("Max Google Viewer reload attempts reached, switching to direct view");
+      setUseDirect(true);
+      if (iframeRef.current) {
+        iframeRef.current.src = url;
+      }
+    }
+  }, [reloadAttempts, useDirect, url]);
   
   if (error) {
     return (
@@ -66,7 +109,7 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
           <Loader2 className="h-8 w-8 animate-spin text-primary mr-2" />
-          <span>Loading PDF...</span>
+          <span>Loading PDF...{reloadAttempts > 0 ? ` (Attempt ${reloadAttempts + 1})` : ''}</span>
         </div>
       )}
       
