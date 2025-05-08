@@ -56,6 +56,8 @@ export const API_ROUTES = {
     BEGIN_SESSION: "/user-query-sessions/begin-chat-session",
     ASK: "/user-query/ask",
     SESSION_HISTORY: "/user-query-sessions/me",
+    GET_TEMP_MESSAGE: (querySessionId: number) =>
+      `/user-query-sessions/${querySessionId}/temp-message`,
   },
 };
 
