@@ -234,8 +234,8 @@ export default function SpaceDetailPage() {
         };
       default:
         return {
-          icon: <AlertCircle className="mr-1" size={14} />,
-          text: "Unknown",
+          icon: <AlertCircle className="mr-1 text-red-500" size={14} />,
+          text: "Error",
           variant: "outline" as const,
           progressValue: 0,
           progressColor: "bg-gray-500",
@@ -699,7 +699,10 @@ export default function SpaceDetailPage() {
                                                       : document.processing_status ===
                                                         1
                                                       ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-                                                      : "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                                                      : document.processing_status ===
+                                                        0
+                                                      ? "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                                                      : "bg-red-500/20 text-red-700 dark:text-red-400"
                                                   }`}
                                                   onClick={() =>
                                                     handleProcessingStatusClick(

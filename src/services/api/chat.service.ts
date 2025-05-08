@@ -34,6 +34,13 @@ interface ChatQueryResponse {
   };
 }
 
+interface ChatHistoryMessage {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+}
+
 export const chatService = {
   beginChatSession: async (spaceId: number): Promise<BeginSessionResponse> => {
     const response = await apiClient.post(API_ROUTES.CHAT.BEGIN_SESSION, {
@@ -69,5 +76,12 @@ export const chatService = {
       API_ROUTES.CHAT.GET_TEMP_MESSAGE(querySessionId)
     );
     return handleResponse<string>(response.data);
+  },
+
+  getSessionChatHistory: async (querySessionId: number): Promise<ChatHistoryMessage[]> => {
+    const response = await apiClient.get(
+      `/user-query-sessions/${querySessionId}/history`
+    );
+    return handleResponse<ChatHistoryMessage[]>(response.data);
   },
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +28,7 @@ export default function ChatInterface() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [tempMessage, setTempMessage] = useState<Message | null>(null);
@@ -41,10 +42,26 @@ export default function ChatInterface() {
       toast.error(
         "No chat session found. Please start a new chat from the space page."
       );
+      return;
     }
+
+    const loadChatHistory = async () => {
+      try {
+        setIsInitialLoading(true);
+        const chatHistory = await chatService.getSessionChatHistory(Number(sessionId));
+        if (chatHistory && chatHistory.length > 0) {
+          setMessages(chatHistory);
+        }
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+      } finally {
+        setIsInitialLoading(false);
+      }
+    };
+
+    loadChatHistory();
   }, [sessionId]);
 
-  // Clean up interval on component unmount
   useEffect(() => {
     return () => {
       if (tempMessageIntervalRef.current) {
@@ -53,7 +70,6 @@ export default function ChatInterface() {
     };
   }, []);
 
-  // Fetch temporary messages when loading
   useEffect(() => {
     if (!isLoading || !sessionId) {
       if (tempMessageIntervalRef.current) {
@@ -63,7 +79,6 @@ export default function ChatInterface() {
       return;
     }
 
-    // Create initial temp message
     const initialTempMessage: Message = {
       id: "temp-" + Date.now(),
       content: "",
@@ -73,7 +88,6 @@ export default function ChatInterface() {
     };
     setTempMessage(initialTempMessage);
 
-    // Start polling for temp messages
     tempMessageIntervalRef.current = setInterval(async () => {
       try {
         const tempContent = await chatService.getTempMessage(Number(sessionId));
@@ -92,7 +106,6 @@ export default function ChatInterface() {
           );
         }
       } catch (error) {
-        // Silently fail - no need to show errors during polling
         console.error("Failed to fetch temporary message:", error);
       }
     }, 5000);
@@ -128,7 +141,6 @@ export default function ChatInterface() {
     try {
       const response = await chatService.askQuestion(Number(sessionId), input);
 
-      // Clear temporary message
       setTempMessage(null);
 
       const botMessage: Message = {
@@ -142,7 +154,6 @@ export default function ChatInterface() {
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);
-      // Clear temp message and interval
       setTempMessage(null);
       if (tempMessageIntervalRef.current) {
         clearInterval(tempMessageIntervalRef.current);
@@ -162,7 +173,6 @@ export default function ChatInterface() {
     }
   };
 
-  // Combine regular messages with temp message for display
   const displayMessages = tempMessage ? [...messages, tempMessage] : messages;
 
   return (
@@ -172,7 +182,7 @@ export default function ChatInterface() {
 
         <ChatMessages
           messages={displayMessages}
-          isLoading={isLoading && !tempMessage}
+          isLoading={(isLoading && !tempMessage) || isInitialLoading}
           isAtBottom={isAtBottom}
           setIsAtBottom={setIsAtBottom}
           setInput={setInput}
