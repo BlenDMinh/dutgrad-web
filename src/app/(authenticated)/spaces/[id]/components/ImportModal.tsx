@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, type ReactNode, useCallback } from "react"
+import { useState, type ReactNode, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,7 +20,7 @@ import { FaPlus, FaFileUpload } from "react-icons/fa"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle } from "lucide-react"
 import { documentService } from "@/services/api/document.service"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ALLOWED_FILE_TYPES, APP_ROUTES, SPACE_ROLE } from "@/lib/constants"
 import { useSpace } from "@/context/space.context"
 import { cn } from "@/lib/utils"
@@ -45,6 +45,7 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [feedback, setFeedback] = useState<{
     type: "success" | "error" | null
@@ -52,6 +53,16 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
   }>({ type: null, message: "" })
 
   const [uploadProgress, setUploadProgress] = useState<number>(0)
+
+  useEffect(() => {
+    const openImport = searchParams.get("openImport")
+    if (openImport === "true") {
+      setIsOpen(true)
+      const url = new URL(window.location.href)
+      url.searchParams.delete("openImport")
+      router.replace(url.pathname + url.search)
+    }
+  }, [searchParams, router])
 
   const form = useForm({
     defaultValues: {
