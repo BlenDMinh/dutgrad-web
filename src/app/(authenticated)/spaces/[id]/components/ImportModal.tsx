@@ -123,7 +123,7 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
       if (!validateFileType(file)) {
         setFeedback({
           type: "error",
-          message: `File type not supported. Please upload one of the following formats: PDF, DOC, DOCX, XLS, XLSX, or TXT.`,
+          message: `File type not supported. Please upload one of the following formats: PDF, DOC, DOCX, XLS, XLSX, CSV or TXT.`,
         })
         setIsUploading(false)
         return
@@ -293,13 +293,13 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT
+                          Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT, CSV
                         </p>
                       </div>
                       <Input
                         id="file-upload"
                         type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
                         onChange={(e) => onChange(e.target.files)}
                         disabled={isUploading}
                         className="hidden"

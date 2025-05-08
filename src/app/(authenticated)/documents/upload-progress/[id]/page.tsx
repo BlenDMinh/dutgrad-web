@@ -54,6 +54,13 @@ const PROCESSING_STAGES = [
     icon: <CheckCircle2 className="h-6 w-6 text-green-500" />,
     status: 2,
   },
+  {
+    title: "Processing Failed",
+    description:
+      "There was an error processing your document. Please try uploading it again.",
+    icon: <AlertCircle className="h-6 w-6 text-red-500" />,
+    status: -1,
+  },
 ];
 
 export default function DocumentUploadProgressPage() {
@@ -67,8 +74,13 @@ export default function DocumentUploadProgressPage() {
   const [progressPercent, setProgressPercent] = useState(0);
 
   const calculateProgress = (status: number) => {
+    if (status === -1) return 0;
+    const normalStages = PROCESSING_STAGES.filter(stage => stage.status !== -1).length;
+    
+    if (status === 2) return 100;
+    
     return Math.min(
-      Math.round(((status + 1) / PROCESSING_STAGES.length) * 100),
+      Math.round(((status + 1) / normalStages) * 100),
       100
     );
   };
@@ -109,6 +121,7 @@ export default function DocumentUploadProgressPage() {
   }, [documentId]);
 
   const isComplete = document?.processing_status === 2;
+  const isProcessingError = document?.processing_status === -1;
 
   if (loading && !document) {
     return (
@@ -141,6 +154,47 @@ export default function DocumentUploadProgressPage() {
     );
   }
 
+  if (isProcessingError) {
+    return (
+      <div className="container max-w-3xl mx-auto py-10 px-4">
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Document Processing Failed</CardTitle>
+            {document?.title && (
+              <p className="text-muted-foreground mt-2 text-lg font-medium">
+                {document.title}
+              </p>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Alert variant="destructive" className="flex flex-col items-center py-6">
+              <AlertCircle className="h-12 w-12 mb-4" />
+              <AlertDescription className="text-center text-base">
+                <p className="font-medium mb-2">We encountered an error while processing your document.</p>
+                <p>This could be due to the file format, size, or content. Please try uploading the document again or use a different file.</p>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+          <CardFooter className="flex justify-center gap-4">
+            <Button 
+              onClick={() => router.push(`/documents/upload?spaceId=${document?.space_id}`)}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Upload Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/spaces/${document?.space_id}`)}
+            >
+              Return to Space
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-3xl mx-auto py-10 px-4">
       <Card className="w-full">
@@ -163,13 +217,16 @@ export default function DocumentUploadProgressPage() {
           </div>
 
           <div className="space-y-6">
-            {PROCESSING_STAGES.map((stage, index) => {
+            {PROCESSING_STAGES.filter(stage => 
+              document?.processing_status === -1 ? stage.status === -1 : stage.status !== -1
+            ).map((stage, index) => {
               const docStatus = document?.processing_status || 0;
               const isActive = docStatus === stage.status;
-              const isCompleted = docStatus > stage.status;
-              const isPending = docStatus < stage.status;
+              const isCompleted = docStatus > 0 && docStatus > stage.status;
+              const isPending = docStatus >= 0 && docStatus < stage.status;
               const isFinalStageCompleted =
                 stage.status === 2 && docStatus === 2;
+              const isErrorState = docStatus === -1 && stage.status === -1;
 
               return (
                 <div
@@ -178,12 +235,15 @@ export default function DocumentUploadProgressPage() {
                     "flex items-start gap-4 p-4 rounded-lg transition-colors",
                     isActive && "bg-primary/10 border border-primary/20",
                     isCompleted && "bg-muted/30",
+                    isErrorState && "bg-destructive/10 border border-destructive/20",
                     isPending && "opacity-60"
                   )}
                 >
                   <div className="mt-1">
                     {isCompleted || isFinalStageCompleted ? (
                       <CheckCircle2 className="h-6 w-6 text-green-500" />
+                    ) : isErrorState ? (
+                      <AlertCircle className="h-6 w-6 text-destructive" />
                     ) : isActive ? (
                       stage.status === 1 ? (
                         <Brain className="h-6 w-6 text-primary animate-pulse" />
@@ -198,12 +258,14 @@ export default function DocumentUploadProgressPage() {
                     <h3
                       className={cn(
                         "text-lg font-medium",
-                        isActive && "text-primary font-semibold"
+                        isActive && "text-primary font-semibold",
+                        isErrorState && "text-destructive font-semibold"
                       )}
                     >
                       {stage.title}
-                      {isActive && " (In Progress)"}
-                      {isCompleted || isFinalStageCompleted
+                      {isActive && !isErrorState && " (In Progress)"}
+                      {isErrorState && " (Error)"}
+                      {(isCompleted || isFinalStageCompleted) && !isErrorState
                         ? " (Completed)"
                         : ""}
                     </h3>
@@ -236,7 +298,7 @@ export default function DocumentUploadProgressPage() {
           {isComplete ? (
             <>
               <Button
-                onClick={() => router.push(`/documents/${document.id}`)}
+                onClick={() => router.push(`/documents/view?id=${document.id}`)}
                 className="gap-2"
               >
                 <FileText className="h-4 w-4" />

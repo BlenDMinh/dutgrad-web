@@ -86,20 +86,17 @@ export const APP_ROUTES = {
 };
 
 export const ALLOWED_FILE_TYPES: Record<string, string> = {
-  // PDF files
   "application/pdf": ".pdf",
 
-  // Word documents
   "application/msword": ".doc",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
     ".docx",
 
-  // Excel files
   "application/vnd.ms-excel": ".xls",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
 
-  // Text files
   "text/plain": ".txt",
+  "text/csv": ".csv",
 };
 
 export const SPACE_ROLE = {
