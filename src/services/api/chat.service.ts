@@ -65,7 +65,7 @@ export const chatService = {
   },
 
   getTempMessage: async (querySessionId: number) => {
-    const response = await apiClient.get(
+    const response = await apiClient.head(
       API_ROUTES.CHAT.GET_TEMP_MESSAGE(querySessionId)
     );
     return handleResponse<string>(response.data);
