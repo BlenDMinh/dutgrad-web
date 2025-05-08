@@ -46,17 +46,28 @@ export const chatService = {
     querySessionId: number,
     query: string
   ): Promise<ChatQueryResponse> => {
-    const response = await apiClient.post(API_ROUTES.CHAT.ASK, {
-      query_session_id: querySessionId,
-      query: query,
-    }, {
-      timeout: 60000, 
-    });
+    const response = await apiClient.post(
+      API_ROUTES.CHAT.ASK,
+      {
+        query_session_id: querySessionId,
+        query: query,
+      },
+      {
+        timeout: 120000,
+      }
+    );
     return handleResponse(response.data);
   },
 
   getRecentChat: async () => {
     const response = await apiClient.get(API_ROUTES.CHAT.SESSION_HISTORY);
     return handleResponse(response.data);
+  },
+
+  getTempMessage: async (querySessionId: number) => {
+    const response = await apiClient.head(
+      API_ROUTES.CHAT.GET_TEMP_MESSAGE(querySessionId)
+    );
+    return handleResponse<string>(response.data);
   },
 };

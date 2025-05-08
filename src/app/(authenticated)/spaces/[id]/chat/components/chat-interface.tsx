@@ -16,6 +16,7 @@ type Message = {
   content: string;
   isUser: boolean;
   timestamp: Date;
+  isTempMessage?: boolean;
 };
 
 export default function ChatInterface() {
@@ -29,6 +30,8 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [tempMessage, setTempMessage] = useState<Message | null>(null);
+  const tempMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -40,6 +43,66 @@ export default function ChatInterface() {
       );
     }
   }, [sessionId]);
+
+  // Clean up interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (tempMessageIntervalRef.current) {
+        clearInterval(tempMessageIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Fetch temporary messages when loading
+  useEffect(() => {
+    if (!isLoading || !sessionId) {
+      if (tempMessageIntervalRef.current) {
+        clearInterval(tempMessageIntervalRef.current);
+        tempMessageIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Create initial temp message
+    const initialTempMessage: Message = {
+      id: "temp-" + Date.now(),
+      content: "",
+      isUser: false,
+      timestamp: new Date(),
+      isTempMessage: true,
+    };
+    setTempMessage(initialTempMessage);
+
+    // Start polling for temp messages
+    tempMessageIntervalRef.current = setInterval(async () => {
+      try {
+        const tempContent = await chatService.getTempMessage(Number(sessionId));
+
+        if (tempContent !== null) {
+          setTempMessage((prev) =>
+            prev
+              ? { ...prev, content: tempContent }
+              : {
+                  id: "temp-" + Date.now(),
+                  content: tempContent,
+                  isUser: false,
+                  timestamp: new Date(),
+                  isTempMessage: true,
+                }
+          );
+        }
+      } catch (error) {
+        // Silently fail - no need to show errors during polling
+        console.error("Failed to fetch temporary message:", error);
+      }
+    }, 5000);
+
+    return () => {
+      if (tempMessageIntervalRef.current) {
+        clearInterval(tempMessageIntervalRef.current);
+      }
+    };
+  }, [isLoading, sessionId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +128,9 @@ export default function ChatInterface() {
     try {
       const response = await chatService.askQuestion(Number(sessionId), input);
 
+      // Clear temporary message
+      setTempMessage(null);
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: response.answer,
@@ -76,6 +142,12 @@ export default function ChatInterface() {
       toast.error("Failed to get response. Please try again.");
     } finally {
       setIsLoading(false);
+      // Clear temp message and interval
+      setTempMessage(null);
+      if (tempMessageIntervalRef.current) {
+        clearInterval(tempMessageIntervalRef.current);
+        tempMessageIntervalRef.current = null;
+      }
     }
   };
 
@@ -90,14 +162,17 @@ export default function ChatInterface() {
     }
   };
 
+  // Combine regular messages with temp message for display
+  const displayMessages = tempMessage ? [...messages, tempMessage] : messages;
+
   return (
     <div className="flex w-full">
       <div className="flex flex-col mx-5 mt-5 flex-1 bg-gradient-to-b from-background to-background/95 rounded">
         <ChatHeader onClearChat={clearChat} />
 
         <ChatMessages
-          messages={messages}
-          isLoading={isLoading}
+          messages={displayMessages}
+          isLoading={isLoading && !tempMessage}
           isAtBottom={isAtBottom}
           setIsAtBottom={setIsAtBottom}
           setInput={setInput}
