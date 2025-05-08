@@ -80,7 +80,7 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
       const response = await chatService.getRecentChat();
 
       if (response && Array.isArray(response)) {
-        const formattedChats = response.map((session: ChatSession) => {
+        const formattedChats = response.slice(0, 5).map((session: ChatSession) => {
           const chatHistories = session.chat_histories || [];
           const lastChatMessage =
             chatHistories.length > 0
