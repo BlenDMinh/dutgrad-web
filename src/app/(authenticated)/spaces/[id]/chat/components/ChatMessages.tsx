@@ -21,6 +21,8 @@ interface ChatMessagesProps {
   setIsAtBottom: (isAtBottom: boolean) => void;
   setInput: (input: string) => void;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  sessionId?: string | null;
+  loadChatHistory?: () => Promise<void>;
 }
 
 export function ChatMessages({
@@ -30,6 +32,8 @@ export function ChatMessages({
   setIsAtBottom,
   setInput,
   inputRef,
+  sessionId,
+  loadChatHistory,
 }: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -39,6 +43,12 @@ export function ChatMessages({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isLoading, isAtBottom]);
+
+  useEffect(() => {
+    if (sessionId && loadChatHistory) {
+      loadChatHistory();
+    }
+  }, [sessionId, loadChatHistory]);
 
   useEffect(() => {
     const handleScrollEvent = () => {
