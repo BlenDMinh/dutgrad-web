@@ -48,9 +48,19 @@ export default function ChatInterface() {
     const loadChatHistory = async () => {
       try {
         setIsInitialLoading(true);
-        const chatHistory = await chatService.getSessionChatHistory(Number(sessionId));
-        if (chatHistory && chatHistory.length > 0) {
-          setMessages(chatHistory);
+        const chatHistories = await chatService.getSessionChatHistory(
+          Number(sessionId)
+        );
+        if (chatHistories && chatHistories.length > 0) {
+          setMessages(
+            chatHistories.map((message) => ({
+              id: message.id,
+              content: message.content,
+              isUser: message.isUser,
+              timestamp: new Date(message.timestamp),
+              isTempMessage: false,
+            }))
+          );
         }
       } catch (error) {
         console.error("Failed to load chat history:", error);

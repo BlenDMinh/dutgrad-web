@@ -38,7 +38,7 @@ interface ChatHistoryMessage {
   id: string;
   content: string;
   isUser: boolean;
-  timestamp: Date;
+  timestamp: string;
 }
 
 export const chatService = {
