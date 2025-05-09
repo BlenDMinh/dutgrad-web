@@ -12,10 +12,10 @@ export function EmptyChatSuggestions({
   inputRef,
 }: EmptyChatSuggestionsProps) {
   const suggestions = [
-    "What documents are available in this space?",
-    "Can you summarize the key points from the latest document?",
-    "What are the main topics covered in these documents?",
-    "Find information about specific terms in these documents",
+    "List available documents",
+    "Summarize latest document",
+    "Show main document topics",
+    "Search for specific terms",
   ];
 
   return (

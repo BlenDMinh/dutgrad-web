@@ -1,3 +1,7 @@
+"use client";
+
+import type React from "react";
+
 import { useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -12,6 +16,7 @@ type Message = {
   content: string;
   isUser: boolean;
   timestamp: Date;
+  isTempMessage?: boolean;
 };
 
 interface ChatMessagesProps {
@@ -21,6 +26,8 @@ interface ChatMessagesProps {
   setIsAtBottom: (isAtBottom: boolean) => void;
   setInput: (input: string) => void;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
+  sessionId?: string | null;
+  loadChatHistory?: () => Promise<void>;
 }
 
 export function ChatMessages({
@@ -30,6 +37,8 @@ export function ChatMessages({
   setIsAtBottom,
   setInput,
   inputRef,
+  sessionId,
+  loadChatHistory,
 }: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -39,6 +48,12 @@ export function ChatMessages({
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isLoading, isAtBottom]);
+
+  useEffect(() => {
+    if (sessionId && loadChatHistory) {
+      loadChatHistory();
+    }
+  }, [sessionId, loadChatHistory]);
 
   useEffect(() => {
     const handleScrollEvent = () => {
@@ -58,9 +73,12 @@ export function ChatMessages({
   }, [setIsAtBottom]);
 
   return (
-    <div className="flex-1 overflow-hidden relative">
-      <ScrollArea className="h-[calc(100vh-18rem)]" ref={scrollAreaRef}>
-        <div className="p-4 space-y-6">
+    <div className="flex-1 overflow-hidden relative w-full">
+      <ScrollArea
+        className="h-[calc(100vh-18rem)] w-full overflow-x-hidden"
+        ref={scrollAreaRef}
+      >
+        <div className="p-4 space-y-6 w-full overflow-x-hidden">
           {messages.length === 0 ? (
             <EmptyChatSuggestions setInput={setInput} inputRef={inputRef} />
           ) : (
@@ -70,6 +88,7 @@ export function ChatMessages({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.1 }}
+                className="w-full flex flex-col overflow-hidden"
               >
                 <ChatMessage message={message} />
               </motion.div>

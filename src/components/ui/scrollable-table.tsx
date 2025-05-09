@@ -1,15 +1,21 @@
-"use client";
-
-import React from "react";
+import type React from "react";
 import { cn } from "@/lib/utils";
 
-interface ScrollableTableProps {
+interface ScrollableTableProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  className?: string;
 }
 
-export function ScrollableTable({ children, className }: ScrollableTableProps) {
+export function ScrollableTable({
+  children,
+  className,
+  ...props
+}: ScrollableTableProps) {
   return (
-    <div className={cn("w-full overflow-x-auto", className)}>{children}</div>
+    <div
+      className={cn("w-full overflow-auto max-w-full", className)}
+      {...props}
+    >
+      {children}
+    </div>
   );
 }
