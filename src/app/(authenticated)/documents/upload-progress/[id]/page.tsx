@@ -177,8 +177,8 @@ export default function DocumentUploadProgressPage() {
           </CardContent>
           <CardFooter className="flex justify-center gap-4">
             <Button 
-              onClick={() => router.push(`/documents/upload?spaceId=${document?.space_id}`)}
               className="gap-2"
+              onClick={() => router.push(`/spaces/${document?.space_id}?openImport=true`)}
             >
               <Upload className="h-4 w-4" />
               Upload Again

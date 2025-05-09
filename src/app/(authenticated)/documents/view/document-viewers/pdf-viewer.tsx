@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, Download } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { Loader2, Download } from "lucide-react";
 
 interface PdfViewerProps {
   url: string;
@@ -14,11 +14,14 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
   const [error, setError] = useState(false);
   const [useDirect, setUseDirect] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  
-  const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
-  
+
+  const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(
+    url
+  )}&embedded=true`;
+
   useEffect(() => {
-    const isInternalUrl = url.startsWith('/') || url.includes(window.location.hostname);
+    const isInternalUrl =
+      url.startsWith("/") || url.includes(window.location.hostname);
     setUseDirect(isInternalUrl || url.length > 2000);
   }, [url]);
 
@@ -26,7 +29,7 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
     setLoading(false);
     if (onLoadSuccess) onLoadSuccess();
   };
-  
+
   const handleError = () => {
     if (!useDirect) {
       console.log("Google Viewer failed, switching to direct view");
@@ -36,18 +39,20 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
       }
       return;
     }
-    
+
     setLoading(false);
     setError(true);
     if (onError) onError("Unable to load PDF document");
   };
-  
+
   if (error) {
     return (
       <div className="flex items-center justify-center h-full p-6 bg-muted/20">
         <div className="text-center max-w-md bg-background p-8 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold mb-2">Cannot view document</h2>
-          <p className="text-muted-foreground mb-4">Unable to load the PDF document.</p>
+          <p className="text-muted-foreground mb-4">
+            Unable to load the PDF document.
+          </p>
           <a
             href={url}
             download
@@ -60,7 +65,7 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
       </div>
     );
   }
-  
+
   return (
     <div className="flex flex-col h-full w-full">
       {loading && (
@@ -69,8 +74,8 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
           <span>Loading PDF...</span>
         </div>
       )}
-      
-      <iframe 
+
+      <iframe
         ref={iframeRef}
         src={useDirect ? url : googleViewerUrl}
         className="w-full h-full border-0"
