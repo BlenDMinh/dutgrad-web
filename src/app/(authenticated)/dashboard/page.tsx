@@ -379,109 +379,12 @@ export default function Dashboard() {
         </div>
 
         <div className="mb-10">
-          {isDataReady ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-6 w-6 text-indigo-600" />
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                    Recent Activity
-                  </h2>
-                </div>
-                <Button
-                  variant="outline"
-                  className="border-indigo-300 hover:bg-indigo-100 dark:border-indigo-700 dark:hover:bg-indigo-900"
-                >
-                  View All
-                </Button>
-              </div>
-
-              <Card className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border-indigo-100 dark:border-indigo-900">
-                <CardContent className="p-0">
-                  <div className="divide-y divide-indigo-100 dark:divide-indigo-900">
-                    {loading ? (
-                      Array(3)
-                        .fill(0)
-                        .map((_, i) => (
-                          <div key={i} className="p-4 flex items-center gap-4">
-                            <Skeleton className="h-10 w-10 rounded-full" />
-                            <div className="space-y-2">
-                              <Skeleton className="h-4 w-40" />
-                              <Skeleton className="h-3 w-24" />
-                            </div>
-                          </div>
-                        ))
-                    ) : (
-                      <>
-                        <ActivityItem
-                          icon={<Zap className="h-4 w-4 text-amber-500" />}
-                          title="New space joined"
-                          description="You joined the 'Design Systems' space"
-                          time="2 hours ago"
-                          color="bg-amber-100 dark:bg-amber-900/30"
-                        />
-                        <ActivityItem
-                          icon={
-                            <MessageSquare className="h-4 w-4 text-emerald-500" />
-                          }
-                          title="New chat session"
-                          description="You started a new chat in 'Product Team'"
-                          time="Yesterday"
-                          color="bg-emerald-100 dark:bg-emerald-900/30"
-                        />
-                        <ActivityItem
-                          icon={<Users className="h-4 w-4 text-blue-500" />}
-                          title="Space invitation"
-                          description="You were invited to join 'Marketing'"
-                          time="3 days ago"
-                          color="bg-blue-100 dark:bg-blue-900/30"
-                        />
-                      </>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ) : (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-6 w-6 text-indigo-600" />
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                    Recent Activity
-                  </h2>
-                </div>
-                <Button
-                  variant="outline"
-                  className="border-indigo-300 hover:bg-indigo-100 dark:border-indigo-700 dark:hover:bg-indigo-900"
-                >
-                  View All
-                </Button>
-              </div>
-
-              <Card className="bg-white/70 dark:bg-gray-800/50 backdrop-blur-sm border-indigo-100 dark:border-indigo-900">
-                <CardContent className="p-0">
-                  <div className="divide-y divide-indigo-100 dark:divide-indigo-900">
-                    {Array(3)
-                      .fill(0)
-                      .map((_, i) => (
-                        <div key={i} className="p-4 flex items-center gap-4">
-                          <Skeleton className="h-10 w-10 rounded-full" />
-                          <div className="space-y-2">
-                            <Skeleton className="h-4 w-40" />
-                            <Skeleton className="h-3 w-24" />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+          </motion.div>
         </div>
 
         <div className="space-y-6">
