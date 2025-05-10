@@ -38,15 +38,6 @@ export function ChatHeader({ onClearChat }: ChatHeaderProps) {
               <TooltipContent>Clear chat history</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </CardContent>
     </Card>
