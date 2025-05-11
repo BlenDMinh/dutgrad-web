@@ -378,10 +378,10 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Note: The ChatBot may not process the file with 100%
+                    {`Note: The ChatBot may not process the file with 100%
                     accuracy. Please provide a detailed description of the
                     document content (e.g., "This file describes financial data.
-                    Column A in Excel is the date, Column B is revenue...").
+                    Column A in Excel is the date, Column B is revenue...").`}
                   </p>
                 </FormItem>
               )}
