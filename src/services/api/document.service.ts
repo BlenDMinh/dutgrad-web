@@ -7,11 +7,15 @@ export const documentService = {
   uploadDocumet(
     spaceId: number,
     file: File,
-    onUploadProgress?: (progressEvent: AxiosProgressEvent) => void
+    onUploadProgress?: (progressEvent: AxiosProgressEvent) => void,
+    description?: string
   ) {
     const formData = new FormData();
     formData.append("space_id", spaceId.toString());
     formData.append("file", file);
+    if (description) {
+      formData.append("description", description);
+    }
     const mimeType = file.type;
 
     return apiClient.instance.post(API_ROUTES.DOCUMENT.UPLOAD, formData, {

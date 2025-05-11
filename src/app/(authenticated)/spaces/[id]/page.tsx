@@ -42,7 +42,6 @@ import {
   ChevronRight,
   Info,
   Filter,
-  ExternalLink,
   Download,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
@@ -80,6 +79,7 @@ import {
 interface SpaceDocument {
   id: number;
   name: string;
+  description?: string;
   s3_url: string;
   privacy_status: boolean;
   created_at: string;
@@ -599,6 +599,11 @@ export default function SpaceDetailPage() {
                                             <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
                                               {document.name}
                                             </h3>
+                                            {document.description && (
+                                              <p className="text-sm text-muted-foreground line-clamp-1">
+                                                {document.description}
+                                              </p>
+                                            )}
                                             <div className="flex items-center mt-1 text-sm text-muted-foreground">
                                               <Calendar className="h-3.5 w-3.5 mr-1" />
                                               <span>{timeAgo}</span>
@@ -739,7 +744,13 @@ export default function SpaceDetailPage() {
                                                 <p>
                                                   Document ID: {document.id}
                                                 </p>
-                                                <p>
+                                                {document.description && (
+                                                  <p className="mt-1">
+                                                    Description:{" "}
+                                                    {document.description}
+                                                  </p>
+                                                )}
+                                                <p className="mt-1">
                                                   MIME Type:{" "}
                                                   {document.mime_type}
                                                 </p>

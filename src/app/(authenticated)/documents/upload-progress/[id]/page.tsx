@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 interface Document {
   id: number;
   title: string;
+  description?: string;
   processing_status: number;
   created_at: string;
   updated_at: string;
