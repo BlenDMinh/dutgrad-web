@@ -125,6 +125,10 @@ export const spaceService = {
     const count = response.headers["x-space-count"];
     return Number(count);
   },
+  getInvitationCount: async (): Promise<number> => {
+      const response = await apiClient.get(API_ROUTES.SPACE.COUNT_INVITATIONS);
+      return handleResponse(response.data).count || 0;
+  },
   getCountMyChatSessions: async (): Promise<number> => {
     const response = await apiClient.head(
       API_ROUTES.SPACE.COUNT_USER_QUERY_SESSION

@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/tooltip";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { UserTierInfo } from "./user/UserTierInfo";
+import { spaceService } from "@/services/api/space.service";
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -182,6 +183,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
   const [recentChats, setRecentChats] = useState<RecentChat[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invitationCount, setInvitationCount] = useState<number>(0);
   const user = getAuthUser();
   const shouldReduceMotion = useReducedMotion();
 
@@ -193,6 +195,21 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
       animationState.hasAnimated = true;
     }
   }, [hasAnimated]);
+
+  useEffect(() => {
+    if (user) {
+      const fetchInvitationCount = async () => {
+        try {
+          const count = await spaceService.getInvitationCount();
+          setInvitationCount(count);
+        } catch (error) {
+          console.error("Failed to fetch invitation count:", error);
+        }
+      };
+
+      fetchInvitationCount();
+    }
+  }, [user]);
 
   isMobile =
     isMobile || typeof window !== "undefined" ? window.innerWidth < 768 : false;
@@ -283,7 +300,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
           title: "Invitations",
           href: APP_ROUTES.MY_INVITATIONS,
           icon: <Users className="mr-2 h-4 w-4" />,
-          badge: "3",
+          badge: invitationCount > 0 ? invitationCount.toString() : undefined,
         },
       ],
     },
@@ -347,29 +364,6 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
           )}
         </motion.div>
       </motion.div>
-
-      <motion.div
-        variants={slideInLeft}
-        initial={getInitialAnimationState()}
-        animate="visible"
-        className="p-4"
-      >
-        <motion.div
-          initial={
-            hasAnimated ? { scale: 1, opacity: 1 } : { scale: 0.95, opacity: 0 }
-          }
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-          className="relative"
-        >
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search AI spaces..."
-            className="pl-9 transition-all duration-300 border-primary/20 focus:border-primary/60 hover:border-primary/40"
-          />
-        </motion.div>
-      </motion.div>
-
       <motion.div
         variants={slideInLeft}
         initial={getInitialAnimationState()}
@@ -381,6 +375,8 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
           className="flex items-center gap-3"
           whileHover={{ x: 5 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          onClick={() => (window.location.href = APP_ROUTES.PROFILE)}
+          style={{ cursor: "pointer" }}
         >
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
             <Avatar>
