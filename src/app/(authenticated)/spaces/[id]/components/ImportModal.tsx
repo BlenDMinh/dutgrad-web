@@ -21,6 +21,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { FaPlus, FaFileUpload } from "react-icons/fa";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -368,13 +369,20 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 <FormItem>
                   <FormLabel>Description (optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Brief description (max 1024 chars)"
+                    <Textarea
+                      placeholder="Brief description of the document content (max 1024 chars)"
                       maxLength={1024}
                       disabled={isUploading}
+                      className="min-h-[100px] resize-none"
                       {...field}
                     />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Note: The ChatBot may not process the file with 100%
+                    accuracy. Please provide a detailed description of the
+                    document content (e.g., "This file describes financial data.
+                    Column A in Excel is the date, Column B is revenue...").
+                  </p>
                 </FormItem>
               )}
             />
