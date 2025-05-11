@@ -104,7 +104,9 @@ export default function SpaceDetailPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [fileTypeFilter, setFileTypeFilter] = useState<string>("all");
-  const [documentToView, setDocumentToView] = useState<SpaceDocument | null>(null);
+  const [documentToView, setDocumentToView] = useState<SpaceDocument | null>(
+    null
+  );
   const [isViewDialogOpen, setIsViewDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -828,7 +830,16 @@ export default function SpaceDetailPage() {
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the
                 document{" "}
-                <span className="font-semibold">{documentToDelete?.name}</span>{" "}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="font-semibold inline-block max-w-[200px] truncate align-bottom">
+                        {documentToDelete?.name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>{documentToDelete?.name}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>{" "}
                 and remove it from the space.
               </AlertDialogDescription>
             </AlertDialogHeader>
