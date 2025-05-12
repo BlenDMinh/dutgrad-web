@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, type ReactNode, useCallback, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, type ReactNode, useCallback, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogHeader,
@@ -12,66 +12,75 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useForm } from "react-hook-form"
-import { FaPlus, FaFileUpload } from "react-icons/fa"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle } from "lucide-react"
-import { documentService } from "@/services/api/document.service"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ALLOWED_FILE_TYPES, APP_ROUTES, SPACE_ROLE } from "@/lib/constants"
-import { useSpace } from "@/context/space.context"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { FaPlus, FaFileUpload } from "react-icons/fa";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, AlertCircle } from "lucide-react";
+import { documentService } from "@/services/api/document.service";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ALLOWED_FILE_TYPES, APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
+import { useSpace } from "@/context/space.context";
+import { cn } from "@/lib/utils";
 
 interface ImportDialogProps {
-  spaceId: string
-  children?: ReactNode
+  spaceId: string;
+  children?: ReactNode;
 }
 
 const ALLOWED_EXTENSIONS: Record<string, string[]> = {
   pdf: ["application/pdf"],
   doc: ["application/msword"],
-  docx: ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+  docx: [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
   xls: ["application/vnd.ms-excel"],
   xlsx: ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
   txt: ["text/plain"],
-}
+};
 
 export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
-  const { role } = useSpace()
-  const [isUploading, setIsUploading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const { role } = useSpace();
+  const [isUploading, setIsUploading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [feedback, setFeedback] = useState<{
-    type: "success" | "error" | null
-    message: string
-  }>({ type: null, message: "" })
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
 
-  const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
-    const openImport = searchParams.get("openImport")
+    const openImport = searchParams.get("openImport");
     if (openImport === "true") {
-      setIsOpen(true)
-      const url = new URL(window.location.href)
-      url.searchParams.delete("openImport")
-      router.replace(url.pathname + url.search)
+      setIsOpen(true);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("openImport");
+      router.replace(url.pathname + url.search);
     }
-  }, [searchParams, router])
-
+  }, [searchParams, router]);
   const form = useForm({
     defaultValues: {
       file: undefined as unknown as FileList,
+      description: "",
     },
-  })
+  });
 
   const getCorrectMimeType = (file: File): string => {
-    const extension = file.name.toLowerCase().split(".").pop()
+    const extension = file.name.toLowerCase().split(".").pop();
 
     if (
       file.type === "application/zip" ||
@@ -79,24 +88,24 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
       file.type === "application/octet-stream"
     ) {
       if (extension === "docx") {
-        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
       }
 
       if (extension === "xlsx") {
-        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
       }
     }
 
-    return file.type
-  }
+    return file.type;
+  };
 
   const validateFileType = (file: File): boolean => {
     if (ALLOWED_FILE_TYPES[file.type]) {
-      return true
+      return true;
     }
 
-    const extension = file.name.toLowerCase().split(".").pop()
-    if (!extension) return false
+    const extension = file.name.toLowerCase().split(".").pop();
+    if (!extension) return false;
 
     if (
       (file.type === "application/zip" ||
@@ -104,161 +113,184 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
         file.type === "application/octet-stream") &&
       (extension === "xlsx" || extension === "docx")
     ) {
-      return true
+      return true;
     }
 
     if (ALLOWED_EXTENSIONS[extension]) {
-      return true
+      return true;
     }
 
-    return false
-  }
-
-  const handleFileUpload = async (data: { file: FileList }) => {
+    return false;
+  };
+  const handleFileUpload = async (data: {
+    file: FileList;
+    description: string;
+  }) => {
     try {
-      setFeedback({ type: null, message: "" })
-      setIsUploading(true)
-      setUploadProgress(0)
+      setFeedback({ type: null, message: "" });
+      setIsUploading(true);
+      setUploadProgress(0);
 
-      let file = data.file?.[0]
+      let file = data.file?.[0];
 
       if (!file) {
         setFeedback({
           type: "error",
           message: "Please select a file to upload.",
-        })
-        setIsUploading(false)
-        return
+        });
+        setIsUploading(false);
+        return;
       }
 
       if (!validateFileType(file)) {
         setFeedback({
           type: "error",
           message: `File type not supported. Please upload one of the following formats: PDF, DOC, DOCX, XLS, XLSX, CSV or TXT.`,
-        })
-        setIsUploading(false)
-        return
+        });
+        setIsUploading(false);
+        return;
       }
 
-      const correctMimeType = getCorrectMimeType(file)
+      const correctMimeType = getCorrectMimeType(file);
       if (correctMimeType !== file.type) {
-        file = new File([file], file.name, { type: correctMimeType })
-        console.log(`Converted file MIME type to: ${correctMimeType}`)
+        file = new File([file], file.name, { type: correctMimeType });
+        console.log(`Converted file MIME type to: ${correctMimeType}`);
       }
 
-      console.log(correctMimeType)
+      console.log(correctMimeType);
 
-      const response = await documentService.uploadDocumet(Number.parseInt(spaceId), file, (progressEvent) => {
-        const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1))
-        setUploadProgress(percentCompleted)
-      })
+      const response = await documentService.uploadDocumet(
+        Number.parseInt(spaceId),
+        file,
+        (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+          );
+          setUploadProgress(percentCompleted);
+        },
+        data.description
+      );
 
       if (response.data.status === 200 || response.data.status === 201) {
         setFeedback({
           type: "success",
           message: response.data.message || "Document uploaded successfully.",
-        })
+        });
 
-        form.reset()
+        form.reset();
 
-        const document = response.data.data.document
-        const docId = document.id
+        const document = response.data.data.document;
+        const docId = document.id;
 
         setTimeout(() => {
-          setIsOpen(false)
-          setFeedback({ type: null, message: "" })
-          router.push(APP_ROUTES.DOCUMENT.UPLOAD_PROGRESS(docId))
-        }, 1000)
+          setIsOpen(false);
+          setFeedback({ type: null, message: "" });
+          router.push(APP_ROUTES.DOCUMENT.UPLOAD_PROGRESS(docId));
+        }, 1000);
       } else {
-        throw new Error(response.data.message || "Failed to upload document")
+        throw new Error(response.data.message || "Failed to upload document");
       }
     } catch (error: any) {
-      console.error("Document upload error:", error)
+      console.error("Document upload error:", error);
 
-      let errorMessage = "Failed to upload document. Please try again."
+      let errorMessage = "Failed to upload document. Please try again.";
 
       if (error.response) {
         if (error.response.status === 413) {
-          errorMessage = "File is too large. Please upload a smaller document."
+          errorMessage = "File is too large. Please upload a smaller document.";
         } else if (error.response.status === 415) {
-          errorMessage = "Unsupported file type. Please check the supported formats and try again."
-        } else if (error.response.status === 401 || error.response.status === 403) {
-          errorMessage = "You don't have permission to upload documents to this space."
+          errorMessage =
+            "Unsupported file type. Please check the supported formats and try again.";
+        } else if (
+          error.response.status === 401 ||
+          error.response.status === 403
+        ) {
+          errorMessage =
+            "You don't have permission to upload documents to this space.";
         } else if (error.response.status === 429) {
-          errorMessage = "Too many upload requests. Please wait a moment and try again."
+          errorMessage =
+            "Too many upload requests. Please wait a moment and try again.";
         } else if (error.response.status >= 500) {
-          errorMessage = "Server error occurred. Please try again later."
+          errorMessage = "Server error occurred. Please try again later.";
         } else if (error.response.data) {
-          errorMessage = error.response.data.message || error.response.data.error || errorMessage
+          errorMessage =
+            error.response.data.message ||
+            error.response.data.error ||
+            errorMessage;
         }
       } else if (error instanceof Error) {
-        if (error.message.includes("network") || error.message.includes("connection")) {
-          errorMessage = "Network error. Please check your internet connection and try again."
+        if (
+          error.message.includes("network") ||
+          error.message.includes("connection")
+        ) {
+          errorMessage =
+            "Network error. Please check your internet connection and try again.";
         } else {
-          errorMessage = error.message
+          errorMessage = error.message;
         }
       }
 
       setFeedback({
         type: "error",
         message: errorMessage,
-      })
+      });
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setFeedback({ type: null, message: "" })
-      form.reset()
-      setIsDragging(false)
-      setUploadProgress(0)
+      setFeedback({ type: null, message: "" });
+      form.reset();
+      setIsDragging(false);
+      setUploadProgress(0);
     }
-    setIsOpen(open)
-  }
+    setIsOpen(open);
+  };
 
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }, [])
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setIsDragging(false)
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        form.setValue("file", e.dataTransfer.files)
+        form.setValue("file", e.dataTransfer.files);
       }
     },
-    [form],
-  )
+    [form]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children
           ? children
-          : (role?.id === SPACE_ROLE.OWNER || role?.id === SPACE_ROLE.EDITOR) && (
-            <Button variant="outline" className="flex items-center gap-2">
-              <FaPlus size={16} />
-              <span>Import</span>
-            </Button>
-          )}
+          : (role?.id === SPACE_ROLE.OWNER ||
+              role?.id === SPACE_ROLE.EDITOR) && (
+              <Button variant="outline" className="flex items-center gap-2">
+                <FaPlus size={16} />
+                <span>Import</span>
+              </Button>
+            )}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px]">
@@ -267,7 +299,10 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleFileUpload)}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleFileUpload)}
+          >
             <FormField
               name="file"
               control={form.control}
@@ -281,13 +316,16 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                         isDragging
                           ? "border-primary bg-primary/5"
                           : "border-muted-foreground/25 hover:border-primary/50",
-                        isUploading && "opacity-50 cursor-not-allowed",
+                        isUploading && "opacity-50 cursor-not-allowed"
                       )}
                       onDragEnter={handleDragEnter}
                       onDragLeave={handleDragLeave}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
-                      onClick={() => !isUploading && document.getElementById("file-upload")?.click()}
+                      onClick={() =>
+                        !isUploading &&
+                        document.getElementById("file-upload")?.click()
+                      }
                     >
                       <div className="flex flex-col items-center justify-center gap-2 max-w-full">
                         <FaFileUpload className="h-10 w-10 text-muted-foreground/50 flex-shrink-0" />
@@ -300,7 +338,9 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                               {value[0].name}
                             </p>
                           ) : (
-                            <p className="text-sm font-medium">Drag and drop your file here or click to browse</p>
+                            <p className="text-sm font-medium">
+                              Drag and drop your file here or click to browse
+                            </p>
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">
@@ -318,6 +358,31 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                       />
                     </div>
                   </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description (optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Brief description of the document content (max 1024 chars)"
+                      maxLength={1024}
+                      disabled={isUploading}
+                      className="min-h-[100px] resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {`Note: The ChatBot may not process the file with 100%
+                    accuracy. Please provide a detailed description of the
+                    document content (e.g., "This file describes financial data.
+                    Column A in Excel is the date, Column B is revenue...").`}
+                  </p>
                 </FormItem>
               )}
             />
@@ -370,5 +435,5 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
