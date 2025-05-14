@@ -59,6 +59,8 @@ export const API_ROUTES = {
     SESSION_HISTORY: "/user-query-sessions/me",
     GET_TEMP_MESSAGE: (querySessionId: number) =>
       `/user-query-sessions/${querySessionId}/temp-message`,
+    CLEAR_HISTORY: (querySessionId: number) =>
+      `/user-query-sessions/${querySessionId}/history`,
   },
 };
 

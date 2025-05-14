@@ -1,4 +1,5 @@
-import { Bot, Settings, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Bot, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -7,12 +8,24 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface ChatHeaderProps {
   onClearChat: () => void;
 }
 
 export function ChatHeader({ onClearChat }: ChatHeaderProps) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const handleClearClick = () => {
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirmClear = () => {
+    setIsConfirmOpen(false);
+    onClearChat();
+  };
+
   return (
     <Card className="rounded border-x-0 border-t-0 shadow-sm">
       <CardContent className="p-4 flex items-center justify-between">
@@ -31,14 +44,24 @@ export function ChatHeader({ onClearChat }: ChatHeaderProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={onClearChat}>
+                <Button variant="ghost" size="sm" onClick={handleClearClick}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Clear chat history</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
+          
+          <ConfirmDialog
+            isOpen={isConfirmOpen}
+            onClose={() => setIsConfirmOpen(false)}
+            onConfirm={handleConfirmClear}
+            title="Clear Chat History"
+            description="Are you sure you want to clear all chat history? This action cannot be undone."
+            confirmText="Clear"
+            cancelText="Cancel"
+            variant="destructive"
+          />        </div>
       </CardContent>
     </Card>
   );

@@ -80,8 +80,15 @@ export const chatService = {
 
   getSessionChatHistory: async (querySessionId: number): Promise<ChatHistoryMessage[]> => {
     const response = await apiClient.get(
-      `/user-query-sessions/${querySessionId}/history`
+      API_ROUTES.CHAT.CLEAR_HISTORY(querySessionId)
     );
     return handleResponse<ChatHistoryMessage[]>(response.data);
+  },
+
+  clearChatHistory: async (querySessionId: number): Promise<void> => {
+    const response = await apiClient.delete(
+      API_ROUTES.CHAT.CLEAR_HISTORY(querySessionId)
+    );
+    return handleResponse(response.data);
   },
 };

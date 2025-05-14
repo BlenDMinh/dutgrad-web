@@ -37,11 +37,10 @@ export default function ChatMessage({ message }: MessageProps) {
     },
     exit: { opacity: 0 },
   };
-
   if (message.isTempMessage) {
     return (
       <motion.div
-        className="flex items-start gap-3 p-4 rounded-lg overflow-hidden max-w-[80%] w-fit bg-muted self-start"
+        className="flex items-start gap-3 p-4 rounded-lg max-w-[80%] w-fit bg-muted self-start"
         initial={{ opacity: 0, y: 20 }}
         animate={tempMessageVariants.animate}
         exit={{ opacity: 0, y: -20 }}
@@ -50,10 +49,10 @@ export default function ChatMessage({ message }: MessageProps) {
         <div className="flex-shrink-0 rounded-full bg-primary/10 p-2">
           <Bot className="h-5 w-5 text-primary" />
         </div>
-        <div className="flex flex-col gap-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">AI is thinking...</span>
-            <motion.span
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium whitespace-nowrap">AI is thinking</span>
+            <motion.div
               className="inline-flex"
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{
@@ -63,7 +62,7 @@ export default function ChatMessage({ message }: MessageProps) {
               }}
             >
               <span className="text-sm">...</span>
-            </motion.span>
+            </motion.div>
           </div>
           <span className="text-xs text-muted-foreground">Just now</span>
         </div>
