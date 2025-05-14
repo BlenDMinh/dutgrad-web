@@ -50,10 +50,10 @@ export default function ChatMessage({ message }: MessageProps) {
           <Bot className="h-5 w-5 text-primary" />
         </div>
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-medium whitespace-nowrap">AI is thinking</span>
-            <motion.div
-              className="inline-flex"
+          <div className="flex items-center">
+            <span className="text-sm font-medium">AI is thinking</span>
+            <motion.span
+              className="inline-block ml-1"
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{
                 duration: 1.5,
@@ -62,7 +62,7 @@ export default function ChatMessage({ message }: MessageProps) {
               }}
             >
               <span className="text-sm">...</span>
-            </motion.div>
+            </motion.span>
           </div>
           <span className="text-xs text-muted-foreground">Just now</span>
         </div>
@@ -73,7 +73,7 @@ export default function ChatMessage({ message }: MessageProps) {
   return (
     <motion.div
       className={cn(
-        "flex items-start gap-3 p-4 rounded-lg overflow-hidden max-w-[80%] w-fit",
+        "flex items-start gap-3 p-6 rounded-lg overflow-hidden max-w-[80%] w-fit",
         message.isUser
           ? "bg-primary text-primary-foreground self-end ml-auto flex-row-reverse"
           : "bg-muted self-start"
