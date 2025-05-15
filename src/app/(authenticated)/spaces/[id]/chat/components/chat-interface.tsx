@@ -97,12 +97,11 @@ export default function ChatInterface() {
       isTempMessage: true,
     };
     setTempMessage(initialTempMessage);
-
     tempMessageIntervalRef.current = setInterval(async () => {
       try {
         const tempContent = await chatService.getTempMessage(Number(sessionId));
-
-        if (tempContent !== null) {
+        
+        if (tempContent !== null && tempContent !== undefined) {
           setTempMessage((prev) =>
             prev
               ? { ...prev, content: tempContent }
@@ -118,7 +117,7 @@ export default function ChatInterface() {
       } catch (error) {
         console.error("Failed to fetch temporary message:", error);
       }
-    }, 5000);
+    }, 1000);
 
     return () => {
       if (tempMessageIntervalRef.current) {
