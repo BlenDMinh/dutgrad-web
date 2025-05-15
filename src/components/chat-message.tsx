@@ -40,7 +40,7 @@ export default function ChatMessage({ message }: MessageProps) {
   if (message.isTempMessage) {
     return (
       <motion.div
-        className="flex items-start gap-3 p-4 rounded-lg max-w-[80%] w-fit bg-muted self-start"
+        className="flex items-start gap-3 p-6 rounded-lg max-w-[80%] w-fit bg-muted self-start"
         initial={{ opacity: 0, y: 20 }}
         animate={tempMessageVariants.animate}
         exit={{ opacity: 0, y: -20 }}
@@ -73,7 +73,7 @@ export default function ChatMessage({ message }: MessageProps) {
   return (
     <motion.div
       className={cn(
-        "flex items-start gap-3 p-6 rounded-lg overflow-hidden max-w-[80%] w-fit",
+        "flex items-start gap-3 p-4 rounded-lg overflow-hidden max-w-[80%] w-fit",
         message.isUser
           ? "bg-primary text-primary-foreground self-end ml-auto flex-row-reverse"
           : "bg-muted self-start"
