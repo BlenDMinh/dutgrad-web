@@ -18,6 +18,7 @@ export interface Space {
   name: string;
   description: string;
   privacy_status: boolean;
+  system_prompt?: string;
   document_limit?: number;
   file_size_limit_kb?: number;
   api_call_limit?: number;
