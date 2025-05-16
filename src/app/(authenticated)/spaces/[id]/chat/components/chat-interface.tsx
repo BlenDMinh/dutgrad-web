@@ -100,7 +100,7 @@ export default function ChatInterface() {
     tempMessageIntervalRef.current = setInterval(async () => {
       try {
         const tempContent = await chatService.getTempMessage(Number(sessionId));
-        
+
         if (tempContent !== null && tempContent !== undefined) {
           setTempMessage((prev) =>
             prev
@@ -170,6 +170,7 @@ export default function ChatInterface() {
       }
     }
   };
+
   const clearChat = async () => {
     if (!sessionId) return;
 
@@ -183,12 +184,26 @@ export default function ChatInterface() {
     }
   };
 
-  const displayMessages = tempMessage ? [...messages, tempMessage] : messages;
+  const createNewSession = async () => {
+    if (!spaceId) return;
 
+    try {
+      const newSession = await chatService.beginChatSession(Number(spaceId));
+      if (newSession && newSession.id) {
+        toast.success("New chat session created");
+        window.location.href = `/spaces/${spaceId}/chat?sessionId=${newSession.id}`;
+      }
+    } catch (error) {
+      console.error("Failed to create new session:", error);
+      toast.error("Failed to create new chat session. Please try again.");
+    }
+  };
+
+  const displayMessages = tempMessage ? [...messages, tempMessage] : messages;
   return (
     <div className="flex w-full">
       <div className="flex flex-col mx-5 mt-5 flex-1 bg-gradient-to-b from-background to-background/95 rounded overflow-hidden">
-        <ChatHeader onClearChat={clearChat} />
+        <ChatHeader onClearChat={clearChat} onNewChat={createNewSession} />
 
         <div className="flex-1 overflow-hidden w-full">
           <ChatMessages
