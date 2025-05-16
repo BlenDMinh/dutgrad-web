@@ -635,24 +635,6 @@ export default function SpaceDetailPage() {
                                               </Tooltip>
                                             </TooltipProvider>
 
-                                            <TooltipProvider>
-                                              <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                  <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    onClick={() => {}}
-                                                  >
-                                                    <Edit size={16} />
-                                                  </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                  <p>Edit document</p>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-
                                             {(userRole === "owner" ||
                                               userRole === "editor") && (
                                               <TooltipProvider>

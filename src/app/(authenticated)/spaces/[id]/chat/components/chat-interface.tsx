@@ -97,12 +97,11 @@ export default function ChatInterface() {
       isTempMessage: true,
     };
     setTempMessage(initialTempMessage);
-
     tempMessageIntervalRef.current = setInterval(async () => {
       try {
         const tempContent = await chatService.getTempMessage(Number(sessionId));
-
-        if (tempContent !== null) {
+        
+        if (tempContent !== null && tempContent !== undefined) {
           setTempMessage((prev) =>
             prev
               ? { ...prev, content: tempContent }
@@ -118,7 +117,7 @@ export default function ChatInterface() {
       } catch (error) {
         console.error("Failed to fetch temporary message:", error);
       }
-    }, 5000);
+    }, 1000);
 
     return () => {
       if (tempMessageIntervalRef.current) {
@@ -171,15 +170,16 @@ export default function ChatInterface() {
       }
     }
   };
+  const clearChat = async () => {
+    if (!sessionId) return;
 
-  const clearChat = () => {
-    if (
-      confirm(
-        "Are you sure you want to clear the chat history? This cannot be undone."
-      )
-    ) {
+    try {
+      await chatService.clearChatHistory(Number(sessionId));
       setMessages([]);
-      toast.success("Chat cleared successfully");
+      toast.success("Chat history cleared successfully");
+    } catch (error) {
+      console.error("Failed to clear chat history:", error);
+      toast.error("Failed to clear chat history. Please try again.");
     }
   };
 
