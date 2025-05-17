@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, Trash2 } from "lucide-react";
+import { Bot, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -12,9 +12,10 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface ChatHeaderProps {
   onClearChat: () => void;
+  onNewChat: () => void;
 }
 
-export function ChatHeader({ onClearChat }: ChatHeaderProps) {
+export function ChatHeader({ onClearChat, onNewChat }: ChatHeaderProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const handleClearClick = () => {
@@ -44,6 +45,16 @@ export function ChatHeader({ onClearChat }: ChatHeaderProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" onClick={onNewChat}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>New chat session</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" onClick={handleClearClick}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -51,7 +62,6 @@ export function ChatHeader({ onClearChat }: ChatHeaderProps) {
               <TooltipContent>Clear chat history</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
           <ConfirmDialog
             isOpen={isConfirmOpen}
             onClose={() => setIsConfirmOpen(false)}
@@ -61,7 +71,8 @@ export function ChatHeader({ onClearChat }: ChatHeaderProps) {
             confirmText="Clear"
             cancelText="Cancel"
             variant="destructive"
-          />        </div>
+          />
+        </div>
       </CardContent>
     </Card>
   );
