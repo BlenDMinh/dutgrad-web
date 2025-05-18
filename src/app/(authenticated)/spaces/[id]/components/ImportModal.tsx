@@ -292,17 +292,20 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
               </Button>
             )}
       </DialogTrigger>
-
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import Document</DialogTitle>
+          <DialogTitle className="text-xl">Import Document</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Upload a document and add a description to improve processing accuracy
+          </p>
         </DialogHeader>
 
         <Form {...form}>
           <form
-            className="space-y-4"
+            className="space-y-4 lg:space-y-0 flex flex-col lg:flex-row gap-6"
             onSubmit={form.handleSubmit(handleFileUpload)}
           >
+            <div className="flex-1 space-y-4">
             <FormField
               name="file"
               control={form.control}
@@ -361,27 +364,29 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 </FormItem>
               )}
             />
-
             <FormField
               name="description"
               control={form.control}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (optional)</FormLabel>
+                <FormLabel>
+                    <div className="flex items-center justify-between">
+                      <span>Document Description</span>
+                      <span className="text-xs text-muted-foreground ml-4">Recommended</span>
+                    </div>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of the document content (max 1024 chars)"
+                      placeholder="Please describe the content of your document to improve AI processing accuracy..."
                       maxLength={1024}
                       disabled={isUploading}
-                      className="min-h-[100px] resize-none"
+                      className="min-h-[180px] resize-none"
                       {...field}
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {`Note: The ChatBot may not process the file with 100%
-                    accuracy. Please provide a detailed description of the
-                    document content (e.g., "This file describes financial data.
-                    Column A in Excel is the date, Column B is revenue...").`}
+                    A detailed description helps our AI better understand your document content.
+                    See the guidelines on the right for examples.
                   </p>
                 </FormItem>
               )}
@@ -420,7 +425,6 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 <AlertDescription>{feedback.message}</AlertDescription>
               </Alert>
             )}
-
             <DialogFooter className="sm:justify-start gap-2">
               <Button type="submit" disabled={isUploading}>
                 {isUploading ? "Uploading..." : "Upload"}
@@ -431,6 +435,53 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 </Button>
               </DialogClose>
             </DialogFooter>
+            </div>
+            
+            <div className="flex-1 border-l-0 lg:border-l border-border pl-0 lg:pl-6">
+              <div className="bg-muted/40 rounded-lg p-4 h-full">
+                <h3 className="text-lg font-medium mb-4">How to Write an Effective Description</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-semibold">📝 Why Descriptions Matter</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      A good description helps our AI better understand and process your document, 
+                      improving the accuracy of answers from the ChatBot.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-semibold">📄 For Document Files (PDF, DOC, DOCX, TXT)</h4>
+                    <ul className="text-sm text-muted-foreground mt-1 list-disc pl-4 space-y-1">
+                      <li>Summarize the main topic or purpose</li>
+                      <li>Mention important sections or chapters</li>
+                      <li>List key information the document contains</li>
+                      <li>Explain any technical terms or jargon</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-semibold">📊 For Spreadsheets (XLS, XLSX, CSV)</h4>
+                    <ul className="text-sm text-muted-foreground mt-1 list-disc pl-4 space-y-1">
+                      <li>Describe what each column represents</li>
+                      <li>Explain the meaning of different sheets</li>
+                      <li>Detail any data formatting or calculations</li>
+                      <li>Mention date ranges or data collection periods</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-secondary/30 p-3 rounded-md border border-secondary mt-2">
+                    <h4 className="text-xs font-semibold mb-1">Example Descriptions:</h4>
+                    <p className="text-xs italic mb-2">
+                      &quot;This is our Q1 2025 Sales Report. Pages 1-3 contain the executive summary. The table on page 5 shows revenue by product category. Charts on pages 7-10 compare performance to previous quarters.&quot;
+                    </p>
+                    <p className="text-xs italic">
+                      &quot;Excel file with 2025 financial data. Sheet 1 (Overview): Column A is date, B is revenue, C is expenses. Sheet 2 (Customers): Column A is customer ID, B is total purchase value, C is acquisition date.&quot;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </form>
         </Form>
       </DialogContent>
