@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Bot, Clock, RefreshCw, Search } from "lucide-react";
+import { Bot, Clock, RefreshCw, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,6 +14,8 @@ import {
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { chatService } from "@/services/api/chat.service";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface ChatSession {
   id: number;
@@ -46,6 +48,8 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState<number | null>(null);
 
   const getRelativeTime = (dateString: string): string => {
     const now = new Date();
@@ -125,6 +129,41 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
   useEffect(() => {
     fetchSessionHistory();
   }, []);
+  const handleDeleteSession = async () => {
+    if (!chatToDelete) return;
+
+    try {
+      await chatService.clearChatHistory(chatToDelete);
+      setRecentChats((prevChats) =>
+        prevChats.filter((chat) => chat.id !== chatToDelete)
+      );
+      toast.success("Chat session deleted successfully");
+
+      if (Number(sessionId) === chatToDelete) {
+        const spaceId = recentChats.find(
+          (chat) => chat.id === chatToDelete
+        )?.spaceId;
+        if (spaceId) {
+          try {
+            const newSession = await chatService.beginChatSession(spaceId);
+            if (newSession && newSession.id) {
+              toast.success("New chat session created");
+              window.location.href = `/spaces/${spaceId}/chat?sessionId=${newSession.id}`;
+            }
+          } catch (error) {
+            console.error("Failed to create new session:", error);
+            toast.error("Failed to create new chat session. Please try again.");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete chat session:", error);
+      toast.error("Failed to delete chat session. Please try again.");
+    } finally {
+      setIsConfirmDeleteOpen(false);
+      setChatToDelete(null);
+    }
+  };
 
   const filteredChats = recentChats.filter(
     (chat) =>
@@ -214,20 +253,22 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
                     backgroundColor: "rgba(var(--muted) / 0.3)",
                   }}
                   className={cn(
-                    "rounded-md p-2 cursor-pointer transition-colors",
+                    "rounded-md p-2 cursor-pointer transition-colors group",
                     Number(sessionId) === chat.id && "bg-accent"
                   )}
-                  onClick={() =>
-                    router.push(
-                      `/spaces/${chat.spaceId}/chat?sessionId=${chat.id}`
-                    )
-                  }
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Bot className="h-4 w-4 text-primary" />
                     </div>
-                    <div className="flex-1 min-w-0 space-y-1">
+                    <div
+                      className="flex-1 min-w-0 space-y-1"
+                      onClick={() =>
+                        router.push(
+                          `/spaces/${chat.spaceId}/chat?sessionId=${chat.id}`
+                        )
+                      }
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-medium truncate max-w-[120px]">
                           {chat.spaceName}
@@ -241,6 +282,27 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
                         {truncateText(chat.lastMessage, 60)}
                       </div>
                     </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setChatToDelete(chat.id);
+                              setIsConfirmDeleteOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3 text-muted-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete chat session</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </motion.div>
               ))
@@ -266,6 +328,16 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
           </div>
         </ScrollArea>
       </div>
+      <ConfirmDialog
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        onConfirm={handleDeleteSession}
+        title="Delete Chat Session"
+        description="Are you sure you want to delete this chat session? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
     </div>
   );
 }
