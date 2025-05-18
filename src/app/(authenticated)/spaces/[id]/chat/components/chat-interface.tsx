@@ -178,7 +178,20 @@ export default function ChatInterface() {
       await chatService.clearChatHistory(Number(sessionId));
       setMessages([]);
       toast.success("Chat history cleared successfully");
-      createNewSession();
+      if (spaceId) {
+        try {
+          const newSession = await chatService.beginChatSession(
+            Number(spaceId)
+          );
+          if (newSession && newSession.id) {
+            toast.success("New chat session created");
+            window.location.href = `/spaces/${spaceId}/chat?sessionId=${newSession.id}`;
+          }
+        } catch (error) {
+          console.error("Failed to create new session:", error);
+          toast.error("Failed to create new chat session. Please try again.");
+        }
+      }
     } catch (error) {
       console.error("Failed to clear chat history:", error);
       toast.error("Failed to clear chat history. Please try again.");
