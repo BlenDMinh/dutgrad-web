@@ -178,6 +178,7 @@ export default function ChatInterface() {
       await chatService.clearChatHistory(Number(sessionId));
       setMessages([]);
       toast.success("Chat history cleared successfully");
+      createNewSession();
     } catch (error) {
       console.error("Failed to clear chat history:", error);
       toast.error("Failed to clear chat history. Please try again.");
