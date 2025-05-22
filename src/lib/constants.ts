@@ -28,7 +28,7 @@ export const API_ROUTES = {
     DETAIL: (spaceId: string) => `/spaces/${spaceId}`,
     INVITATIONS: (spaceId: string) => `/spaces/${spaceId}/invitations`,
     MY_INVITATIONS: () => `/invitations/me`,
-    DOCUMENTS: (spaceId: string) => `/space/${spaceId}/documents`,
+    DOCUMENTS: (spaceId: string) => `/spaces/${spaceId}/documents`,
     USER_ROLE: (spaceId: string) => `/spaces/${spaceId}/user-role`,
     INVITATION_LINK: (spaceId: string) => `/spaces/${spaceId}/invitation-link`,
     JOIN_SPACE_LINK: (token: string) => `/spaces/join?token=${token}`,
