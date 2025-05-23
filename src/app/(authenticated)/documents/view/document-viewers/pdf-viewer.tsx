@@ -29,10 +29,8 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
     setLoading(false);
     if (onLoadSuccess) onLoadSuccess();
   };
-
   const handleError = () => {
     if (!useDirect) {
-      console.log("Google Viewer failed, switching to direct view");
       setUseDirect(true);
       if (iframeRef.current) {
         iframeRef.current.src = url;
@@ -42,7 +40,8 @@ export function PdfViewer({ url, onLoadSuccess, onError }: PdfViewerProps) {
 
     setLoading(false);
     setError(true);
-    if (onError) onError("Unable to load PDF document");
+    const errorMessage = "Unable to load PDF document";
+    if (onError) onError(errorMessage);
   };
 
   if (error) {

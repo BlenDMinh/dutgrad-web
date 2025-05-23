@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { BaseDocumentViewer } from './base-viewer';
+import React from "react";
+import { OfficeViewer } from "./office-viewer";
 
 interface ExcelViewerProps {
   url: string;
@@ -10,17 +10,13 @@ interface ExcelViewerProps {
 }
 
 export function ExcelViewer({ url, onLoadSuccess, onError }: ExcelViewerProps) {
-  const officeOnlineUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
-  
   return (
-    <BaseDocumentViewer
-      url={officeOnlineUrl}
+    <OfficeViewer
+      url={url}
       title="Excel document"
       onLoadSuccess={onLoadSuccess}
       onError={onError}
-      loadingText="Loading Excel document..."
-      errorTitle="Cannot view Excel document online"
-      googleViewerType={false}
+      useGoogleViewer={false}
     />
   );
 }
