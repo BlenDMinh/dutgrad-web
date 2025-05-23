@@ -28,6 +28,11 @@ export const documentService = {
       timeout: 0,
     });
   },
+  getCountMyDocuments: async (): Promise<number> => {
+    const response = await apiClient.head(API_ROUTES.DOCUMENT.COUNT_MY_DOCUMENTS);
+    const count = response.headers["x-document-count"];
+    return Number(count);
+  },
   getDocumentById: async (documentId: number) => {
     const response = await apiClient.instance.get(
       API_ROUTES.DOCUMENT.DETAIL(documentId.toString())
