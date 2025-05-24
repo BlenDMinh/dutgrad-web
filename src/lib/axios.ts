@@ -94,4 +94,3 @@ export const apiClient = {
   instance: api,
 };
 
-export default apiClient;

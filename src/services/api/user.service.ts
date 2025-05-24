@@ -1,4 +1,4 @@
-import apiClient from "@/lib/axios";
+import { apiClient } from "@/lib/axios";
 import { handleResponse } from "./helper";
 import { API_ROUTES } from "@/lib/constants";
 
@@ -13,6 +13,7 @@ export interface User {
   sessions: any | null;
   tier: any | null;
 }
+
 export interface TierData {
   id: number;
   name?: string;
@@ -38,6 +39,7 @@ export interface TierUsageResponse {
   tier: TierData;
   usage: UsageData;
 }
+
 export interface UserSearchResponse {
   users: User[];
 }
@@ -45,6 +47,10 @@ export interface UserSearchResponse {
 export const userService = {
   getProfile: async () => {
     const response = await apiClient.get(API_ROUTES.USER.MINE);
+    return handleResponse(response.data);
+  },
+  getUserTier: async (): Promise<TierUsageResponse> => {
+    const response = await apiClient.get(API_ROUTES.USER.TIER);
     return handleResponse(response.data);
   },
   updateProfile: async (data: any) => {
@@ -55,10 +61,6 @@ export const userService = {
     const response = await apiClient.get(
       `${API_ROUTES.USER.SEARCH}?query=${encodeURIComponent(query)}`
     );
-    return handleResponse(response.data);
-  },
-  getUserTier: async (): Promise<TierUsageResponse> => {
-    const response = await apiClient.get(API_ROUTES.USER.TIER);
     return handleResponse(response.data);
   },
 };

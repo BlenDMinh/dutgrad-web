@@ -10,6 +10,9 @@ import {
   Check,
   AlertTriangle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { spaceService } from "@/services/api/space.service";
+import { documentService } from "@/services/api/document.service";
 
 interface AccountDetailsCardProps {
   user: any;
@@ -20,6 +23,26 @@ export function AccountDetailsCard({
   user,
   mfaStatus,
 }: AccountDetailsCardProps) {
+  const [spaceCount, setSpaceCount] = useState<number>(0);
+  const [documentCount, setDocumentCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+
+        const spaceCountValue = await spaceService.getCountMySpace();
+        setSpaceCount(spaceCountValue);
+        
+        const documentCountValue = await documentService.getCountMyDocuments();
+        setDocumentCount(documentCountValue);
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <Card className="shadow-md h-full">
       <CardHeader>
@@ -98,13 +121,13 @@ export function AccountDetailsCard({
                 <p className="text-sm font-medium text-muted-foreground">
                   Total Spaces
                 </p>
-                <p className="text-2xl font-bold mt-1">5</p>
+                <p className="text-2xl font-bold mt-1">{spaceCount}</p>
               </div>
               <div className="bg-muted/30 p-4 rounded-lg">
                 <p className="text-sm font-medium text-muted-foreground">
                   Documents
                 </p>
-                <p className="text-2xl font-bold mt-1">12</p>
+                <p className="text-2xl font-bold mt-1">{documentCount}</p>
               </div>
             </div>
           </div>

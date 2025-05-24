@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
-import { BaseDocumentViewer } from './base-viewer';
+import React from "react";
+import { OfficeViewer } from "./office-viewer";
 
 interface CSVViewerProps {
   url: string;
@@ -11,14 +11,12 @@ interface CSVViewerProps {
 
 export function CSVViewer({ url, onLoadSuccess, onError }: CSVViewerProps) {
   return (
-    <BaseDocumentViewer
+    <OfficeViewer
       url={url}
       title="CSV document"
       onLoadSuccess={onLoadSuccess}
       onError={onError}
-      loadingText="Loading CSV document..."
-      errorTitle="Cannot view CSV document online"
-      googleViewerType={true}
+      useGoogleViewer={true}
     />
   );
 }

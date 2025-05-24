@@ -52,6 +52,7 @@ export const API_ROUTES = {
     UPLOAD: "/documents/upload",
     DETAIL: (id: string) => `/documents/${id}`,
     DELETE: (documentId: string) => `/documents/${documentId}`,
+    COUNT_MY_DOCUMENTS: "/documents/count/me",
   },
   CHAT: {
     BEGIN_SESSION: "/user-query-sessions/begin-chat-session",
