@@ -40,7 +40,8 @@ export const documentService = {
       API_ROUTES.DOCUMENT.DETAIL(documentId.toString())
     );
     return handleResponse(response.data);
-  },  deleteDocument: async (documentId: string) => {
+  },
+  deleteDocument: async (documentId: string) => {
     const response = await apiClient.delete(
       API_ROUTES.DOCUMENT.DELETE(documentId)
     );
