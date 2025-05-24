@@ -1,6 +1,6 @@
-import apiClient from "@/lib/axios";
+import { apiClient } from "@/lib/axios";
 import { handleResponse } from "./helper";
-import { API_ROUTES } from "../../lib/constants";
+import { API_ROUTES } from "@/lib/constants";
 
 export const spaceService = {
   createSpace: async (data: {
@@ -63,19 +63,25 @@ export const spaceService = {
     const response = await apiClient.get(API_ROUTES.SPACE.INVITATIONS(spaceId));
     return handleResponse(response.data);
   },
-  inviteUser: async (spaceId: string, userId: number, roleId: number) => {
-    const response = await apiClient.post(
-      `${API_ROUTES.SPACE.INVITATIONS(spaceId)}`,
-      { invited_user_id: userId, space_role_id: roleId }
-    );
-    return handleResponse(response.data);
-  },
   getSpaceRoles: async () => {
     const response = await apiClient.get(API_ROUTES.SPACE.ROLES);
     return handleResponse(response.data);
   },
   getUserRole: async (spaceId: string) => {
     const response = await apiClient.get(API_ROUTES.SPACE.USER_ROLE(spaceId));
+    return handleResponse(response.data);
+  },
+  getMyInvitations: async () => {
+    const response = await apiClient.get(
+      `${API_ROUTES.SPACE.MY_INVITATIONS()}`
+    );
+    return handleResponse(response.data);
+  },
+  inviteUser: async (spaceId: string, userId: number, roleId: number) => {
+    const response = await apiClient.post(
+      `${API_ROUTES.SPACE.INVITATIONS(spaceId)}`,
+      { invited_user_id: userId, space_role_id: roleId }
+    );
     return handleResponse(response.data);
   },
   getOrCreateInviteLink: async (spaceId: string, spaceRoleId: number) => {
@@ -90,12 +96,6 @@ export const spaceService = {
   joinSpaceWithToken: async (token: string) => {
     const response = await apiClient.post(
       `${API_ROUTES.SPACE.JOIN_SPACE_LINK(token)}`
-    );
-    return handleResponse(response.data);
-  },
-  getMyInvitations: async () => {
-    const response = await apiClient.get(
-      `${API_ROUTES.SPACE.MY_INVITATIONS()}`
     );
     return handleResponse(response.data);
   },
@@ -127,14 +127,27 @@ export const spaceService = {
     return Number(count);
   },
   getInvitationCount: async (): Promise<number> => {
-      const response = await apiClient.get(API_ROUTES.SPACE.COUNT_INVITATIONS);
-      return handleResponse(response.data).count || 0;
+    const response = await apiClient.get(API_ROUTES.SPACE.COUNT_INVITATIONS);
+    return handleResponse(response.data).count || 0;
   },
   getCountMyChatSessions: async (): Promise<number> => {
     const response = await apiClient.head(
       API_ROUTES.SPACE.COUNT_USER_QUERY_SESSION
     );
     return Number(response.headers["x-total-count"]);
+  },
+  updateUserRole: async (spaceId: string, memberId: string, roleId: number) => {
+    const response = await apiClient.patch(
+      `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}/role`,
+      { role_id: roleId }
+    );
+    return handleResponse(response.data);
+  },
+  removeMember: async (spaceId: string, memberId: string) => {
+    const response = await apiClient.delete(
+      `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}`
+    );
+    return handleResponse(response.data);
   },
   createApiKey: async (
     spaceId: string,
@@ -159,19 +172,6 @@ export const spaceService = {
   deleteApiKey: async (spaceId: string, keyId: string) => {
     const response = await apiClient.delete(
       API_ROUTES.SPACE.API_KEY_DETAIL(spaceId, keyId)
-    );
-    return handleResponse(response.data);
-  },
-  updateUserRole: async (spaceId: string, memberId: string, roleId: number) => {
-    const response = await apiClient.patch(
-      `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}/role`,
-      { role_id: roleId }
-    );
-    return handleResponse(response.data);
-  },
-  removeMember: async (spaceId: string, memberId: string) => {
-    const response = await apiClient.delete(
-      `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}`
     );
     return handleResponse(response.data);
   },

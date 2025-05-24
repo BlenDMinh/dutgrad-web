@@ -1,6 +1,6 @@
-import apiClient from "@/lib/axios";
+import { apiClient } from "@/lib/axios";
 import { handleResponse } from "./helper";
-import { API_ROUTES } from "../../lib/constants";
+import { API_ROUTES } from "@/lib/constants";
 
 interface BeginSessionResponse {
   id: number;
@@ -72,11 +72,15 @@ export const chatService = {
   },
 
   getTempMessage: async (querySessionId: number): Promise<string | null> => {
-    const response = await apiClient.get(API_ROUTES.CHAT.GET_TEMP_MESSAGE(querySessionId));
+    const response = await apiClient.get(
+      API_ROUTES.CHAT.GET_TEMP_MESSAGE(querySessionId)
+    );
     return handleResponse<string>(response.data);
   },
 
-  getSessionChatHistory: async (querySessionId: number): Promise<ChatHistoryMessage[]> => {
+  getSessionChatHistory: async (
+    querySessionId: number
+  ): Promise<ChatHistoryMessage[]> => {
     const response = await apiClient.get(
       API_ROUTES.CHAT.CLEAR_HISTORY(querySessionId)
     );

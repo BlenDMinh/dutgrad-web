@@ -159,7 +159,7 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
 
       console.log(correctMimeType);
 
-      const response = await documentService.uploadDocumet(
+      const response = await documentService.uploadDocument(
         Number.parseInt(spaceId),
         file,
         (progressEvent) => {
