@@ -53,11 +53,13 @@ export const chatService = {
     querySessionId: number,
     query: string
   ): Promise<ChatQueryResponse> => {
+    const trimmedQuery = query.length > 1024 ? query.substring(0, 1024) : query;
+    
     const response = await apiClient.post(
       API_ROUTES.CHAT.ASK,
       {
         query_session_id: querySessionId,
-        query: query,
+        query: trimmedQuery,
       },
       {
         timeout: 120000,

@@ -3,6 +3,7 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   input: string;
@@ -76,18 +77,29 @@ export function ChatInput({
             <Textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value.length <= 1024) {
+                  setInput(e.target.value);
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Type your question... (Shift+Enter for new line, Up/Down for history)"
               className="resize-none min-h-[60px] max-h-[150px] bg-background/50 focus-visible:ring-primary/30 pl-4 pr-12 py-3"
               disabled={!sessionId || isLoading}
+              maxLength={1024}
             />
-            <div className="absolute bottom-2 right-3 text-xs text-muted-foreground">
+            <div className="absolute bottom-2 right-3 text-xs text-muted-foreground flex items-center gap-2">
               {historyIndex > -1 && (
-                <span>
+                <span className="mr-2">
                   History: {historyIndex + 1}/{queryHistory.length}
                 </span>
               )}
+              <span className={cn(
+                input.length > 900 && input.length <= 1000 ? "text-amber-500" : "",
+                input.length > 1000 ? "text-red-500 font-medium" : ""
+              )}>
+                {input.length}/1024
+              </span>
             </div>
           </div>
           <Button
