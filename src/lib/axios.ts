@@ -77,6 +77,7 @@ export const apiClient = {
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return api.patch<ApiResponse<T>>(url, data, config);
   },
+
   head: <T = any>(
     url: string,
     config?: AxiosRequestConfig
@@ -93,4 +94,3 @@ export const apiClient = {
 
   instance: api,
 };
-

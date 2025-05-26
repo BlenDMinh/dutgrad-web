@@ -8,13 +8,6 @@ export const loginSchema = z.object({
 
 export type LoginCredentials = z.infer<typeof loginSchema>;
 
-const ACCESS_TOKEN_EXPIRY = 15 * 60;
-const REFRESH_TOKEN_EXPIRY = 7;
-
-interface AuthTokensProps {
-  accessToken: string;
-}
-
 export function setAuthTokens({ accessToken }: { accessToken: string }): void {
   if (typeof window !== "undefined" && window.localStorage) {
     localStorage.setItem("accessToken", accessToken);
