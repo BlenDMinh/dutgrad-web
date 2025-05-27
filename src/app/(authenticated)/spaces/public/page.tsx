@@ -33,8 +33,9 @@ export default function PublicSpacesPage() {
           spaceService.getSpacePublic(),
           spaceService.getYourSpaces(),
         ]);
+        const joinSpaces = joinedRes.spaces || [];
         setPublicSpaces(publicRes.public_spaces || []);
-        setJoinedSpaceIds(joinedRes.spaces.map((space: any) => space.id));
+        setJoinedSpaceIds(joinSpaces.map((space: any) => space.id));
       } catch (err) {
         setError("Failed to fetch public spaces");
       } finally {
