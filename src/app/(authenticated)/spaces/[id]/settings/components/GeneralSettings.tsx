@@ -33,6 +33,7 @@ interface GeneralSettingsProps {
   initialName: string;
   initialDescription: string;
   initialPrivacyStatus: boolean;
+  initialSystemPrompt?: string;
   onUpdate?: (spaceId: string) => void
 }
 
@@ -41,16 +42,19 @@ export function GeneralSettings({
   initialName,
   initialDescription,
   initialPrivacyStatus,
+  initialSystemPrompt = "You are an AI assistant for answering questions about documents in this space. Provide helpful, accurate, and concise information based on the content available.",
   onUpdate,
 }: GeneralSettingsProps) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
+  const [systemPrompt, setSystemPrompt] = useState(initialSystemPrompt);
   const [privacyStatus, setPrivacyStatus] = useState(
     initialPrivacyStatus ? "private" : "public"
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [nameError, setNameError] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
+  const [systemPromptError, setSystemPromptError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -79,7 +83,6 @@ export function GeneralSettings({
       setProgress(0);
     }
   }, [isSubmitting]);
-
   const validateForm = () => {
     let isValid = true;
 
@@ -103,9 +106,15 @@ export function GeneralSettings({
       setDescriptionError("");
     }
 
+    if (systemPrompt && systemPrompt.length > 1024) {
+      setSystemPromptError("System prompt must be less than 1024 characters");
+      isValid = false;
+    } else {
+      setSystemPromptError("");
+    }
+
     return isValid;
   };
-
   const handleUpdateSpace = async () => {
     if (!validateForm()) {
       toast.error("Please fix the errors before saving");
@@ -120,6 +129,7 @@ export function GeneralSettings({
         name,
         description,
         privacy_status: privacyStatus === "private",
+        system_prompt: systemPrompt,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -234,6 +244,50 @@ export function GeneralSettings({
               >
                 <AlertTriangle size={14} />
                 {descriptionError}
+              </motion.div>
+            )}
+          </AnimatePresence>        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="systemPrompt" className="text-sm font-medium">
+              System Prompt
+            </Label>
+            <span className="text-xs text-muted-foreground">
+              {systemPrompt ? systemPrompt.length : 0}/1024
+            </span>
+          </div>
+
+          <Textarea
+            id="systemPrompt"
+            value={systemPrompt}
+            onChange={(e) => {
+              setSystemPrompt(e.target.value);
+              if (e.target.value.length <= 1024) setSystemPromptError("");
+            }}
+            placeholder="Enter system prompt for the chatbot in this space"
+            rows={6}
+            className={
+              systemPromptError
+                ? "border-destructive focus-visible:ring-destructive/30"
+                : ""
+            }
+          />
+          
+          <p className="text-xs text-muted-foreground mt-1">
+            This defines how the AI assistant will behave when users interact with documents in this space.
+          </p>
+
+          <AnimatePresence>
+            {systemPromptError && (
+              <motion.div
+                className="flex items-center gap-2 text-sm font-medium text-destructive"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <AlertTriangle size={14} />
+                {systemPromptError}
               </motion.div>
             )}
           </AnimatePresence>

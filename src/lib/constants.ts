@@ -6,6 +6,14 @@ export const API_ROUTES = {
     GOOGLE: "/auth/oauth/google",
     CALLBACK: "/auth/callback",
     EXCHANGE_STATE: "/auth/exchange-state",
+    VERIFY_MFA: "/auth/verify-mfa",
+    MFA: {
+      STATUS: "/auth/mfa/status",
+      SETUP: "/auth/mfa/setup",
+      VERIFY: "/auth/mfa/verify",
+      VERIFY_EXTERNAL: "/auth/oauth/verify-mfa",
+      DISABLE: "/auth/mfa/disable",
+    },
   },
   SPACE: {
     ALL: "/spaces",
@@ -13,13 +21,14 @@ export const API_ROUTES = {
     PUBLIC: "/spaces/public",
     MINE: "/spaces/me",
     COUNT_MY_SPACE: "/spaces/count/me",
+    COUNT_INVITATIONS: "/space-invitations/count",
     COUNT_USER_QUERY_SESSION: "/user-query-sessions/me",
     POPULAR_SPACE: "/spaces/popular?order=member_count",
     ROLES: "/spaces/roles",
     DETAIL: (spaceId: string) => `/spaces/${spaceId}`,
     INVITATIONS: (spaceId: string) => `/spaces/${spaceId}/invitations`,
     MY_INVITATIONS: () => `/invitations/me`,
-    DOCUMENTS: (spaceId: string) => `/space/${spaceId}/documents`,
+    DOCUMENTS: (spaceId: string) => `/spaces/${spaceId}/documents`,
     USER_ROLE: (spaceId: string) => `/spaces/${spaceId}/user-role`,
     INVITATION_LINK: (spaceId: string) => `/spaces/${spaceId}/invitation-link`,
     JOIN_SPACE_LINK: (token: string) => `/spaces/join?token=${token}`,
@@ -43,11 +52,16 @@ export const API_ROUTES = {
     UPLOAD: "/documents/upload",
     DETAIL: (id: string) => `/documents/${id}`,
     DELETE: (documentId: string) => `/documents/${documentId}`,
+    COUNT_MY_DOCUMENTS: "/documents/count/me",
   },
   CHAT: {
     BEGIN_SESSION: "/user-query-sessions/begin-chat-session",
     ASK: "/user-query/ask",
     SESSION_HISTORY: "/user-query-sessions/me",
+    GET_TEMP_MESSAGE: (querySessionId: number) =>
+      `/user-query-sessions/${querySessionId}/temp-message`,
+    CLEAR_HISTORY: (querySessionId: number) =>
+      `/user-query-sessions/${querySessionId}/history`,
   },
 };
 
@@ -58,6 +72,7 @@ export const APP_ROUTES = {
   DASHBOARD: "/dashboard",
   PROFILE: "/profile",
   AUTH_CALLBACK: "/auth/callback",
+  COMPLETE_SETUP: "/complete-setup",
   MY_INVITATIONS: "/invitation/me",
   SPACES: {
     CREATE: "/spaces/create",
@@ -77,20 +92,17 @@ export const APP_ROUTES = {
 };
 
 export const ALLOWED_FILE_TYPES: Record<string, string> = {
-  // PDF files
   "application/pdf": ".pdf",
 
-  // Word documents
   "application/msword": ".doc",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
     ".docx",
 
-  // Excel files
   "application/vnd.ms-excel": ".xls",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
 
-  // Text files
   "text/plain": ".txt",
+  "text/csv": ".csv",
 };
 
 export const SPACE_ROLE = {

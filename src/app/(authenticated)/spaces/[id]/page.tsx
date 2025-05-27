@@ -42,6 +42,7 @@ import {
   ChevronRight,
   Info,
   Filter,
+  Download,
 } from "lucide-react";
 import ImportModal from "./components/ImportModal";
 import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
@@ -68,10 +69,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface SpaceDocument {
   id: number;
   name: string;
+  description?: string;
   s3_url: string;
   privacy_status: boolean;
   created_at: string;
@@ -96,6 +104,10 @@ export default function SpaceDetailPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [fileTypeFilter, setFileTypeFilter] = useState<string>("all");
+  const [documentToView, setDocumentToView] = useState<SpaceDocument | null>(
+    null
+  );
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (!spaceId) return;
@@ -224,8 +236,8 @@ export default function SpaceDetailPage() {
         };
       default:
         return {
-          icon: <AlertCircle className="mr-1" size={14} />,
-          text: "Unknown",
+          icon: <AlertCircle className="mr-1 text-red-500" size={14} />,
+          text: "Error",
           variant: "outline" as const,
           progressValue: 0,
           progressColor: "bg-gray-500",
@@ -271,6 +283,19 @@ export default function SpaceDetailPage() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+  };
+
+  const handleOpenDocument = (document: SpaceDocument) => {
+    router.push(`/documents/view?id=${document.id}`);
+  };
+
+  const getDocumentViewerUrl = (document: SpaceDocument) => {
+    if (document.mime_type.includes("pdf")) {
+      return document.s3_url;
+    }
+    return `https://docs.google.com/viewer?url=${encodeURIComponent(
+      document.s3_url
+    )}&embedded=true`;
   };
 
   const filteredDocuments = documents.filter((doc) => {
@@ -576,6 +601,11 @@ export default function SpaceDetailPage() {
                                             <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors">
                                               {document.name}
                                             </h3>
+                                            {document.description && (
+                                              <p className="text-sm text-muted-foreground line-clamp-1">
+                                                {document.description}
+                                              </p>
+                                            )}
                                             <div className="flex items-center mt-1 text-sm text-muted-foreground">
                                               <Calendar className="h-3.5 w-3.5 mr-1" />
                                               <span>{timeAgo}</span>
@@ -590,31 +620,17 @@ export default function SpaceDetailPage() {
                                                     size="icon"
                                                     variant="ghost"
                                                     className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    onClick={() => {}}
+                                                    onClick={() =>
+                                                      handleOpenDocument(
+                                                        document
+                                                      )
+                                                    }
                                                   >
                                                     <Eye size={16} />
                                                   </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
                                                   <p>View document</p>
-                                                </TooltipContent>
-                                              </Tooltip>
-                                            </TooltipProvider>
-
-                                            <TooltipProvider>
-                                              <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                  <Button
-                                                    size="icon"
-                                                    variant="ghost"
-                                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    onClick={() => {}}
-                                                  >
-                                                    <Edit size={16} />
-                                                  </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                  <p>Edit document</p>
                                                 </TooltipContent>
                                               </Tooltip>
                                             </TooltipProvider>
@@ -672,7 +688,10 @@ export default function SpaceDetailPage() {
                                                       : document.processing_status ===
                                                         1
                                                       ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
-                                                      : "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                                                      : document.processing_status ===
+                                                        0
+                                                      ? "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                                                      : "bg-red-500/20 text-red-700 dark:text-red-400"
                                                   }`}
                                                   onClick={() =>
                                                     handleProcessingStatusClick(
@@ -709,7 +728,13 @@ export default function SpaceDetailPage() {
                                                 <p>
                                                   Document ID: {document.id}
                                                 </p>
-                                                <p>
+                                                {document.description && (
+                                                  <p className="mt-1">
+                                                    Description:{" "}
+                                                    {document.description}
+                                                  </p>
+                                                )}
+                                                <p className="mt-1">
                                                   MIME Type:{" "}
                                                   {document.mime_type}
                                                 </p>
@@ -787,7 +812,16 @@ export default function SpaceDetailPage() {
               <AlertDialogDescription>
                 This action cannot be undone. This will permanently delete the
                 document{" "}
-                <span className="font-semibold">{documentToDelete?.name}</span>{" "}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="font-semibold inline-block max-w-[200px] truncate align-bottom">
+                        {documentToDelete?.name}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>{documentToDelete?.name}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>{" "}
                 and remove it from the space.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -802,6 +836,31 @@ export default function SpaceDetailPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] w-full p-4">
+            <DialogHeader className="mb-2">
+              <DialogTitle>{documentToView?.name}</DialogTitle>
+            </DialogHeader>
+            {documentToView && (
+              <div className="relative w-full h-[85vh]">
+                <iframe
+                  src={getDocumentViewerUrl(documentToView)}
+                  className="absolute inset-0 w-full h-full border-none"
+                  title={documentToView.name}
+                />
+                <a
+                  href={documentToView.s3_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute top-1 left-1 bg-gray-600 text-white p-2 hover:bg-gray-400 rounded-2xl transition"
+                >
+                  <Download size={16} />
+                </a>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </motion.div>
     </div>
   );

@@ -1,9 +1,5 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import {
-  clearAuthTokens,
-  clearAuthUser,
-  getAccessToken,
-} from "./auth";
+import { clearAuthTokens, clearAuthUser, getAccessToken } from "./auth";
 import { ApiResponse } from "@/schemas/api";
 import { APP_ROUTES } from "./constants";
 
@@ -41,7 +37,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 || error.response?.status === 403) {
       clearAuthTokens();
       clearAuthUser();
-      window.location.href = APP_ROUTES.LOGIN;
+      if (typeof window !== "undefined") {
+        window.location.href = APP_ROUTES.LOGIN;
+      }
     }
 
     return Promise.reject(error);
@@ -79,6 +77,7 @@ export const apiClient = {
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return api.patch<ApiResponse<T>>(url, data, config);
   },
+
   head: <T = any>(
     url: string,
     config?: AxiosRequestConfig
@@ -95,5 +94,3 @@ export const apiClient = {
 
   instance: api,
 };
-
-export default apiClient;

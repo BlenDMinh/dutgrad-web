@@ -217,7 +217,10 @@ export default function SpaceSettingsPage() {
                       initialName={space.name}
                       initialDescription={space.description}
                       initialPrivacyStatus={space.privacy_status}
-                      onUpdate={() => {refetch()}}
+                      initialSystemPrompt={space.system_prompt}
+                      onUpdate={() => {
+                        refetch();
+                      }}
                     />
                   </motion.div>
                 </TabsContent>
@@ -229,7 +232,9 @@ export default function SpaceSettingsPage() {
                       initialDocumentLimit={space.document_limit ?? 0}
                       initialFileSizeLimitKb={space.file_size_limit_kb ?? 5120}
                       initialApiCallLimit={space.api_call_limit ?? 0}
-                      onUpdate={() => {refetch()}}
+                      onUpdate={() => {
+                        refetch();
+                      }}
                     />
                   </motion.div>
                 </TabsContent>

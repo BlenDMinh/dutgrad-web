@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, ReactNode, useCallback } from "react";
+import type React from "react";
+
+import { useState, type ReactNode, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,18 +16,18 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { FaPlus, FaFileUpload } from "react-icons/fa";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { documentService } from "@/services/api/document.service";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ALLOWED_FILE_TYPES, APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
 import { useSpace } from "@/context/space.context";
 import { cn } from "@/lib/utils";
@@ -35,7 +37,6 @@ interface ImportDialogProps {
   children?: ReactNode;
 }
 
-// Extensions to MIME type mappings for better validation
 const ALLOWED_EXTENSIONS: Record<string, string[]> = {
   pdf: ["application/pdf"],
   doc: ["application/msword"],
@@ -53,24 +54,34 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [feedback, setFeedback] = useState<{
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
 
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  useEffect(() => {
+    const openImport = searchParams.get("openImport");
+    if (openImport === "true") {
+      setIsOpen(true);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("openImport");
+      router.replace(url.pathname + url.search);
+    }
+  }, [searchParams, router]);
   const form = useForm({
     defaultValues: {
       file: undefined as unknown as FileList,
+      description: "",
     },
   });
 
-  // Function to get the correct MIME type based on file extension
   const getCorrectMimeType = (file: File): string => {
-    // Get the file extension
     const extension = file.name.toLowerCase().split(".").pop();
 
-    // If the file is detected as zip but has Office extensions, convert the MIME type
     if (
       file.type === "application/zip" ||
       file.type === "application/x-zip-compressed" ||
@@ -89,16 +100,13 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
   };
 
   const validateFileType = (file: File): boolean => {
-    // Check if the file's MIME type is directly in our allowed list
     if (ALLOWED_FILE_TYPES[file.type]) {
       return true;
     }
 
-    // Get the file extension
     const extension = file.name.toLowerCase().split(".").pop();
     if (!extension) return false;
 
-    // If file is detected as zip but has an Office extension
     if (
       (file.type === "application/zip" ||
         file.type === "application/x-zip-compressed" ||
@@ -108,18 +116,20 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
       return true;
     }
 
-    // Check if the extension is in our allowed list
     if (ALLOWED_EXTENSIONS[extension]) {
       return true;
     }
 
     return false;
   };
-
-  const handleFileUpload = async (data: { file: FileList }) => {
+  const handleFileUpload = async (data: {
+    file: FileList;
+    description: string;
+  }) => {
     try {
       setFeedback({ type: null, message: "" });
       setIsUploading(true);
+      setUploadProgress(0);
 
       let file = data.file?.[0];
 
@@ -132,27 +142,33 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
         return;
       }
 
-      // Validate file type
       if (!validateFileType(file)) {
         setFeedback({
           type: "error",
-          message: `File type not supported. Please upload one of the following formats: PDF, DOC, DOCX, XLS, XLSX, or TXT.`,
+          message: `File type not supported. Please upload one of the following formats: PDF, DOC, DOCX, XLS, XLSX, CSV or TXT.`,
         });
         setIsUploading(false);
         return;
       }
 
-      // Check if MIME type needs to be corrected
       const correctMimeType = getCorrectMimeType(file);
       if (correctMimeType !== file.type) {
-        // Create a new File object with the corrected MIME type
         file = new File([file], file.name, { type: correctMimeType });
         console.log(`Converted file MIME type to: ${correctMimeType}`);
       }
 
-      const response = await documentService.uploadDocumet(
-        parseInt(spaceId),
-        file
+      console.log(correctMimeType);
+
+      const response = await documentService.uploadDocument(
+        Number.parseInt(spaceId),
+        file,
+        (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / (progressEvent.total || 1)
+          );
+          setUploadProgress(percentCompleted);
+        },
+        data.description
       );
 
       if (response.data.status === 200 || response.data.status === 201) {
@@ -179,13 +195,39 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
 
       let errorMessage = "Failed to upload document. Please try again.";
 
-      if (error.response?.data) {
-        errorMessage =
-          error.response.data.message ||
-          error.response.data.error ||
-          errorMessage;
+      if (error.response) {
+        if (error.response.status === 413) {
+          errorMessage = "File is too large. Please upload a smaller document.";
+        } else if (error.response.status === 415) {
+          errorMessage =
+            "Unsupported file type. Please check the supported formats and try again.";
+        } else if (
+          error.response.status === 401 ||
+          error.response.status === 403
+        ) {
+          errorMessage =
+            "You don't have permission to upload documents to this space.";
+        } else if (error.response.status === 429) {
+          errorMessage =
+            "Too many upload requests. Please wait a moment and try again.";
+        } else if (error.response.status >= 500) {
+          errorMessage = "Server error occurred. Please try again later.";
+        } else if (error.response.data) {
+          errorMessage =
+            error.response.data.message ||
+            error.response.data.error ||
+            errorMessage;
+        }
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+        if (
+          error.message.includes("network") ||
+          error.message.includes("connection")
+        ) {
+          errorMessage =
+            "Network error. Please check your internet connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
       }
 
       setFeedback({
@@ -202,6 +244,7 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
       setFeedback({ type: null, message: "" });
       form.reset();
       setIsDragging(false);
+      setUploadProgress(0);
     }
     setIsOpen(open);
   };
@@ -249,17 +292,20 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
               </Button>
             )}
       </DialogTrigger>
-
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Import Document</DialogTitle>
+          <DialogTitle className="text-xl">Import Document</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Upload a document and add a description to improve processing accuracy
+          </p>
         </DialogHeader>
 
         <Form {...form}>
           <form
-            className="space-y-4"
+            className="space-y-4 lg:space-y-0 flex flex-col lg:flex-row gap-6"
             onSubmit={form.handleSubmit(handleFileUpload)}
           >
+            <div className="flex-1 space-y-4">
             <FormField
               name="file"
               control={form.control}
@@ -301,13 +347,13 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT
+                          Supported formats: PDF, DOC, DOCX, XLS, XLSX, TXT, CSV
                         </p>
                       </div>
                       <Input
                         id="file-upload"
                         type="file"
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.csv"
                         onChange={(e) => onChange(e.target.files)}
                         disabled={isUploading}
                         className="hidden"
@@ -318,6 +364,48 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 </FormItem>
               )}
             />
+            <FormField
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                <FormLabel>
+                    <div className="flex items-center justify-between">
+                      <span>Document Description</span>
+                      <span className="text-xs text-muted-foreground ml-4">Recommended</span>
+                    </div>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Please describe the content of your document to improve AI processing accuracy..."
+                      maxLength={1024}
+                      disabled={isUploading}
+                      className="min-h-[180px] resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    A detailed description helps our AI better understand your document content.
+                    See the guidelines on the right for examples.
+                  </p>
+                </FormItem>
+              )}
+            />
+
+            {isUploading && (
+              <div className="w-full">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium">Uploading...</span>
+                  <span className="text-sm font-medium">{uploadProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                  <div
+                    className="bg-primary h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
 
             {feedback.type === "success" && (
               <Alert
@@ -337,7 +425,6 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 <AlertDescription>{feedback.message}</AlertDescription>
               </Alert>
             )}
-
             <DialogFooter className="sm:justify-start gap-2">
               <Button type="submit" disabled={isUploading}>
                 {isUploading ? "Uploading..." : "Upload"}
@@ -348,6 +435,53 @@ export default function ImportDialog({ spaceId, children }: ImportDialogProps) {
                 </Button>
               </DialogClose>
             </DialogFooter>
+            </div>
+            
+            <div className="flex-1 border-l-0 lg:border-l border-border pl-0 lg:pl-6">
+              <div className="bg-muted/40 rounded-lg p-4 h-full">
+                <h3 className="text-lg font-medium mb-4">How to Write an Effective Description</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-semibold">📝 Why Descriptions Matter</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      A good description helps our AI better understand and process your document, 
+                      improving the accuracy of answers from the ChatBot.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-semibold">📄 For Document Files (PDF, DOC, DOCX, TXT)</h4>
+                    <ul className="text-sm text-muted-foreground mt-1 list-disc pl-4 space-y-1">
+                      <li>Summarize the main topic or purpose</li>
+                      <li>Mention important sections or chapters</li>
+                      <li>List key information the document contains</li>
+                      <li>Explain any technical terms or jargon</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-sm font-semibold">📊 For Spreadsheets (XLS, XLSX, CSV)</h4>
+                    <ul className="text-sm text-muted-foreground mt-1 list-disc pl-4 space-y-1">
+                      <li>Describe what each column represents</li>
+                      <li>Explain the meaning of different sheets</li>
+                      <li>Detail any data formatting or calculations</li>
+                      <li>Mention date ranges or data collection periods</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-secondary/30 p-3 rounded-md border border-secondary mt-2">
+                    <h4 className="text-xs font-semibold mb-1">Example Descriptions:</h4>
+                    <p className="text-xs italic mb-2">
+                      &quot;This is our Q1 2025 Sales Report. Pages 1-3 contain the executive summary. The table on page 5 shows revenue by product category. Charts on pages 7-10 compare performance to previous quarters.&quot;
+                    </p>
+                    <p className="text-xs italic">
+                      &quot;Excel file with 2025 financial data. Sheet 1 (Overview): Column A is date, B is revenue, C is expenses. Sheet 2 (Customers): Column A is customer ID, B is total purchase value, C is acquisition date.&quot;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </form>
         </Form>
       </DialogContent>
