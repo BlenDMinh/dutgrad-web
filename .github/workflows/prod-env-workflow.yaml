@@ -50,7 +50,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
-            --file dutgrad-docker-env/build/server/Dockerfile \
+            --file dutgrad-docker-env/build/web/Dockerfile \
             --build-arg ENVIRONMENT=prod \
             --tag blendminh/dutgrad-web:prod-latest \
             --tag blendminh/dutgrad-web:${{ github.sha }} \
