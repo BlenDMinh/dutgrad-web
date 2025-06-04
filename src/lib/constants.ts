@@ -47,6 +47,8 @@ export const API_ROUTES = {
     ME: (userId: string) => `/user/${userId}`,
     SEARCH: "/user/search",
     TIER: "/user/tier",
+    PASSWORD: "/user/password",
+    AUTH_METHOD: "/user/auth-method",
   },
   DOCUMENT: {
     UPLOAD: "/documents/upload",
