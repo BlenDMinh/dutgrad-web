@@ -44,6 +44,12 @@ export interface UserSearchResponse {
   users: User[];
 }
 
+export interface AuthMethodResponse {
+  local?: boolean;
+  google?: boolean;
+  facebook?: boolean;
+}
+
 export const userService = {
   getProfile: async () => {
     const response = await apiClient.get(API_ROUTES.USER.MINE);
@@ -53,8 +59,23 @@ export const userService = {
     const response = await apiClient.get(API_ROUTES.USER.TIER);
     return handleResponse(response.data);
   },
+  getAuthMethod: async (): Promise<AuthMethodResponse> => {
+    const response = await apiClient.get(API_ROUTES.USER.AUTH_METHOD);
+    return handleResponse(response.data);
+  },
   updateProfile: async (data: any) => {
     const response = await apiClient.put(API_ROUTES.USER.ME(data.id), data);
+    return handleResponse(response.data);
+  },
+  updatePassword: async (data: {
+    id: number;
+    currentPassword: string;
+    newPassword: string;
+  }) => {
+    const response = await apiClient.patch(API_ROUTES.USER.PASSWORD, {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    });
     return handleResponse(response.data);
   },
   searchUsers: async (query: string): Promise<UserSearchResponse> => {
