@@ -48,24 +48,30 @@ export const chatService = {
     });
     return handleResponse(response.data);
   },
-
   askQuestion: async (
     querySessionId: number,
     query: string
   ): Promise<ChatQueryResponse> => {
     const trimmedQuery = query.length > 1024 ? query.substring(0, 1024) : query;
     
-    const response = await apiClient.post(
-      API_ROUTES.CHAT.ASK,
-      {
-        query_session_id: querySessionId,
-        query: trimmedQuery,
-      },
-      {
-        timeout: 120000,
+    try {
+      const response = await apiClient.post(
+        API_ROUTES.CHAT.ASK,
+        {
+          query_session_id: querySessionId,
+          query: trimmedQuery,
+        },
+        {
+          timeout: 120000,
+        }
+      );
+      return handleResponse(response.data);
+    } catch (error: any) {
+      if (error.response && error.response.status === 429) {
+        throw new Error("RATE_LIMIT_REACHED: " + (error.response.data.message || "You have reached your daily chat limit"));
       }
-    );
-    return handleResponse(response.data);
+      throw error;
+    }
   },
 
   getRecentChat: async () => {
