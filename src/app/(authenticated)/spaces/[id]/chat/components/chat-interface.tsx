@@ -6,6 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { chatService } from "@/services/api/chat.service";
+import { userService } from "@/services/api/user.service";
+import { TierUsageResponse } from "@/services/api/user.service";
 import { ChatHeader } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
@@ -33,9 +35,24 @@ export default function ChatInterface() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [tempMessage, setTempMessage] = useState<Message | null>(null);
   const tempMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [tierUsageInfo, setTierUsageInfo] = useState<TierUsageResponse | null>(null);
+
+  useEffect(() => {
+    const fetchTierInfo = async () => {
+      try {
+        const response = await userService.getUserTier();
+        if (response) {
+          setTierUsageInfo(response);
+        }
+      } catch (error) {
+        console.error("Failed to fetch tier info:", error);
+      }
+    };
+
+    fetchTierInfo();
+  }, []);
 
   useEffect(() => {
     if (!sessionId) {
@@ -146,7 +163,6 @@ export default function ChatInterface() {
     setIsAtBottom(true);
 
     setIsLoading(true);
-
     try {
       const response = await chatService.askQuestion(Number(sessionId), input);
 
@@ -159,8 +175,23 @@ export default function ChatInterface() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      toast.error("Failed to get response. Please try again.");
+    } catch (error: any) {
+      if (error.message && error.message.startsWith("RATE_LIMIT_REACHED:")) {
+        const rateMessage = error.message.replace("RATE_LIMIT_REACHED: ", "");
+        const limitMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `⚠️ **Daily Limit Reached** ⚠️\n\n${rateMessage}\n\nYour account is limited to ${tierUsageInfo?.tier?.query_limit || "a certain number of"} messages per day. You can continue chatting tomorrow.`,
+          isUser: false,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, limitMessage]);
+        
+        toast.error("Daily chat limit reached. Please try again tomorrow.", {
+          duration: 6000
+        });
+      } else {
+        toast.error("Failed to get response. Please try again.");
+      }
     } finally {
       setIsLoading(false);
       setTempMessage(null);
