@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { spaceService } from "@/services/api/space.service";
 import {
   Table,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useSpace } from "@/context/space.context";
 import { SPACE_ROLE } from "@/lib/constants";
+import { SpaceRoleGuard } from "@/components/space/SpaceRoleGuard";
 import { InviteModal } from "./components/InviteModal";
 import { DeleteMemberModal } from "./components/DeleteMemberModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -108,7 +109,7 @@ export default function SpaceMembersPage() {
   const [updatingRoleFor, setUpdatingRoleFor] = useState<number | null>(null);
   const [removingMemberId, setRemovingMemberId] = useState<number | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -128,11 +129,10 @@ export default function SpaceMembersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
+  }, [id]);  
   useEffect(() => {
     fetchData();
-  }, [id]);
+  }, [fetchData]);
 
   const handleRoleChange = async (memberId: number, roleId: number) => {
     try {
@@ -231,8 +231,7 @@ export default function SpaceMembersPage() {
           Members
         </span>
       </motion.h1>
-
-      {role?.id === SPACE_ROLE.OWNER && (
+      <SpaceRoleGuard whitelist={[SPACE_ROLE.OWNER]}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -241,11 +240,10 @@ export default function SpaceMembersPage() {
           <InviteModal
             members={members}
             invitations={invitations}
-            onSuccess={fetchData}
+            onSuccess={() => fetchData()}
           />
         </motion.div>
-      )}
-
+      </SpaceRoleGuard>
       <motion.div
         className="bg-background shadow-lg rounded-xl p-6 overflow-x-auto mt-2"
         variants={tableContainerVariants}
@@ -331,38 +329,47 @@ export default function SpaceMembersPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {role?.id === SPACE_ROLE.OWNER && !item.status ? (
-                          <Select
-                            defaultValue={item.roleId.toString()}
-                            disabled={
-                              updatingRoleFor === item.id ||
-                              item.roleId === SPACE_ROLE.OWNER
-                            }
-                            onValueChange={(value) =>
-                              handleRoleChange(
-                                item.userId,
-                                Number.parseInt(value)
-                              )
-                            }
-                          >
-                            <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder={item.role} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {spaceRoles.map((role) => (
-                                <SelectItem
-                                  key={role.id}
-                                  value={role.id.toString()}
-                                  disabled={role.id === SPACE_ROLE.OWNER}
-                                >
-                                  {role.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          item.role
-                        )}
+                        <SpaceRoleGuard
+                          whitelist={[SPACE_ROLE.OWNER]}
+                        >
+                          {!item.status ? (
+                            <Select
+                              defaultValue={item.roleId.toString()}
+                              disabled={
+                                updatingRoleFor === item.id ||
+                                item.roleId === SPACE_ROLE.OWNER
+                              }
+                              onValueChange={(value) =>
+                                handleRoleChange(
+                                  item.userId,
+                                  Number.parseInt(value)
+                                )
+                              }
+                            >
+                              <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder={item.role} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {spaceRoles.map((role) => (
+                                  <SelectItem
+                                    key={role.id}
+                                    value={role.id.toString()}
+                                    disabled={role.id === SPACE_ROLE.OWNER}
+                                  >
+                                    {role.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <>{item.role}</>
+                          )}
+                        </SpaceRoleGuard>
+                        <SpaceRoleGuard
+                          whitelist={[SPACE_ROLE.EDITOR, SPACE_ROLE.VIEWER]}
+                        >
+                          {item.role}
+                        </SpaceRoleGuard>
                       </TableCell>
                       <TableCell>
                         {new Date(item.joinDate).toLocaleDateString("en-GB", {
@@ -372,7 +379,9 @@ export default function SpaceMembersPage() {
                         })}
                       </TableCell>
                       <TableCell className="text-right">
-                        {role?.id === SPACE_ROLE.OWNER && (
+                        <SpaceRoleGuard
+                          whitelist={[SPACE_ROLE.OWNER]}
+                        >
                           <DeleteMemberModal
                             memberName={item.username}
                             memberRole={item.role}
@@ -380,7 +389,7 @@ export default function SpaceMembersPage() {
                             isPending={item.isPending}
                             onConfirm={() => handleRemoveMember(item.userId)}
                           />
-                        )}
+                        </SpaceRoleGuard>
                       </TableCell>
                     </motion.tr>
                   ))}
