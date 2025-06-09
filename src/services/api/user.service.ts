@@ -30,9 +30,9 @@ export interface TierData {
 export interface UsageData {
   space_count: number;
   document_count: number;
-  query_history_count: number;
-  today_query_count: number;
-  today_api_call_count: number;
+  total_chat_messages: number;
+  chat_usage_daily: number;
+  chat_usage_monthly: number;
 }
 
 export interface TierUsageResponse {

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { spaceService } from "@/services/api/space.service";
 import { documentService } from "@/services/api/document.service";
 import { chatService } from "@/services/api/chat.service";
+import { SpaceRoleGuard } from "@/components/space/SpaceRoleGuard";
 import {
   FaFilePdf,
   FaFileExcel,
@@ -132,22 +133,6 @@ export default function SpaceDetailPage() {
 
     fetchData();
   }, [documentPage, spaceId]);
-
-  useEffect(() => {
-    if (!spaceId) return;
-
-    const fetchUserRole = async () => {
-      try {
-        const response = await spaceService.getUserRole(spaceId);
-        setUserRole(response.role.name);
-      } catch (err) {
-        console.error("Failed to fetch user role:", err);
-        setUserRole("");
-      }
-    };
-
-    fetchUserRole();
-  }, [spaceId]);
 
   const router = useRouter();
 
@@ -407,7 +392,7 @@ export default function SpaceDetailPage() {
               Members
             </Button>
 
-            {userRole === "owner" && (
+            <SpaceRoleGuard whitelist={[SPACE_ROLE.OWNER]}>
               <Button
                 onClick={() => router.push(APP_ROUTES.SPACES.SETTINGS(spaceId))}
                 variant="outline"
@@ -419,7 +404,7 @@ export default function SpaceDetailPage() {
                 />
                 Settings
               </Button>
-            )}
+            </SpaceRoleGuard>
 
             <Button
               className="bg-primary hover:bg-primary/90 flex items-center gap-2 transition-all duration-300 hover:shadow-lg"
@@ -470,8 +455,9 @@ export default function SpaceDetailPage() {
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-
-                  {role?.id !== SPACE_ROLE.VIEWER && (
+                  <SpaceRoleGuard
+                    whitelist={[SPACE_ROLE.OWNER, SPACE_ROLE.EDITOR]}
+                  >
                     <ImportModal spaceId={spaceId}>
                       <Button className="gap-2">
                         <FilePlus2 size={18} />
@@ -481,7 +467,7 @@ export default function SpaceDetailPage() {
                         <span className="sm:hidden">Upload</span>
                       </Button>
                     </ImportModal>
-                  )}
+                  </SpaceRoleGuard>
                 </div>
               </div>
 
@@ -634,9 +620,12 @@ export default function SpaceDetailPage() {
                                                 </TooltipContent>
                                               </Tooltip>
                                             </TooltipProvider>
-
-                                            {(userRole === "owner" ||
-                                              userRole === "editor") && (
+                                            <SpaceRoleGuard
+                                              whitelist={[
+                                                SPACE_ROLE.OWNER,
+                                                SPACE_ROLE.EDITOR,
+                                              ]}
+                                            >
                                               <TooltipProvider>
                                                 <Tooltip>
                                                   <TooltipTrigger asChild>
@@ -658,7 +647,7 @@ export default function SpaceDetailPage() {
                                                   </TooltipContent>
                                                 </Tooltip>
                                               </TooltipProvider>
-                                            )}
+                                            </SpaceRoleGuard>
                                           </div>
                                         </div>
 

@@ -14,9 +14,10 @@ import {
   Gauge,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { APP_ROUTES } from "@/lib/constants";
+import { APP_ROUTES, SPACE_ROLE } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SpaceRoleGuard } from "@/components/space/SpaceRoleGuard";
 
 import { GeneralSettings } from "./components/GeneralSettings";
 import { ChatApi } from "./components/ChatApi";
@@ -24,6 +25,14 @@ import { DangerZone } from "./components/DangerZone";
 import { LimitsSettings } from "./components/LimitsSettings";
 
 export default function SpaceSettingsPage() {
+  return (
+    <SpaceRoleGuard whitelist={[SPACE_ROLE.OWNER]} redirect={true}>
+      <SpaceSettingsContent />
+    </SpaceRoleGuard>
+  );
+}
+
+function SpaceSettingsContent() {
   const { space, loading, refetch } = useSpace();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("general");
