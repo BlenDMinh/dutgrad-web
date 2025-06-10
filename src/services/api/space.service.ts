@@ -136,6 +136,10 @@ export const spaceService = {
     );
     return Number(response.headers["x-total-count"]);
   },
+  getSpaceMembersCount: async (spaceId: string): Promise<number> => {
+    const response = await apiClient.get(API_ROUTES.SPACE.MEMBERS_COUNT(spaceId));
+    return handleResponse(response.data).count || 0;
+  },
   updateUserRole: async (spaceId: string, memberId: string, roleId: number) => {
     const response = await apiClient.patch(
       `${API_ROUTES.SPACE.DETAIL(spaceId)}/members/${memberId}/role`,
