@@ -79,7 +79,7 @@ export function RecentChatsList({
           >
             <Link
               href={`/spaces/${chat.spaceId}/chat?sessionId=${chat.id}`}
-              className="flex items-center gap-3 p-2 rounded-md hover:bg-accent/40 transition-colors"
+              className="flex items-center gap-3 p-2 rounded-md hover:bg-accent/40 transition-colors w-full"
             >
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
@@ -89,7 +89,7 @@ export function RecentChatsList({
                 <Bot className="h-4 w-4 text-primary" />
               </motion.div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
+              <div className="flex items-center justify-start">
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -101,11 +101,11 @@ export function RecentChatsList({
                 </div>
                 <div className="flex items-center gap-1">
                   {chat.lastMessageType === "human" ? (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       You:{" "}
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       AI:{" "}
                     </span>
                   )}

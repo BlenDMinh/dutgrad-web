@@ -7,6 +7,8 @@ import { APP_ROUTES } from "@/lib/constants";
 import { Sidebar } from "@/components/sidebar";
 import { Toaster } from "sonner";
 import { MobileNav } from "@/components/mobile-nav";
+import { CollapseToggle } from "@/components/sidebar/collapse-toggle";
+import { AnimatePresence } from "framer-motion";
 
 export default function AuthenticatedLayout({
   children,
@@ -16,12 +18,12 @@ export default function AuthenticatedLayout({
   const { isLoggedIn, isLoading } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
       router.push(APP_ROUTES.LOGIN);
     }
-  }, [isLoading, isLoggedIn]);
+  }, [isLoading, isLoggedIn, router]);
 
   if (isLoading) {
     return (
@@ -39,16 +41,30 @@ export default function AuthenticatedLayout({
     <div className="flex flex-col h-screen bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-gray-900 dark:to-indigo-950">
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
       <Toaster position="top-right" richColors style={{ zIndex: 9999 }} />
-
       <MobileNav onOpenSidebar={() => setIsSidebarOpen(true)} />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
-        />
-
-        <main className="flex-1 overflow-auto pb-16 md:pb-0 md:ml-0 transition-all duration-300md:ml-64">
+        <AnimatePresence mode="wait">
+          {isSidebarCollapsed ? (
+            <CollapseToggle
+              key="collapse-toggle"
+              onExpand={() => {
+                console.log("Expand button clicked, setting isSidebarCollapsed to false");
+                setIsSidebarCollapsed(false);
+              }}
+            />
+          ) : (
+            <Sidebar
+              key="sidebar"
+              isOpen={isSidebarOpen}
+              onClose={() => setIsSidebarOpen(false)}
+              onCollapse={() => {
+                setIsSidebarCollapsed(true);
+              }}
+              isCollapsed={false}
+            />
+          )}
+        </AnimatePresence><main className="flex-1 overflow-auto pb-16 md:pb-0 transition-all duration-300">
           {children}
         </main>
       </div>
