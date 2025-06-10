@@ -16,15 +16,19 @@ import { fadeIn, slideInLeft, staggerContainer, animationState } from "./sidebar
 interface SidebarProps {
   isMobile?: boolean;
   isOpen: boolean;
+  isCollapsed?: boolean;
   onClose: () => void;
+  onCollapse?: () => void;
 }
 
-export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, onCollapse, isMobile, isCollapsed: externalCollapsed }: SidebarProps) {
   const { logout, getAuthUser } = useAuth();
   const [invitationCount, setInvitationCount] = useState<number>(0);
   const user = getAuthUser();
   const shouldReduceMotion = useReducedMotion();
   const [hasAnimated, setHasAnimated] = useState(animationState.hasAnimated);
+  
+  const isCollapsed = externalCollapsed || false;
 
   useEffect(() => {
     if (!hasAnimated) {
@@ -96,6 +100,11 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
       icon: <User className="mr-2 h-4 w-4" />,
     },
   ];
+  const handleCollapse = () => {
+    if (onCollapse) {
+      onCollapse();
+    }
+  };
 
   const SidebarContent = () => (
     <motion.div
@@ -109,6 +118,7 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
         getInitialAnimationState={getInitialAnimationState}
         isMobile={isMobile}
         onClose={onClose}
+        onCollapse={handleCollapse}
       />
       
       <motion.div
@@ -180,14 +190,17 @@ export function Sidebar({ isOpen, onClose, isMobile }: SidebarProps) {
         </SheetContent>
       </Sheet>
     );
+  }  if (isCollapsed) {
+    return null;
   }
 
   return (
     <motion.aside
-      initial={hasAnimated ? { x: 0, opacity: 1 } : { x: -20, opacity: 0 }}
+      initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="hidden md:block w-64 border-r h-screen overflow-hidden"
+      exit={{ x: -320, opacity: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="hidden md:block w-68 border-r h-screen overflow-hidden"
     >
       <SidebarContent />
     </motion.aside>

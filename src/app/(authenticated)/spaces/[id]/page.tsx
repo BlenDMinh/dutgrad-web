@@ -330,8 +330,8 @@ export default function SpaceDetailPage() {
           <p className="text-muted-foreground mb-6">
             {"We couldn't find the space you're looking for."}
           </p>
-          <Button variant="default" onClick={() => window.history.back()}>
-            ← Go Back
+          <Button variant="default" onClick={() => router.push(APP_ROUTES.SPACES.MINE)}>
+            ← Back to Spaces
           </Button>
         </motion.div>
       </div>
@@ -361,7 +361,7 @@ export default function SpaceDetailPage() {
             variant="ghost"
             size="sm"
             className="absolute left-0 top-0"
-            onClick={() => router.back()}
+            onClick={() => router.push(APP_ROUTES.SPACES.MINE)}
           >
             <ChevronLeft className="mr-1 h-4 w-4" /> Back
           </Button>
