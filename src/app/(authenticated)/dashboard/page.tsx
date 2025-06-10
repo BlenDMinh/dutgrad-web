@@ -3,7 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { spaceService } from "@/services/api/space.service";
 import { AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Users, MessageSquare, TrendingUp, Info } from "lucide-react";
+import { APP_ROUTES } from "@/lib/constants";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { DashboardStats } from "./components/DashboardStats";
 import { GettingStartedTips } from "./components/GettingStartedTips";
@@ -20,9 +23,11 @@ interface Space {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
+  member_count?: number;
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [spaceCount, setSpaceCount] = useState<number | null>(null);
   const [chatSessionCount, setChatSessionCount] = useState<number | null>(null);
   const [popularSpaces, setPopularSpaces] = useState<Space[]>([]);
@@ -57,7 +62,26 @@ export default function Dashboard() {
 
         setSpaceCount(spaceCountData);
         setChatSessionCount(chatSessionCountData);
-        setPopularSpaces(popularSpacesData.popular_spaces);
+
+        const spaces = popularSpacesData.popular_spaces || [];
+        const spacesWithMemberCounts = await Promise.all(
+          spaces.map(async (space: Space) => {
+            try {
+              const memberCount = await spaceService.getSpaceMembersCount(
+                space.id.toString()
+              );
+              return { ...space, member_count: memberCount };
+            } catch (error) {
+              console.error(
+                `Failed to fetch member count for space ${space.id}:`,
+                error
+              );
+              return space;
+            }
+          })
+        );
+
+        setPopularSpaces(spacesWithMemberCounts);
         setJoinedSpaceIds(
           joinedSpacesData.spaces.map((space: any) => space.id)
         );
@@ -154,11 +178,20 @@ export default function Dashboard() {
               onNext={handleNextStep}
             />
           )}
-        </AnimatePresence>{" "}
+        </AnimatePresence>
         {spaceCount === 0 && isDataReady && (
           <GettingStartedTips onShowGuide={() => setShowGuide(true)} />
         )}
-        <DashboardHeader />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <DashboardHeader />
+          <Button
+            onClick={() => router.push(APP_ROUTES.SPACES.MINE)}
+            className="bg-primary hover:bg-primary/90 flex items-center gap-2 transition-all duration-300"
+          >
+            <Users size={18} />
+            Go to My Spaces
+          </Button>
+        </div>
         <DashboardStats
           spaceCount={spaceCount}
           chatSessionCount={chatSessionCount}

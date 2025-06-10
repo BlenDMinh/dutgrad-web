@@ -17,6 +17,7 @@ interface PublicSpace {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
+  member_count?: number; 
 }
 
 export default function PublicSpacesPage() {
@@ -34,7 +35,26 @@ export default function PublicSpacesPage() {
           spaceService.getYourSpaces(),
         ]);
         const joinSpaces = joinedRes.spaces || [];
-        setPublicSpaces(publicRes.public_spaces || []);
+        const publicSpaces = publicRes.public_spaces || [];
+
+        const spacesWithMemberCounts = await Promise.all(
+          publicSpaces.map(async (space: PublicSpace) => {
+            try {
+              const memberCount = await spaceService.getSpaceMembersCount(
+                space.id.toString()
+              );
+              return { ...space, member_count: memberCount };
+            } catch (error) {
+              console.error(
+                `Failed to fetch member count for space ${space.id}:`,
+                error
+              );
+              return space;
+            }
+          })
+        );
+
+        setPublicSpaces(spacesWithMemberCounts);
         setJoinedSpaceIds(joinSpaces.map((space: any) => space.id));
       } catch (err) {
         setError("Failed to fetch public spaces");

@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Users } from "lucide-react";
 import SpaceCard from "../../spaces/components/SpaceCard";
 
 interface Space {
@@ -21,6 +21,7 @@ interface Space {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
+  member_count?: number;
 }
 
 interface PopularSpacesProps {
@@ -145,9 +146,17 @@ export function PopularSpaces({
                         </Avatar>
                         <div className="flex-1">
                           <h3 className="font-medium">{space.name}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
-                            {space.description || "No description available"}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
+                              {space.description || "No description available"}
+                            </p>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                              <Users className="h-3 w-3 mr-1" />
+                              {space.member_count !== undefined
+                                ? space.member_count
+                                : "-"}
+                            </span>
+                          </div>
                         </div>
                         {joinedSpaceIds.includes(space.id) ? (
                           <Badge

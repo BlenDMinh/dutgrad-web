@@ -34,6 +34,7 @@ export const API_ROUTES = {
     JOIN_SPACE_LINK: (token: string) => `/spaces/join?token=${token}`,
     JOIN_PUBLIC: (spaceId: string) => `/spaces/${spaceId}/join-public`,
     MEMBERS: (spaceId: string) => `/spaces/${spaceId}/members`,
+    MEMBERS_COUNT: (spaceId: string) => `/spaces/${spaceId}/members/count`,
     ACCEPT_INVITATION: (invitationId: string) =>
       `/space-invitations/${invitationId}/accept`,
     REJECT_INVITATION: (invitationId: string) =>
