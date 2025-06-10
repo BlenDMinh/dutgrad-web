@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +11,13 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, Unlock, Users, Calendar, Star } from "lucide-react";
@@ -26,6 +33,7 @@ interface Space {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
+  member_count?: number;
 }
 
 interface SpaceCardProps {
@@ -47,10 +55,27 @@ export default function SpaceCard({
       router.push(APP_ROUTES.SPACES.DETAIL(spaceId.toString()));
     }
   };
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [spaceToJoin, setSpaceToJoin] = useState<number | null>(null);
 
   const handleJoin = (e: React.MouseEvent, spaceId: number) => {
     e.stopPropagation();
-    onJoin?.(spaceId);
+    setSpaceToJoin(spaceId);
+    setShowJoinDialog(true);
+  };
+
+  const handleJoinOnly = () => {
+    if (spaceToJoin) {
+      onJoin?.(spaceToJoin);
+      setShowJoinDialog(false);
+    }
+  };
+
+  const handleJoinAndGo = () => {
+    if (spaceToJoin) {
+      onJoin?.(spaceToJoin);
+      router.push(APP_ROUTES.SPACES.DETAIL(spaceToJoin.toString()));
+    }
   };
 
   const pastels = [
@@ -128,13 +153,17 @@ export default function SpaceCard({
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <Users className="h-3.5 w-3.5 mr-1.5" />
-              <span>12 members</span>
+              <span>{space.member_count !== undefined ? space.member_count : "-"} members</span>
             </div>
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <Calendar className="h-3.5 w-3.5 mr-1.5" />
-              <span>5 sessions</span>
+              <span>Created {new Date(space.created_at).toLocaleDateString(undefined, {
+                day: "2-digit", 
+                month: "2-digit", 
+                year: "numeric",
+                }).replace(/\//g, '-')}</span>
             </div>
-            {space.id % 3 === 0 && (
+            {space.member_count && space.member_count >= 3 && (
               <div className="flex items-center text-xs text-amber-600 dark:text-amber-400">
                 <Star className="h-3.5 w-3.5 mr-1.5 fill-amber-500 dark:fill-amber-400" />
                 <span>Popular</span>
@@ -178,6 +207,24 @@ export default function SpaceCard({
           ) : null}
         </CardFooter>
       </Card>
+      <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Join Space</DialogTitle>
+            <DialogDescription>
+              You can join this space and navigate to it, or just join it and stay on the current page.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-center">
+            <Button variant="outline" onClick={handleJoinOnly}>
+              Just Join
+            </Button>
+            <Button onClick={handleJoinAndGo} className={buttonColor}>
+              Join and Go to Space
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
