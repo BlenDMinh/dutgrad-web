@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useSpace } from "@/context/space.context";
-import { SPACE_ROLE } from "@/lib/constants";
+import { SPACE_ROLE, APP_ROUTES } from "@/lib/constants";
 import { SpaceRoleGuard } from "@/components/space/SpaceRoleGuard";
 import { InviteModal } from "./components/InviteModal";
 import { DeleteMemberModal } from "./components/DeleteMemberModal";
@@ -23,6 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export interface Member {
@@ -108,6 +111,7 @@ export default function SpaceMembersPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [updatingRoleFor, setUpdatingRoleFor] = useState<number | null>(null);
   const [removingMemberId, setRemovingMemberId] = useState<number | null>(null);
+  const router = useRouter();
 
   const fetchData = useCallback(async () => {
     if (!id) return;
@@ -213,7 +217,6 @@ export default function SpaceMembersPage() {
   ].sort(
     (a, b) => new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime()
   );
-
   return (
     <motion.div
       className="py-12 px-6"
@@ -221,6 +224,17 @@ export default function SpaceMembersPage() {
       animate="visible"
       variants={fadeIn}
     >
+      <div className="relative mb-8">
+        <Button
+          variant="outline"
+          size="sm"
+          className="absolute left-0 top-0 flex items-center gap-1"
+          onClick={() => router.push(APP_ROUTES.SPACES.DETAIL(id))}
+        >
+          <ChevronLeft className="h-4 w-4" /> Back to Space
+        </Button>
+      </div>
+      
       <motion.h1
         className="text-3xl font-extrabold text-center text-gray-900 mb-10"
         initial={{ opacity: 0, y: -20 }}
