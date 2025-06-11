@@ -77,10 +77,10 @@ export const spaceService = {
     );
     return handleResponse(response.data);
   },
-  inviteUser: async (spaceId: string, userId: number, roleId: number) => {
+  inviteUser: async (spaceId: string, userId: number, roleId: number, message?: string) => {
     const response = await apiClient.post(
       `${API_ROUTES.SPACE.INVITATIONS(spaceId)}`,
-      { invited_user_id: userId, space_role_id: roleId }
+      { invited_user_id: userId, space_role_id: roleId, message }
     );
     return handleResponse(response.data);
   },

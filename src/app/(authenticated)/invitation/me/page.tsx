@@ -24,12 +24,18 @@ export default function MyInvitationsPage() {
       setLoading(false);
     }
   };
-
   const handleJoin = async (invitationId: string) => {
     try {
-      await spaceService.acceptInvitation(invitationId);
-      toast.success("Successfully joined the space!");
-      fetchInvitations();
+      const response = await spaceService.acceptInvitation(invitationId);
+      const spaceId = response.space_id;
+      
+      if (spaceId) {
+        toast.success("Successfully joined the space! Redirecting...");
+        window.location.href = `/spaces/${spaceId}`;
+      } else {
+        toast.success("Successfully joined the space!");
+        fetchInvitations();
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to join space");
     }

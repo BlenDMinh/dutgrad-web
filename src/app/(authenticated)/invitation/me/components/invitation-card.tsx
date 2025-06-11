@@ -52,6 +52,11 @@ export function InvitationCard({
                 {invitation.inviter?.username || "Unknown"}
               </span>
             </p>
+            {invitation.message && (
+              <p className="text-sm italic border-l-2 pl-2 border-gray-200 dark:border-gray-700">
+                &ldquo;{invitation.message}&rdquo;
+              </p>
+            )}
           </div>
           {invitation.status === "pending" ? (
             <div className="flex">
