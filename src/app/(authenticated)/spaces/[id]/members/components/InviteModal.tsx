@@ -52,6 +52,7 @@ export function InviteModal(props: InviteModalProps) {
   const [roles, setRoles] = useState<{ id: string; name: string }[]>([]);
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const [invitationLink, setInvitationLink] = useState("");
+  const [inviteMessage, setInviteMessage] = useState("");
   const [isLoadingLink, setIsLoadingLink] = useState(false);
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -137,11 +138,12 @@ export function InviteModal(props: InviteModalProps) {
     }
 
     try {
-      await spaceService.inviteUser(id, selectedUser.id, selectedRole);
+      await spaceService.inviteUser(id, selectedUser.id, selectedRole, inviteMessage);
       toast.success("Invite sent successfully.");
       onSuccess?.();
       setSelectedUser(null);
       setSearchQuery("");
+      setInviteMessage("");
       setOpen(false);
     } catch (error: any) {
       const errorMessage =
@@ -303,6 +305,14 @@ export function InviteModal(props: InviteModalProps) {
                 </SelectGroup>
               </SelectContent>
             </Select>
+          </div>          
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground mb-1">Message (Optional)</p>
+            <Input
+              placeholder="Add a message about this space..."
+              value={inviteMessage}
+              onChange={(e) => setInviteMessage(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
