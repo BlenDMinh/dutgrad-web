@@ -23,7 +23,7 @@ export const API_ROUTES = {
     COUNT_MY_SPACE: "/spaces/count/me",
     COUNT_INVITATIONS: "/space-invitations/count",
     COUNT_USER_QUERY_SESSION: "/user-query-sessions/me",
-    POPULAR_SPACE: "/spaces/popular?order=member_count",
+    POPULAR_SPACE: "/spaces/popular?order=user_count",
     ROLES: "/spaces/roles",
     DETAIL: (spaceId: string) => `/spaces/${spaceId}`,
     INVITATIONS: (spaceId: string) => `/spaces/${spaceId}/invitations`,
