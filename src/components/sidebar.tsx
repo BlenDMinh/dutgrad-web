@@ -6,12 +6,29 @@ import { useAuth } from "@/context/auth.context";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { motion, useReducedMotion } from "framer-motion";
-import { LogOut, LayoutDashboard, User, MessageSquare, Users, Sparkles, Plus, BrainCircuit } from "lucide-react";
+import {
+  LogOut,
+  LayoutDashboard,
+  User,
+  MessageSquare,
+  Users,
+  Sparkles,
+  Plus,
+  BrainCircuit,
+} from "lucide-react";
 import { APP_ROUTES } from "@/lib/constants";
 import { spaceService } from "@/services/api/space.service";
 import { UserTierInfo } from "./user/UserTierInfo";
-
-import { fadeIn, slideInLeft, staggerContainer, animationState } from "./sidebar/animations";
+import { SidebarHeader } from "./sidebar/sidebar-header";
+import { UserProfile } from "./sidebar/user-profile";
+import { RecentChats } from "./sidebar/recent-chats";
+import { SidebarNav } from "./sidebar/sidebar-nav";
+import {
+  fadeIn,
+  slideInLeft,
+  staggerContainer,
+  animationState,
+} from "./sidebar/animations";
 
 interface SidebarProps {
   isMobile?: boolean;
@@ -21,13 +38,19 @@ interface SidebarProps {
   onCollapse?: () => void;
 }
 
-export function Sidebar({ isOpen, onClose, onCollapse, isMobile, isCollapsed: externalCollapsed }: SidebarProps) {
+export function Sidebar({
+  isOpen,
+  onClose,
+  onCollapse,
+  isMobile,
+  isCollapsed: externalCollapsed,
+}: SidebarProps) {
   const { logout, getAuthUser } = useAuth();
   const [invitationCount, setInvitationCount] = useState<number>(0);
   const user = getAuthUser();
   const shouldReduceMotion = useReducedMotion();
   const [hasAnimated, setHasAnimated] = useState(animationState.hasAnimated);
-  
+
   const isCollapsed = externalCollapsed || false;
 
   useEffect(() => {
@@ -113,14 +136,14 @@ export function Sidebar({ isOpen, onClose, onCollapse, isMobile, isCollapsed: ex
       variants={fadeIn}
       className="flex flex-col h-full bg-background"
     >
-      <SidebarHeader 
-        hasAnimated={hasAnimated} 
+      <SidebarHeader
+        hasAnimated={hasAnimated}
         getInitialAnimationState={getInitialAnimationState}
         isMobile={isMobile}
         onClose={onClose}
         onCollapse={handleCollapse}
       />
-      
+
       <motion.div
         variants={slideInLeft}
         initial={getInitialAnimationState()}
@@ -131,8 +154,8 @@ export function Sidebar({ isOpen, onClose, onCollapse, isMobile, isCollapsed: ex
         <UserProfile hasAnimated={hasAnimated} />
       </motion.div>
 
-      <RecentChats 
-        hasAnimated={hasAnimated} 
+      <RecentChats
+        hasAnimated={hasAnimated}
         getInitialAnimationState={getInitialAnimationState}
       />
 
@@ -190,7 +213,8 @@ export function Sidebar({ isOpen, onClose, onCollapse, isMobile, isCollapsed: ex
         </SheetContent>
       </Sheet>
     );
-  }  if (isCollapsed) {
+  }
+  if (isCollapsed) {
     return null;
   }
 
@@ -206,8 +230,3 @@ export function Sidebar({ isOpen, onClose, onCollapse, isMobile, isCollapsed: ex
     </motion.aside>
   );
 }
-
-import { SidebarHeader } from "./sidebar/sidebar-header";
-import { UserProfile } from "./sidebar/user-profile";
-import { RecentChats } from "./sidebar/recent-chats";
-import { SidebarNav } from "./sidebar/sidebar-nav";
