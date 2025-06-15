@@ -27,13 +27,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
+import { useAuth } from "@/context/auth.context";
 
 interface LimitsSettingsProps {
   spaceId: string;
   initialDocumentLimit: number;
   initialFileSizeLimitKb: number;
   initialApiCallLimit: number;
-  onUpdate?: (spaceId: string) => void
+  onUpdate?: (spaceId: string) => void;
 }
 
 export function LimitsSettings({
@@ -44,13 +45,19 @@ export function LimitsSettings({
   onUpdate,
 }: LimitsSettingsProps) {
   const [documentLimit, setDocumentLimit] = useState(initialDocumentLimit);
-  const [fileSizeLimitKb, setFileSizeLimitKb] = useState(initialFileSizeLimitKb);
+  const [fileSizeLimitKb, setFileSizeLimitKb] = useState(
+    initialFileSizeLimitKb
+  );
   const [apiCallLimit, setApiCallLimit] = useState(initialApiCallLimit);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
-
   const formattedFileSize = (fileSizeLimitKb / 1024).toFixed(2);
+
+  const { tier } = useAuth();
+  const formattedMaxFileSize = (
+    (tier?.file_size_limit_kb || 10240) / 1024
+  ).toFixed(2);
 
   useEffect(() => {
     if (saveSuccess) {
@@ -104,8 +111,8 @@ export function LimitsSettings({
       });
     } finally {
       setIsSubmitting(false);
-      if(onUpdate) {
-        onUpdate(spaceId)
+      if (onUpdate) {
+        onUpdate(spaceId);
       }
     }
   };
@@ -134,7 +141,7 @@ export function LimitsSettings({
             <FileText className="h-5 w-5 text-primary" />
             <h3 className="text-base font-medium">Document Limits</h3>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="document-limit" className="text-sm font-medium">
@@ -151,7 +158,9 @@ export function LimitsSettings({
                 type="number"
                 min="0"
                 value={documentLimit}
-                onChange={(e) => setDocumentLimit(parseInt(e.target.value) || 0)}
+                onChange={(e) =>
+                  setDocumentLimit(parseInt(e.target.value) || 0)
+                }
                 className="w-24"
               />
               <span className="text-sm text-muted-foreground">documents</span>
@@ -167,7 +176,7 @@ export function LimitsSettings({
             <Upload className="h-5 w-5 text-primary" />
             <h3 className="text-base font-medium">File Size Limit</h3>
           </div>
-          
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="file-size-limit" className="text-sm font-medium">
@@ -181,14 +190,14 @@ export function LimitsSettings({
             <Slider
               id="file-size-limit"
               defaultValue={[fileSizeLimitKb]}
-              max={10240} // 10MB in KB
+              max={tier?.file_size_limit_kb || 10240} // 10MB in KB
               step={512}
               onValueChange={handleFileSizeChange}
               className="pt-2"
             />
             <div className="flex justify-between text-xs text-muted-foreground mt-1">
               <span>512 KB</span>
-              <span>10 MB</span>
+              <span>{formattedMaxFileSize} MB</span>
             </div>
           </div>
         </div>
@@ -198,7 +207,7 @@ export function LimitsSettings({
             <Clock className="h-5 w-5 text-primary" />
             <h3 className="text-base font-medium">API Usage Limits</h3>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="api-call-limit" className="text-sm font-medium">

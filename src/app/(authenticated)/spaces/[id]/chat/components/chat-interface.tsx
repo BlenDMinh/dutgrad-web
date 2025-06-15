@@ -12,6 +12,7 @@ import { ChatHeader } from "./ChatHeader";
 import { ChatMessages } from "./ChatMessages";
 import { ChatInput } from "./ChatInput";
 import { ChatSidebar } from "./ChatSidebar";
+import { useAuth } from "@/context/auth.context";
 
 type Message = {
   id: string;
@@ -37,22 +38,7 @@ export default function ChatInterface() {
   const tempMessageIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [queryHistory, setQueryHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [tierUsageInfo, setTierUsageInfo] = useState<TierUsageResponse | null>(null);
-
-  useEffect(() => {
-    const fetchTierInfo = async () => {
-      try {
-        const response = await userService.getUserTier();
-        if (response) {
-          setTierUsageInfo(response);
-        }
-      } catch (error) {
-        console.error("Failed to fetch tier info:", error);
-      }
-    };
-
-    fetchTierInfo();
-  }, []);
+  const { tier } = useAuth();
 
   useEffect(() => {
     if (!sessionId) {
@@ -180,14 +166,16 @@ export default function ChatInterface() {
         const rateMessage = error.message.replace("RATE_LIMIT_REACHED: ", "");
         const limitMessage: Message = {
           id: (Date.now() + 1).toString(),
-          content: `⚠️ **Daily Limit Reached** ⚠️\n\n${rateMessage}\n\nYour account is limited to ${tierUsageInfo?.tier?.query_limit || "a certain number of"} messages per day. You can continue chatting tomorrow.`,
+          content: `⚠️ **Daily Limit Reached** ⚠️\n\n${rateMessage}\n\nYour account is limited to ${
+            tier?.query_limit || "a certain number of"
+          } messages per day. You can continue chatting tomorrow.`,
           isUser: false,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, limitMessage]);
-        
+
         toast.error("Daily chat limit reached. Please try again tomorrow.", {
-          duration: 6000
+          duration: 6000,
         });
       } else {
         toast.error("Failed to get response. Please try again.");
