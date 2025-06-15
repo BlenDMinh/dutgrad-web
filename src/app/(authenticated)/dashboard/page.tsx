@@ -23,7 +23,7 @@ interface Space {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
-  member_count?: number;
+  user_count?: number;
 }
 
 export default function Dashboard() {
@@ -64,24 +64,8 @@ export default function Dashboard() {
         setChatSessionCount(chatSessionCountData);
 
         const spaces = popularSpacesData.popular_spaces || [];
-        const spacesWithMemberCounts = await Promise.all(
-          spaces.map(async (space: Space) => {
-            try {
-              const memberCount = await spaceService.getSpaceMembersCount(
-                space.id.toString()
-              );
-              return { ...space, member_count: memberCount };
-            } catch (error) {
-              console.error(
-                `Failed to fetch member count for space ${space.id}:`,
-                error
-              );
-              return space;
-            }
-          })
-        );
 
-        setPopularSpaces(spacesWithMemberCounts);
+        setPopularSpaces(spaces);
         setJoinedSpaceIds(
           joinedSpacesData.spaces.map((space: any) => space.id)
         );

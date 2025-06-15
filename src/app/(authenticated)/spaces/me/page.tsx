@@ -19,7 +19,7 @@ interface YourSpace {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
-  member_count?: number;
+  user_count?: number;
   role: {
     id: number;
     name: string;
@@ -42,19 +42,7 @@ export default function YourSpacesPage() {
         const response = await spaceService.getYourSpaces();
         const spaces = response.spaces || [];
 
-        const spacesWithMemberCounts = await Promise.all(
-          spaces.map(async (space: YourSpace) => {
-            try {
-              const memberCount = await spaceService.getSpaceMembersCount(space.id.toString());
-              return { ...space, member_count: memberCount };
-            } catch (error) {
-              console.error(`Failed to fetch member count for space ${space.id}:`, error);
-              return space;
-            }
-          })
-        );
-
-        setYourSpaces(spacesWithMemberCounts);
+        setYourSpaces(spaces);
       } catch (err) {
         setError("Failed to fetch your spaces");
       } finally {

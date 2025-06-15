@@ -33,7 +33,7 @@ interface Space {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
-  member_count?: number;
+  user_count?: number;
 }
 
 interface SpaceCardProps {
@@ -153,17 +153,25 @@ export default function SpaceCard({
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <Users className="h-3.5 w-3.5 mr-1.5" />
-              <span>{space.member_count !== undefined ? space.member_count : "-"} members</span>
+              <span>
+                {space.user_count !== undefined ? space.user_count : "-"}{" "}
+                members
+              </span>
             </div>
             <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
               <Calendar className="h-3.5 w-3.5 mr-1.5" />
-              <span>Created {new Date(space.created_at).toLocaleDateString(undefined, {
-                day: "2-digit", 
-                month: "2-digit", 
-                year: "numeric",
-                }).replace(/\//g, '-')}</span>
+              <span>
+                Created{" "}
+                {new Date(space.created_at)
+                  .toLocaleDateString(undefined, {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  })
+                  .replace(/\//g, "-")}
+              </span>
             </div>
-            {space.member_count && space.member_count >= 3 && (
+            {space.user_count && space.user_count >= 3 && (
               <div className="flex items-center text-xs text-amber-600 dark:text-amber-400">
                 <Star className="h-3.5 w-3.5 mr-1.5 fill-amber-500 dark:fill-amber-400" />
                 <span>Popular</span>
@@ -212,7 +220,8 @@ export default function SpaceCard({
           <DialogHeader>
             <DialogTitle>Join Space</DialogTitle>
             <DialogDescription>
-              You can join this space and navigate to it, or just join it and stay on the current page.
+              You can join this space and navigate to it, or just join it and
+              stay on the current page.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-center">
