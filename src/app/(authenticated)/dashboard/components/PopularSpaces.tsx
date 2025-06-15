@@ -21,7 +21,7 @@ interface Space {
   api_call_limit?: number;
   created_at: string;
   updated_at: string;
-  member_count?: number;
+  user_count?: number;
 }
 
 interface PopularSpacesProps {
@@ -152,8 +152,8 @@ export function PopularSpaces({
                             </p>
                             <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                               <Users className="h-3 w-3 mr-1" />
-                              {space.member_count !== undefined
-                                ? space.member_count
+                              {space.user_count !== undefined
+                                ? space.user_count
                                 : "-"}
                             </span>
                           </div>
