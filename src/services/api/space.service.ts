@@ -8,8 +8,15 @@ export const spaceService = {
     description: string;
     privacy_status: boolean;
   }) => {
-    const response = await apiClient.post(API_ROUTES.SPACE.ALL, data);
-    return handleResponse(response.data);
+    try {
+      const response = await apiClient.post(API_ROUTES.SPACE.ALL, data);
+      return handleResponse(response.data);
+    } catch (error: any) {
+      if (error.response && error.response.status === 429) {
+        throw error;
+      }
+      throw error;
+    }
   },
   updateSpace: async (
     spaceId: string,
