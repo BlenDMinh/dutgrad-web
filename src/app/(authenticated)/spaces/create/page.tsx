@@ -54,8 +54,19 @@ export default function CreateSpacePage() {
       await spaceService.createSpace(payload);
       toast.success("Create space successfully!");
       router.push(APP_ROUTES.SPACES.MINE);
-    } catch (error) {
-      toast.error("Create Space failed!");
+    } catch (error: any) {
+      if (error.response && error.response.status === 429) {
+        const errorMsg =
+          error.response.data?.error || error.response.data?.message || "";
+        toast.error("Space creation limit reached", {
+          description: `Error: ${errorMsg}`,
+          duration: 6000,
+        });
+      } else {
+        toast.error("Create Space failed!", {
+          description: error.message || "An error occurred. Please try again.",
+        });
+      }
     } finally {
       setLoading(false);
     }
