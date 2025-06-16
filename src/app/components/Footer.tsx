@@ -1,21 +1,29 @@
+"use client";
+
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full py-12 bg-muted/80 text-foreground">
+    <footer className="w-full py-12 bg-muted/50 text-foreground border-t">
       <div className="container px-6 md:px-12 lg:px-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">DUTGrad</h3>
-            <p className="text-sm text-muted-foreground">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-bold">DUTGrad</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Smart document storage and retrieval powered by artificial
-              intelligence.
+              intelligence. Transform how you work with documents.
             </p>
             <div className="flex space-x-4">
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <span className="sr-only">Twitter</span>
                 <svg
@@ -35,7 +43,7 @@ export function Footer() {
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <span className="sr-only">LinkedIn</span>
                 <svg
@@ -57,7 +65,7 @@ export function Footer() {
               </Link>
               <Link
                 href="#"
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <span className="sr-only">GitHub</span>
                 <svg
@@ -83,16 +91,16 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  href="#features"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Features
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  href="#pricing"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Pricing
                 </Link>
@@ -100,7 +108,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Security
                 </Link>
@@ -108,7 +116,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Integrations
                 </Link>
@@ -116,7 +124,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   API
                 </Link>
@@ -129,7 +137,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Documentation
                 </Link>
@@ -137,7 +145,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Guides
                 </Link>
@@ -145,7 +153,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Blog
                 </Link>
@@ -153,7 +161,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Case Studies
                 </Link>
@@ -161,7 +169,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Community
                 </Link>
@@ -174,7 +182,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   About
                 </Link>
@@ -182,7 +190,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Careers
                 </Link>
@@ -190,7 +198,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Contact
                 </Link>
@@ -198,7 +206,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Privacy Policy
                 </Link>
@@ -206,7 +214,7 @@ export function Footer() {
               <li>
                 <Link
                   href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Terms of Service
                 </Link>
@@ -221,7 +229,10 @@ export function Footer() {
           transition={{ delay: 0.5, duration: 0.8 }}
           className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground"
         >
-          <p>© {new Date().getFullYear()} DUTGrad. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} DUTGrad. All rights reserved. Built
+            with ❤️ for better document management.
+          </p>
         </motion.div>
       </div>
     </footer>

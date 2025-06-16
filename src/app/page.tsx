@@ -21,7 +21,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground overflow-hidden">
       <Navbar />
-      <HeroSection isLoaded={isLoaded} />
+      <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
       <ChatbotSection />
