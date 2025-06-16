@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -9,6 +11,8 @@ import {
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { API_ROUTES } from "@/lib/constants";
 
 export function PricingSection() {
   const fadeInUpVariants = {
@@ -89,26 +93,27 @@ export function PricingSection() {
   ];
 
   return (
-    <section className="w-full py-12 md:py-24 bg-background">
+    <section id="pricing" className="w-full py-16 md:py-24 bg-background">
       <div className="container px-6 md:px-12 lg:px-16">
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={fadeInUpVariants}
-          className="flex flex-col items-center justify-center space-y-4 text-center"
+          className="flex flex-col items-center justify-center space-y-4 text-center mb-16"
         >
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
               Simple, Transparent Pricing
             </h2>
-            <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-              Choose the plan that works for your needs
+            <p className="max-w-[800px] text-muted-foreground text-lg md:text-xl leading-relaxed">
+              Choose the plan that works for your needs. All plans include our
+              core AI features.
             </p>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
             <motion.div
               key={index}
@@ -116,68 +121,74 @@ export function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: 0.2 + index * 0.2 }}
-              className="flex"
+              className="flex h-full"
             >
               <motion.div
-                whileHover={{ y: -10 }}
+                whileHover={{ y: -10, scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 className="flex flex-col w-full"
               >
                 <Card
                   className={`flex flex-col h-full bg-card ${
-                    plan.popular ? "border-primary shadow-lg relative" : ""
-                  }`}
+                    plan.popular
+                      ? "border-primary shadow-xl relative ring-2 ring-primary/20"
+                      : "hover:shadow-lg"
+                  } transition-all duration-300`}
                 >
                   {plan.popular && (
                     <motion.div
                       initial={{ opacity: 0, y: -20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1, duration: 0.5 }}
-                      className="absolute -top-3 inset-x-0 mx-auto w-fit py-1 px-3 bg-primary text-primary-foreground text-sm rounded-full"
+                      className="absolute -top-4 inset-x-0 mx-auto w-fit py-2 px-4 bg-primary text-primary-foreground text-sm font-medium rounded-full shadow-lg"
                     >
                       Most Popular
                     </motion.div>
                   )}
-                  <CardHeader>
-                    <CardTitle>{plan.title}</CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
-                    <div className="mt-4">
+                  <CardHeader className="text-center pb-8 pt-8">
+                    <CardTitle className="text-2xl">{plan.title}</CardTitle>
+                    <CardDescription className="text-base">
+                      {plan.description}
+                    </CardDescription>
+                    <div className="mt-6">
                       <span className="text-4xl font-bold">{plan.price}</span>
                       {plan.price !== "Custom" && (
-                        <span className="text-muted-foreground">/month</span>
+                        <span className="text-muted-foreground text-lg">
+                          /month
+                        </span>
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1">
+                  <CardContent className="flex-1 px-6">
                     <motion.ul
                       initial="hidden"
                       whileInView="visible"
                       viewport={{ once: true }}
                       variants={containerVariants}
-                      className="space-y-2"
+                      className="space-y-3"
                     >
                       {plan.features.map((feature, featureIndex) => (
                         <motion.li
                           key={featureIndex}
                           variants={itemVariants}
-                          className="flex items-center"
+                          className="flex items-center text-base"
                         >
-                          <CheckCircle className="h-5 w-5 text-primary mr-2" />
+                          <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
                           <span>{feature}</span>
                         </motion.li>
                       ))}
                     </motion.ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="pt-6">
                     <Button
-                      className="w-full"
-                      variant={
-                        plan.title === "Enterprise" ? "outline" : "default"
-                      }
+                      className="w-full text-base py-6 h-auto"
+                      variant="default"
                     >
-                      {plan.title === "Enterprise"
-                        ? "Contact Sales"
-                        : "Get Started"}
+                      <Link href={API_ROUTES.AUTH.LOGIN}>
+                        {plan.title === "Enterprise"
+                          ? "Contact Sales"
+                          : "Get Started"}
+                      </Link>
                     </Button>
                   </CardFooter>
                 </Card>
