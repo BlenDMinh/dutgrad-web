@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DUT Graduate Portal",
-  description: "A platform for DUT graduates to connect and access resources",
+  title: "DUTGrad - Smart Documentation Platform",
+  description: "A smart documentation platform",
 };
 
 export default function RootLayout({
