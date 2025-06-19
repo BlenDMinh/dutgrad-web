@@ -89,6 +89,9 @@ export default function ChatInterface() {
         clearInterval(tempMessageIntervalRef.current);
         tempMessageIntervalRef.current = null;
       }
+      if (!isLoading) {
+        setTempMessage(null);
+      }
       return;
     }
 
@@ -100,8 +103,22 @@ export default function ChatInterface() {
       isTempMessage: true,
     };
     setTempMessage(initialTempMessage);
+
+    if (tempMessageIntervalRef.current) {
+      clearInterval(tempMessageIntervalRef.current);
+    }
+
     tempMessageIntervalRef.current = setInterval(async () => {
       try {
+        if (!isLoading) {
+          if (tempMessageIntervalRef.current) {
+            clearInterval(tempMessageIntervalRef.current);
+            tempMessageIntervalRef.current = null;
+          }
+          setTempMessage(null);
+          return;
+        }
+
         const tempContent = await chatService.getTempMessage(Number(sessionId));
 
         if (tempContent !== null && tempContent !== undefined) {
@@ -125,6 +142,7 @@ export default function ChatInterface() {
     return () => {
       if (tempMessageIntervalRef.current) {
         clearInterval(tempMessageIntervalRef.current);
+        tempMessageIntervalRef.current = null;
       }
     };
   }, [isLoading, sessionId]);
@@ -152,6 +170,10 @@ export default function ChatInterface() {
     try {
       const response = await chatService.askQuestion(Number(sessionId), input);
 
+      if (tempMessageIntervalRef.current) {
+        clearInterval(tempMessageIntervalRef.current);
+        tempMessageIntervalRef.current = null;
+      }
       setTempMessage(null);
 
       const botMessage: Message = {
@@ -219,7 +241,8 @@ export default function ChatInterface() {
     }
   };
 
-  const displayMessages = tempMessage ? [...messages, tempMessage] : messages;
+  const displayMessages =
+    isLoading && tempMessage ? [...messages, tempMessage] : messages;
   return (
     <div className="flex w-full">
       <div className="flex flex-col mx-5 mt-5 flex-1 bg-gradient-to-b from-background to-background/95 rounded overflow-hidden">
