@@ -31,7 +31,7 @@ export function RecentChats({
         const response = await chatService.getRecentChat();
 
         if (response && Array.isArray(response)) {
-          const formattedChats = response.map((session: ChatSession) => {
+          const formattedChats = response.slice(0, 5).map((session: ChatSession) => {
             const chatHistories = session.chat_histories || [];
             const lastChatMessage =
               chatHistories.length > 0
@@ -140,7 +140,6 @@ export function RecentChats({
           </TooltipProvider>
         )}
       </div>
-
       <AnimatePresence>
         {isRecentChatsOpen && (
           <motion.div
@@ -149,6 +148,7 @@ export function RecentChats({
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="space-y-2 overflow-hidden"
+            style={{ maxHeight: "300px" }}
           >
             <RecentChatsList
               isLoading={isLoading}
@@ -156,6 +156,7 @@ export function RecentChats({
               recentChats={recentChats}
               fetchRecentChats={fetchRecentChats}
               hasAnimated={hasAnimated}
+              maxHeight="250px" 
             />
           </motion.div>
         )}
