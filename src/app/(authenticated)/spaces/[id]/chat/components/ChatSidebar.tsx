@@ -84,7 +84,7 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
       const response = await chatService.getRecentChat();
 
       if (response && Array.isArray(response)) {
-        const formattedChats = response.slice(0, 5).map((session: ChatSession) => {
+        const formattedChats = response.map((session: ChatSession) => {
           const chatHistories = session.chat_histories || [];
           const lastChatMessage =
             chatHistories.length > 0
@@ -172,9 +172,9 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
   );
 
   return (
-    <div className="rounded hidden md:block w-72 border-l border-border bg-background/50 mt-5 h-[calc(100vh-6rem)] flex flex-col overflow-hidden">
-      <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-border flex items-center justify-between">
+    <div className="rounded hidden md:flex flex-col w-72 border-l border-border bg-background/50 mt-5 h-[calc(100vh-6rem)] overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden">
+        <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-primary" />
             <h3 className="text-sm font-medium">Chat History</h3>
@@ -215,9 +215,8 @@ export function ChatSidebar({ sessionId }: ChatSidebarProps) {
             />
           </div>
         </div>
-
-        <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="p-2 space-y-1">
+        <ScrollArea className="flex-1 h-full overflow-auto">
+          <div className="p-2 space-y-1 pr-3">
             {isLoadingHistory ? (
               <div className="space-y-2 p-2">
                 {Array(5)

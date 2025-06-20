@@ -1,12 +1,11 @@
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { SidebarNavProps } from "./types";
 import { Badge } from "@/components/ui/badge";
 import { slideInUp } from "./animations";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useReducedMotion } from "framer-motion";
 
 export function SidebarNav({
@@ -16,6 +15,7 @@ export function SidebarNav({
   ...props
 }: SidebarNavProps & { hasAnimated?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
 
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>(() => {
@@ -59,10 +59,10 @@ export function SidebarNav({
         >
           {item.href ? (
             <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.97 }}>
-              <Link
-                href={item.href}
+              <div
+                onClick={() => item.href && router.push(item.href)}
                 className={cn(
-                  "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground",
+                  "flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all hover:bg-accent hover:text-accent-foreground cursor-pointer",
                   pathname === item.href
                     ? "bg-accent text-accent-foreground"
                     : "transparent"
@@ -86,7 +86,7 @@ export function SidebarNav({
                     </Badge>
                   </motion.div>
                 )}
-              </Link>
+              </div>
             </motion.div>
           ) : (
             <div>
@@ -152,10 +152,10 @@ export function SidebarNav({
                         whileTap={{ scale: 0.97 }}
                         transition={{ delay: 0.1 * subIdx }}
                       >
-                        <Link
-                          href={subItem.href}
+                        <div
+                          onClick={() => router.push(subItem.href)}
                           className={cn(
-                            "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-muted",
+                            "flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-muted cursor-pointer",
                             pathname === subItem.href
                               ? "bg-muted text-primary"
                               : "transparent"
@@ -196,7 +196,7 @@ export function SidebarNav({
                               </Badge>
                             </motion.div>
                           )}
-                        </Link>
+                        </div>
                       </motion.div>
                     ))}
                   </motion.div>
