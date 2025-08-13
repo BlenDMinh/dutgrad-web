@@ -38,49 +38,27 @@ jobs:
             
             echo "🔗 Processing Issue #$ISSUE_ID"
             
+            # First, validate if the issue exists using REST API
+            echo "🔍 Validating issue #$ISSUE_ID exists..."
+            ISSUE_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+              "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_ID" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json")
+            
+            if [ "$ISSUE_CHECK" != "200" ]; then
+              echo "❌ Issue #$ISSUE_ID does not exist in repository $REPO_OWNER/$REPO_NAME (HTTP $ISSUE_CHECK)"
+              continue
+            fi
+            
+            echo "✅ Issue #$ISSUE_ID exists"
+            
             # Get project items for this issue using GraphQL
-            GRAPHQL_QUERY='
-            query($owner: String!, $repo: String!, $issueNumber: Int!) {
-              repository(owner: $owner, name: $repo) {
-                issue(number: $issueNumber) {
-                  id
-                  title
-                  projectItems(first: 10) {
-                    nodes {
-                      id
-                      project {
-                        id
-                        title
-                        fields(first: 20) {
-                          nodes {
-                            ... on ProjectV2SingleSelectField {
-                              id
-                              name
-                              options {
-                                id
-                                name
-                              }
-                            }
-                          }
-                        }
-                      }
-                      fieldValues(first: 20) {
-                        nodes {
-                          ... on ProjectV2ItemFieldSingleSelectValue {
-                            field {
-                              ... on ProjectV2SingleSelectField {
-                                id
-                                name
-                              }
-                            }
-                            optionId
-                            name
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
+            GRAPHQL_QUERY='{
+              "query": "query GetIssueProjects($owner: String!, $repo: String!, $issueNumber: Int!) { repository(owner: $owner, name: $repo) { issue(number: $issueNumber) { id title projectItems(first: 10) { nodes { id project { id title fields(first: 20) { nodes { ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name dataType options { id name } } } } } fieldValues(first: 20) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { id name } } optionId name } } } } } } } }",
+              "variables": {
+                "owner": "'$REPO_OWNER'",
+                "repo": "'$REPO_NAME'",
+                "issueNumber": '$ISSUE_ID'
               }
             }'
             
@@ -88,14 +66,7 @@ jobs:
             PROJECT_RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
-              -d "{
-                \"query\": \"$(echo "$GRAPHQL_QUERY" | tr '\n' ' ' | sed 's/"/\\"/g')\",
-                \"variables\": {
-                  \"owner\": \"$REPO_OWNER\",
-                  \"repo\": \"$REPO_NAME\",
-                  \"issueNumber\": $ISSUE_ID
-                }
-              }")
+              -d "$GRAPHQL_QUERY")
             
             # Validate JSON response
             if ! echo "$PROJECT_RESPONSE" | jq . > /dev/null 2>&1; then
@@ -107,14 +78,19 @@ jobs:
             # Check for GraphQL errors
             ERRORS=$(echo "$PROJECT_RESPONSE" | jq -r '.errors // empty')
             if [ -n "$ERRORS" ]; then
-              echo "❌ GraphQL errors: $ERRORS"
+              echo "❌ GraphQL errors for issue #$ISSUE_ID:"
+              echo "$ERRORS"
+              echo "📝 Debug info:"
+              echo "  Repository: $REPO_OWNER/$REPO_NAME"
+              echo "  Issue ID: $ISSUE_ID"
               continue
             fi
             
             # Check if issue exists
             ISSUE_EXISTS=$(echo "$PROJECT_RESPONSE" | jq -r '.data.repository.issue != null')
             if [ "$ISSUE_EXISTS" != "true" ]; then
-              echo "❌ Issue #$ISSUE_ID not found"
+              echo "❌ Issue #$ISSUE_ID not found in GraphQL response"
+              echo "📝 This might indicate the issue exists but has no project assignments"
               continue
             fi
             
@@ -135,10 +111,10 @@ jobs:
               echo "📋 Processing project: $PROJECT_TITLE"
               
               # Find Status field
-              STATUS_FIELD=$(echo "$PROJECT_ITEM" | jq -r '.project.fields.nodes[] | select(.name == "Status")')
+              STATUS_FIELD=$(echo "$PROJECT_ITEM" | jq -r '.project.fields.nodes[] | select(.name == "Status" and .dataType == "SINGLE_SELECT")')
               
               if [ -z "$STATUS_FIELD" ] || [ "$STATUS_FIELD" = "null" ]; then
-                echo "⚠️ No 'Status' field found in project $PROJECT_TITLE"
+                echo "⚠️ No 'Status' single-select field found in project $PROJECT_TITLE"
                 continue
               fi
               
@@ -167,20 +143,14 @@ jobs:
               fi
               
               # Update status to "In Review"
-              UPDATE_MUTATION='
-              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                updateProjectV2ItemFieldValue(
-                  input: {
-                    projectId: $projectId
-                    itemId: $itemId
-                    fieldId: $fieldId
-                    value: {
-                      singleSelectOptionId: $optionId
-                    }
-                  }
-                ) {
-                  projectV2Item {
-                    id
+              UPDATE_MUTATION='{
+                "query": "mutation UpdateProjectV2ItemFieldValue($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2FieldValue!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId itemId: $itemId fieldId: $fieldId value: $value }) { projectV2Item { id } } }",
+                "variables": {
+                  "projectId": "'$PROJECT_ID'",
+                  "itemId": "'$ITEM_ID'",
+                  "fieldId": "'$STATUS_FIELD_ID'",
+                  "value": {
+                    "singleSelectOptionId": "'$IN_REVIEW_OPTION_ID'"
                   }
                 }
               }'
@@ -188,15 +158,7 @@ jobs:
               UPDATE_RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
                 -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                 -H "Content-Type: application/json" \
-                -d "{
-                  \"query\": \"$(echo "$UPDATE_MUTATION" | tr '\n' ' ' | sed 's/"/\\"/g')\",
-                  \"variables\": {
-                    \"projectId\": \"$PROJECT_ID\",
-                    \"itemId\": \"$ITEM_ID\",
-                    \"fieldId\": \"$STATUS_FIELD_ID\",
-                    \"optionId\": \"$IN_REVIEW_OPTION_ID\"
-                  }
-                }")
+                -d "$UPDATE_MUTATION")
               
               # Check for update errors
               UPDATE_ERRORS=$(echo "$UPDATE_RESPONSE" | jq -r '.errors // empty')
