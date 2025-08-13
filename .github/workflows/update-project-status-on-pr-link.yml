@@ -1,0 +1,211 @@
+name: Update Project Status When PR Links to Issue
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  update-project-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update project status for linked issues
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${{ github.event.repository.name }}"
+          
+          echo "🔍 Processing PR #$PR_NUMBER for linked issues"
+          
+          # Extract Issue IDs using "Resolve #123" pattern
+          ISSUE_IDS=$(echo "$PR_BODY" | grep -oE 'Resolve #[0-9]+' | grep -oE '[0-9]+')
+          
+          if [ -z "$ISSUE_IDS" ]; then
+            echo "⚠️ No 'Resolve #issue_id' patterns found in PR description"
+            exit 0
+          fi
+          
+          echo "Found issue IDs: $ISSUE_IDS"
+          
+          # Process each linked issue
+          echo "$ISSUE_IDS" | while read -r ISSUE_ID; do
+            if [ -z "$ISSUE_ID" ]; then
+              continue
+            fi
+            
+            echo "🔗 Processing Issue #$ISSUE_ID"
+            
+            # Get project items for this issue using GraphQL
+            GRAPHQL_QUERY='
+            query($owner: String!, $repo: String!, $issueNumber: Int!) {
+              repository(owner: $owner, name: $repo) {
+                issue(number: $issueNumber) {
+                  id
+                  title
+                  projectItems(first: 10) {
+                    nodes {
+                      id
+                      project {
+                        id
+                        title
+                        fields(first: 20) {
+                          nodes {
+                            ... on ProjectV2SingleSelectField {
+                              id
+                              name
+                              options {
+                                id
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                      fieldValues(first: 20) {
+                        nodes {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            field {
+                              ... on ProjectV2SingleSelectField {
+                                id
+                                name
+                              }
+                            }
+                            optionId
+                            name
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }'
+            
+            # Execute GraphQL query
+            PROJECT_RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"query\": \"$(echo "$GRAPHQL_QUERY" | tr '\n' ' ' | sed 's/"/\\"/g')\",
+                \"variables\": {
+                  \"owner\": \"$REPO_OWNER\",
+                  \"repo\": \"$REPO_NAME\",
+                  \"issueNumber\": $ISSUE_ID
+                }
+              }")
+            
+            # Validate JSON response
+            if ! echo "$PROJECT_RESPONSE" | jq . > /dev/null 2>&1; then
+              echo "❌ Invalid JSON response from GitHub GraphQL API"
+              echo "Response: $PROJECT_RESPONSE"
+              continue
+            fi
+            
+            # Check for GraphQL errors
+            ERRORS=$(echo "$PROJECT_RESPONSE" | jq -r '.errors // empty')
+            if [ -n "$ERRORS" ]; then
+              echo "❌ GraphQL errors: $ERRORS"
+              continue
+            fi
+            
+            # Check if issue exists
+            ISSUE_EXISTS=$(echo "$PROJECT_RESPONSE" | jq -r '.data.repository.issue != null')
+            if [ "$ISSUE_EXISTS" != "true" ]; then
+              echo "❌ Issue #$ISSUE_ID not found"
+              continue
+            fi
+            
+            # Get project items
+            PROJECT_ITEMS=$(echo "$PROJECT_RESPONSE" | jq -r '.data.repository.issue.projectItems.nodes[]')
+            
+            if [ -z "$PROJECT_ITEMS" ] || [ "$PROJECT_ITEMS" = "null" ]; then
+              echo "⚠️ Issue #$ISSUE_ID is not assigned to any projects"
+              continue
+            fi
+            
+            # Process each project
+            echo "$PROJECT_RESPONSE" | jq -c '.data.repository.issue.projectItems.nodes[]' | while read -r PROJECT_ITEM; do
+              PROJECT_ID=$(echo "$PROJECT_ITEM" | jq -r '.project.id')
+              PROJECT_TITLE=$(echo "$PROJECT_ITEM" | jq -r '.project.title')
+              ITEM_ID=$(echo "$PROJECT_ITEM" | jq -r '.id')
+              
+              echo "📋 Processing project: $PROJECT_TITLE"
+              
+              # Find Status field
+              STATUS_FIELD=$(echo "$PROJECT_ITEM" | jq -r '.project.fields.nodes[] | select(.name == "Status")')
+              
+              if [ -z "$STATUS_FIELD" ] || [ "$STATUS_FIELD" = "null" ]; then
+                echo "⚠️ No 'Status' field found in project $PROJECT_TITLE"
+                continue
+              fi
+              
+              STATUS_FIELD_ID=$(echo "$STATUS_FIELD" | jq -r '.id')
+              
+              # Find "In Review" option
+              IN_REVIEW_OPTION=$(echo "$STATUS_FIELD" | jq -r '.options[] | select(.name == "In Review")')
+              
+              if [ -z "$IN_REVIEW_OPTION" ] || [ "$IN_REVIEW_OPTION" = "null" ]; then
+                echo "⚠️ No 'In Review' status option found in project $PROJECT_TITLE"
+                echo "Available options:"
+                echo "$STATUS_FIELD" | jq -r '.options[] | "- " + .name'
+                continue
+              fi
+              
+              IN_REVIEW_OPTION_ID=$(echo "$IN_REVIEW_OPTION" | jq -r '.id')
+              
+              # Get current status
+              CURRENT_STATUS=$(echo "$PROJECT_ITEM" | jq -r '.fieldValues.nodes[] | select(.field.name == "Status") | .name // "None"')
+              
+              echo "📊 Current status: $CURRENT_STATUS"
+              
+              if [ "$CURRENT_STATUS" = "In Review" ]; then
+                echo "✅ Status already set to 'In Review' for issue #$ISSUE_ID in project $PROJECT_TITLE"
+                continue
+              fi
+              
+              # Update status to "In Review"
+              UPDATE_MUTATION='
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(
+                  input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: {
+                      singleSelectOptionId: $optionId
+                    }
+                  }
+                ) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }'
+              
+              UPDATE_RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"query\": \"$(echo "$UPDATE_MUTATION" | tr '\n' ' ' | sed 's/"/\\"/g')\",
+                  \"variables\": {
+                    \"projectId\": \"$PROJECT_ID\",
+                    \"itemId\": \"$ITEM_ID\",
+                    \"fieldId\": \"$STATUS_FIELD_ID\",
+                    \"optionId\": \"$IN_REVIEW_OPTION_ID\"
+                  }
+                }")
+              
+              # Check for update errors
+              UPDATE_ERRORS=$(echo "$UPDATE_RESPONSE" | jq -r '.errors // empty')
+              if [ -n "$UPDATE_ERRORS" ]; then
+                echo "❌ Failed to update status: $UPDATE_ERRORS"
+                continue
+              fi
+              
+              echo "✅ Successfully updated status to 'In Review' for issue #$ISSUE_ID in project $PROJECT_TITLE"
+              echo "🔄 Status changed: $CURRENT_STATUS → In Review"
+            done
+          done

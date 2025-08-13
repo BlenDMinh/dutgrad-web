@@ -1,0 +1,67 @@
+name: Create JIRA Ticket When GitHub Issue Created
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  create-jira-ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create JIRA ticket
+        run: |
+          ISSUE_TITLE='${{ github.event.issue.title }}'
+          ISSUE_BODY='${{ github.event.issue.body }}'
+          GITHUB_URL="${{ github.event.issue.html_url }}"
+          
+          PAYLOAD=$(jq -n \
+            --arg title "#${{ github.event.issue.number }} $ISSUE_TITLE" \
+            --arg body "$ISSUE_BODY" \
+            '{
+              "fields": {
+                "project": {
+                  "id": "${{ secrets.JIRA_PROJECT_ID }}"
+                },
+                "summary": $title,
+                "description": {
+                  "type": "doc",
+                  "version": 1,
+                  "content": [
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": $body
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "issuetype": {
+                  "name": "Story"
+                }
+              }
+            }')
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://${{ secrets.JIRA_DOMAIN }}.atlassian.net/rest/api/3/issue" \
+            --user '${{ secrets.JIRA_USER }}:${{ secrets.JIRA_API_TOKEN }}' \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            --data "$PAYLOAD")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          if [ "$HTTP_CODE" -eq 201 ]; then
+            echo "✅ JIRA ticket created successfully"
+            echo "Response: $RESPONSE_BODY"
+          else
+            echo "❌ Failed to create JIRA ticket (HTTP $HTTP_CODE)"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
+          fi
