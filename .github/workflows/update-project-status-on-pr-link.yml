@@ -4,6 +4,12 @@ on:
   pull_request:
     types: [opened, edited]
 
+permissions:
+  contents: read           # Read repository contents
+  issues: read            # Read issues
+  pull-requests: read     # Read pull requests
+  repository-projects: write  # Write to repository projects
+
 jobs:
   update-project-status:
     runs-on: ubuntu-latest
@@ -40,17 +46,32 @@ jobs:
             
             # First, validate if the issue exists using REST API
             echo "🔍 Validating issue #$ISSUE_ID exists..."
-            ISSUE_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+            ISSUE_CHECK_RESPONSE=$(curl -s -w "\n%{http_code}" \
               "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/issues/$ISSUE_ID" \
               -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json")
             
-            if [ "$ISSUE_CHECK" != "200" ]; then
-              echo "❌ Issue #$ISSUE_ID does not exist in repository $REPO_OWNER/$REPO_NAME (HTTP $ISSUE_CHECK)"
+            ISSUE_CHECK_CODE=$(echo "$ISSUE_CHECK_RESPONSE" | tail -n1)
+            ISSUE_CHECK_BODY=$(echo "$ISSUE_CHECK_RESPONSE" | head -n -1)
+            
+            if [ "$ISSUE_CHECK_CODE" = "200" ]; then
+              echo "✅ Issue #$ISSUE_ID exists and is accessible"
+            elif [ "$ISSUE_CHECK_CODE" = "403" ]; then
+              echo "❌ Access forbidden to issue #$ISSUE_ID (HTTP 403)"
+              echo "📝 This could mean:"
+              echo "   - GitHub token lacks required permissions (needs 'repo' scope for private repos)"
+              echo "   - Issue is in a private repository"
+              echo "   - Token doesn't have access to this repository"
+              echo "🔍 Token permissions needed: repo, read:project"
+              continue
+            elif [ "$ISSUE_CHECK_CODE" = "404" ]; then
+              echo "❌ Issue #$ISSUE_ID does not exist in repository $REPO_OWNER/$REPO_NAME (HTTP 404)"
+              continue
+            else
+              echo "❌ Unexpected error checking issue #$ISSUE_ID (HTTP $ISSUE_CHECK_CODE)"
+              echo "Response: $ISSUE_CHECK_BODY"
               continue
             fi
-            
-            echo "✅ Issue #$ISSUE_ID exists"
             
             # Get project items for this issue using GraphQL
             GRAPHQL_QUERY='{
