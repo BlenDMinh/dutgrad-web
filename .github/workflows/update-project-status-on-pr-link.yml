@@ -106,9 +106,7 @@ jobs:
                       }
                     }
                   }
-                }
-GRAPHQL
-                )
+                })
                 
                 PROJECT_DATA=$(curl -s -X POST \
                   "https://api.github.com/graphql" \
@@ -184,9 +182,7 @@ GRAPHQL
                         id
                       }
                     }
-                  }
-MUTATION
-                  )
+                  })
                   
                   UPDATE_RESPONSE=$(curl -s -X POST \
                     "https://api.github.com/graphql" \
@@ -204,7 +200,6 @@ MUTATION
                   echo "🔄 Status changed: $CURRENT_STATUS → In Review"
                   
                 done
-EOF
               )" "$ISSUE_NUMBER" "$ISSUE_OWNER" "$ISSUE_REPO"
               
             done <<< "$ISSUE_URLS"
