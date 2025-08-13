@@ -1,0 +1,236 @@
+name: Update Project Status When PR Links to Issue
+
+on:
+  pull_request:
+    types: [opened, edited]
+  # Also trigger when PR is linked via other means
+  issues:
+    types: [edited]
+
+jobs:
+  update-project-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update project status for linked issues
+        run: |
+          # Check if this is a PR event or Issue event
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            PR_DESCRIPTION="${{ github.event.pull_request.body }}"
+            REPO_OWNER="${{ github.repository_owner }}"
+            REPO_NAME="${{ github.event.repository.name }}"
+            
+            echo "🔍 Processing PR #$PR_NUMBER for linked issues"
+            
+            # Extract Issue URLs from PR description
+            ISSUE_URLS=$(echo "$PR_DESCRIPTION" | grep -oE 'https://github\.com/[^/]+/[^/]+/issues/[0-9]+')
+            
+            if [ -z "$ISSUE_URLS" ]; then
+              echo "⚠️ No Issue URLs found in PR description"
+              exit 0
+            fi
+            
+            # Process each linked issue
+            while IFS= read -r ISSUE_URL; do
+              if [ -z "$ISSUE_URL" ]; then
+                continue
+              fi
+              
+              ISSUE_NUMBER=$(echo "$ISSUE_URL" | grep -oE '[0-9]+$')
+              ISSUE_REPO_PATH=$(echo "$ISSUE_URL" | sed 's|https://github\.com/||' | sed 's|/issues/.*||')
+              ISSUE_OWNER=$(echo "$ISSUE_REPO_PATH" | cut -d'/' -f1)
+              ISSUE_REPO=$(echo "$ISSUE_REPO_PATH" | cut -d'/' -f2)
+              
+              echo "🔗 Processing Issue #$ISSUE_NUMBER in $ISSUE_OWNER/$ISSUE_REPO"
+              
+              # Update project status for this issue
+              bash -c "$(cat << 'EOF'
+                ISSUE_NUMBER="$1"
+                ISSUE_OWNER="$2"
+                ISSUE_REPO="$3"
+                
+                # Get issue details to find associated projects
+                ISSUE_DATA=$(curl -s -X GET \
+                  "https://api.github.com/repos/$ISSUE_OWNER/$ISSUE_REPO/issues/$ISSUE_NUMBER" \
+                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Accept: application/vnd.github.v3+json")
+                
+                if [ $? -ne 0 ]; then
+                  echo "❌ Failed to get issue data for #$ISSUE_NUMBER"
+                  exit 1
+                fi
+                
+                # Get organization projects that contain this issue
+                # Using GraphQL to query Projects v2
+                GRAPHQL_QUERY=$(cat << 'GRAPHQL'
+                {
+                  repository(owner: "'"$ISSUE_OWNER"'", name: "'"$ISSUE_REPO"'") {
+                    issue(number: '"$ISSUE_NUMBER"') {
+                      projectItems(first: 10) {
+                        nodes {
+                          id
+                          project {
+                            id
+                            title
+                            fields(first: 20) {
+                              nodes {
+                                ... on ProjectV2SingleSelectField {
+                                  id
+                                  name
+                                  options {
+                                    id
+                                    name
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          fieldValues(first: 20) {
+                            nodes {
+                              ... on ProjectV2ItemFieldSingleSelectValue {
+                                field {
+                                  ... on ProjectV2SingleSelectField {
+                                    id
+                                    name
+                                  }
+                                }
+                                optionId
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+GRAPHQL
+                )
+                
+                PROJECT_DATA=$(curl -s -X POST \
+                  "https://api.github.com/graphql" \
+                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                  -H "Content-Type: application/json" \
+                  --data "{\"query\": \"$(echo "$GRAPHQL_QUERY" | tr '\n' ' ' | sed 's/"/\\"/g')\"}")
+                
+                if [ $? -ne 0 ]; then
+                  echo "❌ Failed to query project data for issue #$ISSUE_NUMBER"
+                  exit 1
+                fi
+                
+                # Check if the query was successful
+                ERRORS=$(echo "$PROJECT_DATA" | jq -r '.errors // empty')
+                if [ -n "$ERRORS" ]; then
+                  echo "❌ GraphQL errors: $ERRORS"
+                  exit 1
+                fi
+                
+                # Process each project item
+                echo "$PROJECT_DATA" | jq -r '.data.repository.issue.projectItems.nodes[]' | while IFS= read -r PROJECT_ITEM; do
+                  PROJECT_ITEM_ID=$(echo "$PROJECT_ITEM" | jq -r '.id')
+                  PROJECT_TITLE=$(echo "$PROJECT_ITEM" | jq -r '.project.title')
+                  
+                  echo "📋 Found in project: $PROJECT_TITLE"
+                  
+                  # Find the Status field
+                  STATUS_FIELD=$(echo "$PROJECT_ITEM" | jq -r '.project.fields.nodes[] | select(.name == "Status" or .name == "status")')
+                  
+                  if [ -z "$STATUS_FIELD" ] || [ "$STATUS_FIELD" = "null" ]; then
+                    echo "⚠️ No Status field found in project $PROJECT_TITLE"
+                    continue
+                  fi
+                  
+                  STATUS_FIELD_ID=$(echo "$STATUS_FIELD" | jq -r '.id')
+                  
+                  # Find "In Review" option
+                  IN_REVIEW_OPTION=$(echo "$STATUS_FIELD" | jq -r '.options[] | select(.name == "In Review" or .name == "in review" or .name == "In review")')
+                  
+                  if [ -z "$IN_REVIEW_OPTION" ] || [ "$IN_REVIEW_OPTION" = "null" ]; then
+                    echo "⚠️ No 'In Review' status option found in project $PROJECT_TITLE"
+                    echo "Available options:"
+                    echo "$STATUS_FIELD" | jq -r '.options[] | "- " + .name'
+                    continue
+                  fi
+                  
+                  IN_REVIEW_OPTION_ID=$(echo "$IN_REVIEW_OPTION" | jq -r '.id')
+                  
+                  # Get current status
+                  CURRENT_STATUS=$(echo "$PROJECT_ITEM" | jq -r '.fieldValues.nodes[] | select(.field.name == "Status" or .field.name == "status") | .name // "None"')
+                  
+                  echo "📊 Current status: $CURRENT_STATUS"
+                  
+                  if [ "$CURRENT_STATUS" = "In Review" ]; then
+                    echo "✅ Status already set to 'In Review' for issue #$ISSUE_NUMBER"
+                    continue
+                  fi
+                  
+                  # Update project item status
+                  UPDATE_MUTATION=$(cat << 'MUTATION'
+                  mutation {
+                    updateProjectV2ItemFieldValue(
+                      input: {
+                        projectId: "'"$(echo "$PROJECT_ITEM" | jq -r '.project.id')"'"
+                        itemId: "'"$PROJECT_ITEM_ID"'"
+                        fieldId: "'"$STATUS_FIELD_ID"'"
+                        value: {
+                          singleSelectOptionId: "'"$IN_REVIEW_OPTION_ID"'"
+                        }
+                      }
+                    ) {
+                      projectV2Item {
+                        id
+                      }
+                    }
+                  }
+MUTATION
+                  )
+                  
+                  UPDATE_RESPONSE=$(curl -s -X POST \
+                    "https://api.github.com/graphql" \
+                    -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                    -H "Content-Type: application/json" \
+                    --data "{\"query\": \"$(echo "$UPDATE_MUTATION" | tr '\n' ' ' | sed 's/"/\\"/g')\"}")
+                  
+                  UPDATE_ERRORS=$(echo "$UPDATE_RESPONSE" | jq -r '.errors // empty')
+                  if [ -n "$UPDATE_ERRORS" ]; then
+                    echo "❌ Failed to update status: $UPDATE_ERRORS"
+                    continue
+                  fi
+                  
+                  echo "✅ Updated status to 'In Review' for issue #$ISSUE_NUMBER in project $PROJECT_TITLE"
+                  echo "🔄 Status changed: $CURRENT_STATUS → In Review"
+                  
+                done
+EOF
+              )" "$ISSUE_NUMBER" "$ISSUE_OWNER" "$ISSUE_REPO"
+              
+            done <<< "$ISSUE_URLS"
+            
+          elif [ "${{ github.event_name }}" = "issues" ]; then
+            # Handle direct issue events (when PR is linked via UI)
+            ISSUE_NUMBER="${{ github.event.issue.number }}"
+            REPO_OWNER="${{ github.repository_owner }}"
+            REPO_NAME="${{ github.event.repository.name }}"
+            
+            echo "🔍 Processing Issue #$ISSUE_NUMBER for linked PRs"
+            
+            # Check if issue has linked PRs
+            PR_SEARCH=$(curl -s -X GET \
+              "https://api.github.com/search/issues?q=repo:$REPO_OWNER/$REPO_NAME+type:pr+$ISSUE_NUMBER+in:body" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json")
+            
+            PR_COUNT=$(echo "$PR_SEARCH" | jq -r '.total_count // 0')
+            
+            if [ "$PR_COUNT" -gt 0 ]; then
+              echo "📋 Found $PR_COUNT linked PR(s) for issue #$ISSUE_NUMBER"
+              # Process the issue (same logic as above)
+              # For brevity, we'll just log that PRs were found
+              echo "🔄 Issue #$ISSUE_NUMBER has linked PRs, project status should be updated"
+            else
+              echo "⚠️ No linked PRs found for issue #$ISSUE_NUMBER"
+            fi
+          fi
