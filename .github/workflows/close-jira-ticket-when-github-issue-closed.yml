@@ -1,0 +1,133 @@
+name: Close JIRA Ticket When GitHub Issue Closed
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  close-jira-ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Close corresponding JIRA ticket
+        run: |
+          GITHUB_ISSUE_ID="${{ github.event.issue.number }}"
+          SEARCH_PATTERN="#${GITHUB_ISSUE_ID}"
+          
+          echo "🔍 Searching for JIRA ticket with pattern: $SEARCH_PATTERN"
+          
+          # URL encode the JQL query
+          JQL_QUERY="project = ${{ secrets.JIRA_PROJECT_ID }} AND summary ~ \"$SEARCH_PATTERN\""
+          ENCODED_JQL=$(printf '%s' "$JQL_QUERY" | jq -sRr @uri)
+          
+          SEARCH_RESPONSE=$(curl -s -X GET \
+            "https://${{ secrets.JIRA_DOMAIN }}.atlassian.net/rest/api/3/search/jql?jql=${ENCODED_JQL}&maxResults=10&fields=key,summary,status" \
+            --user '${{ secrets.JIRA_USER }}:${{ secrets.JIRA_API_TOKEN }}' \
+            -H "Accept: application/json")
+          
+          # Check if search was successful
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to search JIRA tickets"
+            exit 1
+          fi
+          
+          # Validate JSON response
+          if ! echo "$SEARCH_RESPONSE" | jq . > /dev/null 2>&1; then
+            echo "❌ Invalid JSON response from JIRA search API"
+            echo "Response: $SEARCH_RESPONSE"
+            exit 1
+          fi
+          
+          # Extract total number of found issues
+          TOTAL_ISSUES=$(echo "$SEARCH_RESPONSE" | jq -r '.issues | length')
+          
+          if [ "$TOTAL_ISSUES" -eq 0 ]; then
+            echo "⚠️ No JIRA ticket found with GitHub Issue #$GITHUB_ISSUE_ID"
+            echo "This might be expected if the ticket was created manually or outside of automation"
+            exit 0
+          fi
+          
+          if [ "$TOTAL_ISSUES" -gt 1 ]; then
+            echo "⚠️ Multiple JIRA tickets found with GitHub Issue #$GITHUB_ISSUE_ID"
+            echo "Found $TOTAL_ISSUES tickets. Processing the first one."
+          fi
+          
+          JIRA_KEY=$(echo "$SEARCH_RESPONSE" | jq -r '.issues[0].key')
+          CURRENT_STATUS=$(echo "$SEARCH_RESPONSE" | jq -r '.issues[0].fields.status.name')
+          CURRENT_STATUS_ID=$(echo "$SEARCH_RESPONSE" | jq -r '.issues[0].fields.status.id // "unknown"')
+          
+          echo "📋 Found JIRA ticket: $JIRA_KEY"
+          echo "📊 Current status: $CURRENT_STATUS (ID: $CURRENT_STATUS_ID)"
+          
+          if echo "$CURRENT_STATUS" | grep -E -i "(done|closed|resolved|完了|クローズ|解決)" > /dev/null; then
+            echo "✅ JIRA ticket $JIRA_KEY is already in a completed state: $CURRENT_STATUS"
+            exit 0
+          fi
+          
+          TRANSITIONS_RESPONSE=$(curl -s -X GET \
+            "https://${{ secrets.JIRA_DOMAIN }}.atlassian.net/rest/api/3/issue/$JIRA_KEY/transitions" \
+            --user '${{ secrets.JIRA_USER }}:${{ secrets.JIRA_API_TOKEN }}' \
+            -H "Accept: application/json")
+          
+          if [ $? -ne 0 ]; then
+            echo "❌ Failed to get available transitions for $JIRA_KEY"
+            exit 1
+          fi
+          
+          # Validate JSON response
+          if ! echo "$TRANSITIONS_RESPONSE" | jq . > /dev/null 2>&1; then
+            echo "❌ Invalid JSON response from JIRA transitions API"
+            echo "Response: $TRANSITIONS_RESPONSE"
+            exit 1
+          fi
+          
+          echo "🔄 Available transitions:"
+          echo "$TRANSITIONS_RESPONSE" | jq -r '.transitions[] | "\(.id): \(.name)"'
+          
+          TRANSITION_ID=$(echo "$TRANSITIONS_RESPONSE" | jq -r '
+            (.transitions[] | select(.name == "DONE") | .id),
+            (.transitions[] | select(.name | test("^Done$")) | .id),
+            (.transitions[] | select(.name | test("(?i)(done|close|resolve|complete|finish|完了|クローズ|解決|終了)")) | .id)
+            ' | head -n1)
+          
+          if [ -z "$TRANSITION_ID" ] || [ "$TRANSITION_ID" = "null" ]; then
+            echo "❌ No suitable completion transition found for ticket $JIRA_KEY"
+            echo "Available transitions:"
+            echo "$TRANSITIONS_RESPONSE" | jq -r '.transitions[] | "- \(.name) (ID: \(.id))"'
+            echo "Please configure the correct transition ID in your workflow or JIRA project settings"
+            exit 1
+          fi
+          
+          TRANSITION_NAME=$(echo "$TRANSITIONS_RESPONSE" | jq -r ".transitions[] | select(.id == \"$TRANSITION_ID\") | .name")
+          echo "🎯 Using transition: $TRANSITION_NAME (ID: $TRANSITION_ID)"
+          
+          TRANSITION_PAYLOAD=$(jq -n \
+            --arg transition_id "$TRANSITION_ID" \
+            --arg github_url "${{ github.event.issue.html_url }}" \
+            '{
+              "transition": {
+                "id": $transition_id
+              },
+              "fields": {}
+            }')
+          
+          TRANSITION_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://${{ secrets.JIRA_DOMAIN }}.atlassian.net/rest/api/3/issue/$JIRA_KEY/transitions" \
+            --user '${{ secrets.JIRA_USER }}:${{ secrets.JIRA_API_TOKEN }}' \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            --data "$TRANSITION_PAYLOAD")
+          
+          HTTP_CODE=$(echo "$TRANSITION_RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$TRANSITION_RESPONSE" | head -n -1)
+          
+          if [ "$HTTP_CODE" -eq 204 ]; then
+            echo "✅ Successfully closed JIRA ticket $JIRA_KEY"
+            echo "🔗 Transition: $CURRENT_STATUS → $TRANSITION_NAME"
+          else
+            echo "❌ Failed to close JIRA ticket $JIRA_KEY (HTTP $HTTP_CODE)"
+            echo "Response: $RESPONSE_BODY"
+            exit 1
+          fi
