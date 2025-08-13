@@ -3,7 +3,6 @@ name: Update Project Status When PR Links to Issue
 on:
   pull_request:
     types: [opened, edited]
-  # Also trigger when PR is linked via other means
   issues:
     types: [edited]
 
@@ -25,26 +24,21 @@ jobs:
             
             echo "🔍 Processing PR #$PR_NUMBER for linked issues"
             
-            # Extract Issue URLs from PR description
-            ISSUE_URLS=$(echo "$PR_DESCRIPTION" | grep -oE 'https://github\.com/[^/]+/[^/]+/issues/[0-9]+')
+            # Extract Issue IDs from PR description using "Resolve #123" pattern
+            ISSUE_IDS=$(echo "$PR_DESCRIPTION" | grep -oE 'Resolve #[0-9]+' | grep -oE '[0-9]+')
             
-            if [ -z "$ISSUE_URLS" ]; then
-              echo "⚠️ No Issue URLs found in PR description"
+            if [ -z "$ISSUE_IDS" ]; then
+              echo "⚠️ No 'Resolve #issue_id' patterns found in PR description"
               exit 0
             fi
             
             # Process each linked issue
-            while IFS= read -r ISSUE_URL; do
-              if [ -z "$ISSUE_URL" ]; then
+            while IFS= read -r ISSUE_ID; do
+              if [ -z "$ISSUE_ID" ]; then
                 continue
               fi
               
-              ISSUE_NUMBER=$(echo "$ISSUE_URL" | grep -oE '[0-9]+$')
-              ISSUE_REPO_PATH=$(echo "$ISSUE_URL" | sed 's|https://github\.com/||' | sed 's|/issues/.*||')
-              ISSUE_OWNER=$(echo "$ISSUE_REPO_PATH" | cut -d'/' -f1)
-              ISSUE_REPO=$(echo "$ISSUE_REPO_PATH" | cut -d'/' -f2)
-              
-              echo "🔗 Processing Issue #$ISSUE_NUMBER in $ISSUE_OWNER/$ISSUE_REPO"
+              echo "🔗 Processing Issue #$ISSUE_ID in $REPO_OWNER/$REPO_NAME"
               
               # Update project status for this issue
               bash -c "$(cat << 'EOF'
@@ -200,9 +194,9 @@ jobs:
                   echo "🔄 Status changed: $CURRENT_STATUS → In Review"
                   
                 done
-              )" "$ISSUE_NUMBER" "$ISSUE_OWNER" "$ISSUE_REPO"
+              )" "$ISSUE_ID" "$REPO_OWNER" "$REPO_NAME"
               
-            done <<< "$ISSUE_URLS"
+            done <<< "$ISSUE_IDS"
             
           elif [ "${{ github.event_name }}" = "issues" ]; then
             # Handle direct issue events (when PR is linked via UI)
