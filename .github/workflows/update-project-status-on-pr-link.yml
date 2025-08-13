@@ -89,6 +89,11 @@ jobs:
               -H "Content-Type: application/json" \
               -d "$GRAPHQL_QUERY")
             
+            # Debug: Print the full API response
+            echo "🐛 DEBUG: GraphQL API Response for Issue #$ISSUE_ID:"
+            echo "$PROJECT_RESPONSE" | jq . || echo "Response is not valid JSON: $PROJECT_RESPONSE"
+            echo "🐛 DEBUG: End of API Response"
+            
             # Validate JSON response
             if ! echo "$PROJECT_RESPONSE" | jq . > /dev/null 2>&1; then
               echo "❌ Invalid JSON response from GitHub GraphQL API"
