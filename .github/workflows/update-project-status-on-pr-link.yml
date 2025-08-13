@@ -75,7 +75,7 @@ jobs:
             
             # Get project items for this issue using GraphQL
             GRAPHQL_QUERY='{
-              "query": "query GetIssueProjects($owner: String!, $repo: String!, $issueNumber: Int!) { repository(owner: $owner, name: $repo) { issue(number: $issueNumber) { id title projectItems(first: 10) { nodes { id project { id title fields(first: 20) { nodes { ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name dataType options { id name } } } } } fieldValues(first: 20) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { id name } } optionId name } } } } } } } }",
+              "query": "query GetIssueProjects($owner: String!, $repo: String!, $issueNumber: Int!) { repository(owner: $owner, name: $repo) { issue(number: $issueNumber) { id title projectItems(first: 20) { nodes { id project { id title } fieldValues(first: 20) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { id name } } optionId name } } } } } projectsV2(first: 20) { nodes { id title fields(first: 20) { nodes { ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name dataType options { id name } } } } items(first: 20) { nodes { id content { ... on Issue { number } } fieldValues(first: 20) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { id name } } optionId name } } } } } } } } } owner { ... on Organization { projectsV2(first: 20) { nodes { id title fields(first: 20) { nodes { ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name dataType options { id name } } } } items(first: 50) { nodes { id content { ... on Issue { number repository { name owner { login } } } } fieldValues(first: 20) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { id name } } optionId name } } } } } } } } ... on User { projectsV2(first: 20) { nodes { id title fields(first: 20) { nodes { ... on ProjectV2Field { id name dataType } ... on ProjectV2SingleSelectField { id name dataType options { id name } } } } items(first: 50) { nodes { id content { ... on Issue { number repository { name owner { login } } } } fieldValues(first: 20) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { id name } } optionId name } } } } } } } } } }",
               "variables": {
                 "owner": "'$REPO_OWNER'",
                 "repo": "'$REPO_NAME'",
@@ -123,8 +123,104 @@ jobs:
             # Get project items
             PROJECT_ITEMS=$(echo "$PROJECT_RESPONSE" | jq -r '.data.repository.issue.projectItems.nodes[]')
             
+            # Also check for organization/user projects
+            ORG_USER_PROJECTS=""
+            if echo "$PROJECT_RESPONSE" | jq -e '.data.repository.owner.projectsV2.nodes' > /dev/null 2>&1; then
+              ORG_USER_PROJECTS=$(echo "$PROJECT_RESPONSE" | jq -c '.data.repository.owner.projectsV2.nodes[]')
+            fi
+            
+            echo "🔍 Checking repository project items..."
             if [ -z "$PROJECT_ITEMS" ] || [ "$PROJECT_ITEMS" = "null" ]; then
-              echo "⚠️ Issue #$ISSUE_ID is not assigned to any projects"
+              echo "⚠️ Issue #$ISSUE_ID is not assigned to any repository projects"
+            else
+              echo "✅ Found repository project assignments"
+            fi
+            
+            echo "🔍 Checking organization/user projects..."
+            FOUND_IN_ORG_PROJECTS=false
+            
+            if [ -n "$ORG_USER_PROJECTS" ]; then
+              echo "$ORG_USER_PROJECTS" | while read -r PROJECT; do
+                PROJECT_ID=$(echo "$PROJECT" | jq -r '.id')
+                PROJECT_TITLE=$(echo "$PROJECT" | jq -r '.title')
+                
+                # Check if this project contains our issue
+                MATCHING_ITEM=$(echo "$PROJECT" | jq -r --arg issue_num "$ISSUE_ID" --arg repo_name "$REPO_NAME" --arg owner "$REPO_OWNER" '.items.nodes[] | select(.content.number == ($issue_num | tonumber) and .content.repository.name == $repo_name and .content.repository.owner.login == $owner)')
+                
+                if [ -n "$MATCHING_ITEM" ] && [ "$MATCHING_ITEM" != "null" ]; then
+                  echo "✅ Found issue #$ISSUE_ID in organization/user project: $PROJECT_TITLE"
+                  FOUND_IN_ORG_PROJECTS=true
+                  
+                  # Process this project item
+                  ITEM_ID=$(echo "$MATCHING_ITEM" | jq -r '.id')
+                  
+                  echo "📋 Processing project: $PROJECT_TITLE"
+                  
+                  # Find Status field
+                  STATUS_FIELD=$(echo "$PROJECT" | jq -r '.fields.nodes[] | select(.name == "Status" and .dataType == "SINGLE_SELECT")')
+                  
+                  if [ -z "$STATUS_FIELD" ] || [ "$STATUS_FIELD" = "null" ]; then
+                    echo "⚠️ No 'Status' single-select field found in project $PROJECT_TITLE"
+                    continue
+                  fi
+                  
+                  STATUS_FIELD_ID=$(echo "$STATUS_FIELD" | jq -r '.id')
+                  
+                  # Find "In Review" option
+                  IN_REVIEW_OPTION=$(echo "$STATUS_FIELD" | jq -r '.options[] | select(.name == "In Review")')
+                  
+                  if [ -z "$IN_REVIEW_OPTION" ] || [ "$IN_REVIEW_OPTION" = "null" ]; then
+                    echo "⚠️ No 'In Review' status option found in project $PROJECT_TITLE"
+                    echo "Available options:"
+                    echo "$STATUS_FIELD" | jq -r '.options[] | "- " + .name'
+                    continue
+                  fi
+                  
+                  IN_REVIEW_OPTION_ID=$(echo "$IN_REVIEW_OPTION" | jq -r '.id')
+                  
+                  # Get current status
+                  CURRENT_STATUS=$(echo "$MATCHING_ITEM" | jq -r '.fieldValues.nodes[] | select(.field.name == "Status") | .name // "None"')
+                  
+                  echo "📊 Current status: $CURRENT_STATUS"
+                  
+                  if [ "$CURRENT_STATUS" = "In Review" ]; then
+                    echo "✅ Status already set to 'In Review' for issue #$ISSUE_ID in project $PROJECT_TITLE"
+                    continue
+                  fi
+                  
+                  # Update status to "In Review"
+                  UPDATE_MUTATION='{
+                    "query": "mutation UpdateProjectV2ItemFieldValue($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: ProjectV2FieldValue!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId itemId: $itemId fieldId: $fieldId value: $value }) { projectV2Item { id } } }",
+                    "variables": {
+                      "projectId": "'$PROJECT_ID'",
+                      "itemId": "'$ITEM_ID'",
+                      "fieldId": "'$STATUS_FIELD_ID'",
+                      "value": {
+                        "singleSelectOptionId": "'$IN_REVIEW_OPTION_ID'"
+                      }
+                    }
+                  }'
+                  
+                  UPDATE_RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
+                    -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                    -H "Content-Type: application/json" \
+                    -d "$UPDATE_MUTATION")
+                  
+                  # Check for update errors
+                  UPDATE_ERRORS=$(echo "$UPDATE_RESPONSE" | jq -r '.errors // empty')
+                  if [ -n "$UPDATE_ERRORS" ]; then
+                    echo "❌ Failed to update status: $UPDATE_ERRORS"
+                    continue
+                  fi
+                  
+                  echo "✅ Successfully updated status to 'In Review' for issue #$ISSUE_ID in project $PROJECT_TITLE"
+                  echo "🔄 Status changed: $CURRENT_STATUS → In Review"
+                fi
+              done
+            fi
+            
+            if [ "$FOUND_IN_ORG_PROJECTS" = "false" ] && ([ -z "$PROJECT_ITEMS" ] || [ "$PROJECT_ITEMS" = "null" ]); then
+              echo "⚠️ Issue #$ISSUE_ID is not assigned to any projects (repository or organization/user level)"
               continue
             fi
             
