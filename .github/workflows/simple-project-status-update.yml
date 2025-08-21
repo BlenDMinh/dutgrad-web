@@ -42,23 +42,39 @@ jobs:
             }' -F owner="$OWNER" -F repo="$REPO" -F number="$PR_NUMBER")
 
           issue_ids=$(echo "$gh_response" | jq -r '.data.repository.pullRequest.closingIssuesReferences.nodes[].id')
+          issue_count=$(echo "$gh_response" | jq -r '.data.repository.pullRequest.closingIssuesReferences.nodes | length')
 
-          echo "issue_ids<<EOF" >> $GITHUB_OUTPUT
-          echo "$issue_ids" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "Found $issue_count linked issues"
+          
+          if [ "$issue_count" -eq 0 ] || [ -z "$issue_ids" ]; then
+            echo "❌ No linked issues found in PR #$PR_NUMBER. Skipping project status update."
+            echo "has_linked_issues=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Found $issue_count linked issue(s):"
+            echo "$gh_response" | jq -r '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "  - Issue #\(.number): \(.title)"'
+            echo "has_linked_issues=true" >> $GITHUB_OUTPUT
+            echo "issue_ids<<EOF" >> $GITHUB_OUTPUT
+            echo "$issue_ids" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT if org-owned project
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Update project item status to "In Review"
+        if: steps.extract.outputs.has_linked_issues == 'true'
         run: |
+          echo "🚀 Starting project status updates for linked issues..."
+          
           for ISSUE_ID in ${{ steps.extract.outputs.issue_ids }}
           do
-            echo "Fetching project item and project ID for issue: $ISSUE_ID"
+            echo "📋 Processing issue: $ISSUE_ID"
 
             item_response=$(gh api graphql -F id="$ISSUE_ID" -f query='
               query($id: ID!) {
                 node(id: $id) {
                   ... on Issue {
+                    number
+                    title
                     projectItems(first: 10) {
                       nodes {
                         ... on ProjectV2Item {
@@ -76,15 +92,21 @@ jobs:
                 }
               }')
 
+            ISSUE_NUMBER=$(echo "$item_response" | jq -r '.data.node.number')
+            ISSUE_TITLE=$(echo "$item_response" | jq -r '.data.node.title')
             ITEM_ID=$(echo "$item_response" | jq -r '.data.node.projectItems.nodes[0].id')
             PROJECT_ID=$(echo "$item_response" | jq -r '.data.node.projectItems.nodes[0].project.id')
+            PROJECT_TITLE=$(echo "$item_response" | jq -r '.data.node.projectItems.nodes[0].project.title')
+
+            echo "  Issue #$ISSUE_NUMBER: $ISSUE_TITLE"
 
             if [ -z "$ITEM_ID" ] || [ "$ITEM_ID" == "null" ] || [ -z "$PROJECT_ID" ] || [ "$PROJECT_ID" == "null" ]; then
-              echo "❌ No project item or project ID found for issue: $ISSUE_ID"
+              echo "  ⚠️  Issue #$ISSUE_NUMBER is not linked to any project. Skipping."
               continue
             fi
 
-            echo "✅ Found item ID: $ITEM_ID"
+            echo "  📊 Found in project: $PROJECT_TITLE"
+            echo "  🎯 Project item ID: $ITEM_ID"
 
             fields_response=$(gh api graphql -f query='
             query($id: ID!) {
@@ -121,29 +143,50 @@ jobs:
               | select(.name == "In Review")
               | .id')
 
-            echo "Status field ID: $STATUS_FIELD_ID"
-            echo "In Review option ID: $IN_REVIEW_OPTION_ID"
+            if [ -z "$STATUS_FIELD_ID" ] || [ "$STATUS_FIELD_ID" == "null" ]; then
+              echo "  ⚠️  No 'Status' field found in project. Skipping."
+              continue
+            fi
 
-            echo "🔁 Updating status to 'In Review'..."
+            if [ -z "$IN_REVIEW_OPTION_ID" ] || [ "$IN_REVIEW_OPTION_ID" == "null" ]; then
+              echo "  ⚠️  No 'In Review' option found in Status field. Skipping."
+              echo "  Available options:"
+              echo "$fields_response" | jq -r '.data.node.fields.nodes[] | select(.name == "Status") | .options[] | "    - \(.name)"'
+              continue
+            fi
 
-            curl -X POST \
-            -H "Authorization: Bearer ${{ env.GH_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "$(jq -n \
-              --arg projectId "$PROJECT_ID" \
-              --arg itemId "$ITEM_ID" \
-              --arg fieldId "$STATUS_FIELD_ID" \
-              --arg optionId "$IN_REVIEW_OPTION_ID" \
-              '{
-                "query": "mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }",
-                "variables": {
-                  "projectId": $projectId,
-                  "itemId": $itemId,
-                  "fieldId": $fieldId,
-                  "optionId": $optionId
-                }
-              }')" \
-            https://api.github.com/graphql
+            echo "  🔄 Updating status to 'In Review'..."
+
+            update_response=$(curl -s -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$(jq -n \
+                --arg projectId "$PROJECT_ID" \
+                --arg itemId "$ITEM_ID" \
+                --arg fieldId "$STATUS_FIELD_ID" \
+                --arg optionId "$IN_REVIEW_OPTION_ID" \
+                '{
+                  "query": "mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }",
+                  "variables": {
+                    "projectId": $projectId,
+                    "itemId": $itemId,
+                    "fieldId": $fieldId,
+                    "optionId": $optionId
+                  }
+                }')" \
+              https://api.github.com/graphql)
+
+            # Check if the update was successful
+            if echo "$update_response" | jq -e '.data.updateProjectV2ItemFieldValue.projectV2Item.id' > /dev/null; then
+              echo "  ✅ Successfully updated Issue #$ISSUE_NUMBER status to 'In Review'"
+            else
+              echo "  ❌ Failed to update Issue #$ISSUE_NUMBER status"
+              echo "  Error response: $update_response"
+            fi
+
+            echo ""
           done
+
+          echo "🎉 Project status update process completed!"
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT with proper scopes if necessary
+          GH_TOKEN: ${{ secrets.GH_PAT }}
