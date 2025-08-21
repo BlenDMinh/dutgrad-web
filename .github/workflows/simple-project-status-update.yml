@@ -146,7 +146,7 @@ jobs:
               -F projectId="$PROJECT_ID" \
               -F itemId="$ITEM_ID" \
               -F fieldId="$STATUS_FIELD_ID" \
-              -F optionId="${IN_REVIEW_OPTION_ID}"
+              -F optionId="$(printf "%s" "$IN_REVIEW_OPTION_ID")"
           done
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT with proper scopes if necessary
