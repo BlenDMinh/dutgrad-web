@@ -95,7 +95,7 @@ jobs:
                 updateProjectV2ItemFieldValue(
                   input: {
                     projectId: $projectId,
-                    projectV2ItemId: $itemId,
+                    itemId: $itemId,
                     fieldId: $fieldId,
                     value: {
                       singleSelectOptionId: $optionId
