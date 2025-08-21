@@ -126,27 +126,24 @@ jobs:
 
             echo "🔁 Updating status to 'In Review'..."
 
-            gh api graphql -f query='
-              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                updateProjectV2ItemFieldValue(
-                  input: {
-                    projectId: $projectId,
-                    itemId: $itemId,
-                    fieldId: $fieldId,
-                    value: {
-                      singleSelectOptionId: $optionId
-                    }
-                  }
-                ) {
-                  projectV2Item {
-                    id
-                  }
+            curl -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg projectId "$PROJECT_ID" \
+              --arg itemId "$ITEM_ID" \
+              --arg fieldId "$STATUS_FIELD_ID" \
+              --arg optionId "$IN_REVIEW_OPTION_ID" \
+              '{
+                "query": "mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) { updateProjectV2ItemFieldValue(input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: { singleSelectOptionId: $optionId } }) { projectV2Item { id } } }",
+                "variables": {
+                  "projectId": $projectId,
+                  "itemId": $itemId,
+                  "fieldId": $fieldId,
+                  "optionId": $optionId
                 }
-              }' \
-              -F projectId="$PROJECT_ID" \
-              -F itemId="$ITEM_ID" \
-              -F fieldId="$STATUS_FIELD_ID" \
-              -F optionId="$(printf "%s" "$IN_REVIEW_OPTION_ID")"
+              }')" \
+            https://api.github.com/graphql
           done
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT with proper scopes if necessary
