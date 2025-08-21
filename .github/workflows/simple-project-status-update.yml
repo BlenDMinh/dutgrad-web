@@ -47,7 +47,7 @@ jobs:
           echo "$issue_ids" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Update issue project items to In Review
         run: |
@@ -100,4 +100,4 @@ jobs:
               }' -F itemId="$ITEM_ID" -F fieldId="$STATUS_FIELD_ID" -F optionId="$IN_REVIEW_OPTION_ID"
           done
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
