@@ -123,8 +123,10 @@ jobs:
 
             echo "Status field ID: $STATUS_FIELD_ID"
             echo "In Review option ID: $IN_REVIEW_OPTION_ID"
-            
+
             echo "🔁 Updating status to 'In Review'..."
+
+            IN_REVIEW_OPTION_ID_STR="$IN_REVIEW_OPTION_ID"
 
             gh api graphql -f query='
               mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
@@ -146,7 +148,7 @@ jobs:
               -F projectId="$PROJECT_ID" \
               -F itemId="$ITEM_ID" \
               -F fieldId="$STATUS_FIELD_ID" \
-              -F optionId="\"$IN_REVIEW_OPTION_ID\""
+              -F optionId="$IN_REVIEW_OPTION_ID_STR"
           done
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT with proper scopes if necessary
