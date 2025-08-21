@@ -51,8 +51,43 @@ jobs:
 
       - name: Update project item status to "In Review"
         run: |
-          STATUS_FIELD_ID="PVTSSF_lAHOAy7H8s4BAW1MzgzL3RU"
-          IN_REVIEW_OPTION_ID="40277743"
+          fields_response=$(gh api graphql -f query='
+          query($id: ID!) {
+            node(id: $id) {
+              ... on ProjectV2 {
+                fields(first: 50) {
+                  nodes {
+                    ... on ProjectV2SingleSelectField {
+                      id
+                      name
+                      dataType
+                      options {
+                        id
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }' -F id="$PROJECT_ID")
+
+          # Extract Status field ID
+          STATUS_FIELD_ID=$(echo "$fields_response" | jq -r '
+            .data.node.fields.nodes[]
+            | select(.name == "Status")
+            | .id')
+
+          # Extract the ID for option named "In Review"
+          IN_REVIEW_OPTION_ID=$(echo "$fields_response" | jq -r '
+            .data.node.fields.nodes[]
+            | select(.name == "Status")
+            | .options[]
+            | select(.name == "In Review")
+            | .id')
+
+          echo "Status field ID: $STATUS_FIELD_ID"
+          echo "In Review option ID: $IN_REVIEW_OPTION_ID"
 
           for ISSUE_ID in ${{ steps.extract.outputs.issue_ids }}
           do
