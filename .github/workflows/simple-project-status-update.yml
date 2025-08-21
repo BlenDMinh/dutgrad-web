@@ -127,7 +127,7 @@ jobs:
             echo "🔁 Updating status to 'In Review'..."
 
             curl -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Authorization: Bearer ${{ env.GH_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d "$(jq -n \
               --arg projectId "$PROJECT_ID" \
