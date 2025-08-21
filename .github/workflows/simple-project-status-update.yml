@@ -144,7 +144,7 @@ jobs:
                 }
               }' \
               -F projectId="$PROJECT_ID" \
-              -F itemId="$ITEM_ID" \
+              -F itemId="$ITEM_ID"
           done
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}  # Use PAT with proper scopes if necessary
