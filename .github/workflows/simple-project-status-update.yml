@@ -13,93 +13,91 @@ permissions:
 jobs:
   update-status:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Update project status
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Extract PR info and linked issues
+        id: extract
         run: |
-          PR_BODY="${{ github.event.pull_request.body }}"
-          
-          # Extract issue numbers from "Resolve #123" pattern
-          ISSUE_IDS=$(echo "$PR_BODY" | grep -oE 'Resolve #[0-9]+' | grep -oE '[0-9]+')
-          
-          if [ -z "$ISSUE_IDS" ]; then
-            echo "No linked issues found"
-            exit 0
-          fi
-          
-          echo "Found linked issues: $ISSUE_IDS"
-          
-          # Process each issue
-          for ISSUE_ID in $ISSUE_IDS; do
-            echo "Processing issue #$ISSUE_ID"
-            
-            # Simple GraphQL query to get issue project items and update status
-            RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "query": "query { repository(owner: \"${{ github.repository_owner }}\", name: \"${{ github.event.repository.name }}\") { issue(number: '$ISSUE_ID') { projectItems(first: 5) { nodes { id project { id title fields(first: 10) { nodes { ... on ProjectV2SingleSelectField { id name options { id name } } } } } fieldValues(first: 10) { nodes { ... on ProjectV2ItemFieldSingleSelectValue { field { ... on ProjectV2SingleSelectField { name } } name } } } } } } } }"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          OWNER="${{ github.repository_owner }}"
+          REPO="$(basename "${{ github.repository }}")"
+
+          echo "Fetching linked issues from PR #$PR_NUMBER"
+          gh_response=$(gh api graphql -f query='
+            query($owner: String!, $repo: String!, $number: Int!) {
+              repository(owner: $owner, name: $repo) {
+                pullRequest(number: $number) {
+                  closingIssuesReferences(first: 10) {
+                    nodes {
+                      id
+                      number
+                      title
+                    }
+                  }
+                }
+              }
+            }' -F owner="$OWNER" -F repo="$REPO" -F number="$PR_NUMBER")
+
+          issue_ids=$(echo "$gh_response" | jq -r '.data.repository.pullRequest.closingIssuesReferences.nodes[].id')
+
+          echo "issue_ids<<EOF" >> $GITHUB_OUTPUT
+          echo "$issue_ids" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update issue project items to In Review
+        run: |
+          STATUS_FIELD_ID="PVTSSF_lAHOAy7H8s4BAW1MzgzL3RU"
+          IN_REVIEW_OPTION_ID="40277743"
+
+          for ISSUE_ID in ${{ steps.extract.outputs.issue_ids }}
+          do
+            echo "Fetching project item ID for issue: $ISSUE_ID"
+
+            item_response=$(gh api graphql -F id="$ISSUE_ID" -f query='
+              query($id: ID!) {
+                node(id: $id) {
+                  ... on Issue {
+                    projectItems(first: 10) {
+                      nodes {
+                        ... on ProjectV2Item {
+                          id
+                        }
+                      }
+                    }
+                  }
+                }
               }')
-            
-            # Check for errors
-            if echo "$RESPONSE" | jq -e '.errors' > /dev/null; then
-              echo "Error: $(echo "$RESPONSE" | jq -r '.errors[0].message')"
+
+            ITEM_ID=$(echo "$item_response" | jq -r '.data.node.projectItems.nodes[0].id')
+
+            if [ -z "$ITEM_ID" ] || [ "$ITEM_ID" == "null" ]; then
+              echo "No project item found for issue: $ISSUE_ID"
               continue
             fi
-            
-            # Process each project item and update status
-            echo "$RESPONSE" | jq -c '.data.repository.issue.projectItems.nodes[]' | while read -r ITEM; do
-              PROJECT_TITLE=$(echo "$ITEM" | jq -r '.project.title')
-              PROJECT_ID=$(echo "$ITEM" | jq -r '.project.id')
-              ITEM_ID=$(echo "$ITEM" | jq -r '.id')
-              
-              echo "Project: $PROJECT_TITLE"
-              
-              # Find Status field
-              STATUS_FIELD=$(echo "$ITEM" | jq -r '.project.fields.nodes[] | select(.name == "Status")')
-              
-              if [ "$STATUS_FIELD" = "null" ] || [ -z "$STATUS_FIELD" ]; then
-                echo "  No Status field found"
-                continue
-              fi
-              
-              STATUS_FIELD_ID=$(echo "$STATUS_FIELD" | jq -r '.id')
-              
-              # Find "In Review" option
-              IN_REVIEW_OPTION=$(echo "$STATUS_FIELD" | jq -r '.options[] | select(.name == "In Review")')
-              
-              if [ "$IN_REVIEW_OPTION" = "null" ] || [ -z "$IN_REVIEW_OPTION" ]; then
-                echo "  No 'In Review' option found"
-                continue
-              fi
-              
-              IN_REVIEW_OPTION_ID=$(echo "$IN_REVIEW_OPTION" | jq -r '.id')
-              
-              # Get current status
-              CURRENT_STATUS=$(echo "$ITEM" | jq -r '.fieldValues.nodes[] | select(.field.name == "Status") | .name // "None"')
-              
-              echo "  Current status: $CURRENT_STATUS"
-              
-              if [ "$CURRENT_STATUS" = "In Review" ]; then
-                echo "  Already set to 'In Review'"
-                continue
-              fi
-              
-              # Update status to "In Review"
-              echo "  Updating to 'In Review'..."
-              
-              UPDATE_RESPONSE=$(curl -s -X POST "https://api.github.com/graphql" \
-                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Content-Type: application/json" \
-                -d '{
-                  "query": "mutation { updateProjectV2ItemFieldValue(input: { projectId: \"'$PROJECT_ID'\", itemId: \"'$ITEM_ID'\", fieldId: \"'$STATUS_FIELD_ID'\", value: { singleSelectOptionId: \"'$IN_REVIEW_OPTION_ID'\" } }) { projectV2Item { id } } }"
-                }')
-              
-              if echo "$UPDATE_RESPONSE" | jq -e '.errors' > /dev/null; then
-                echo "  Update failed: $(echo "$UPDATE_RESPONSE" | jq -r '.errors[0].message')"
-              else
-                echo "  Successfully updated to 'In Review'"
-              fi
-            done
-            
-            echo "Completed processing issue #$ISSUE_ID"
+
+            echo "Updating project item $ITEM_ID to 'In Review'"
+
+            gh api graphql -f query='
+              mutation($itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                updateProjectV2ItemFieldValue(
+                  input: {
+                    projectV2ItemId: $itemId,
+                    fieldId: $fieldId,
+                    value: {
+                      singleSelectOptionId: $optionId
+                    }
+                  }
+                ) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }' -F itemId="$ITEM_ID" -F fieldId="$STATUS_FIELD_ID" -F optionId="$IN_REVIEW_OPTION_ID"
           done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
